@@ -550,6 +550,17 @@ h3.section::before {
   opacity: 0.5;
 }
 
+/* Subheading within a section: same letterspaced caps, no rule, so the two
+   alternative routes to a credential read as peers under one heading. */
+h4.subsection {
+  font-size: 10.5px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-weight: 600;
+  margin: 26px 0 10px;
+  color: var(--foreground);
+}
+
 p.note {
   color: var(--muted);
   font-size: 12.5px;

@@ -1,27 +1,74 @@
-// Settings: Anthropic API key for AI floorplan extraction, and the editable
-// NDSS ruleset that governs compliance validation.
+// Settings: how the app authenticates to Claude for floorplan reading, and
+// the editable NDSS ruleset that governs compliance validation.
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import type { AuthStatus } from '../../electron/preload';
 import { useStore } from '../state/store';
 import type { UnitTypeKey } from '../core/types';
 import { DEFAULT_RULES } from '../core/rules';
 
+/** One line describing the credential a request would actually use. */
+function sourceLabel(status: AuthStatus): string {
+  switch (status.source) {
+    case 'stored-key':
+      return 'Using the API key saved in this app';
+    case 'env-key':
+      return 'Using ANTHROPIC_API_KEY from the environment';
+    case 'env-token':
+      return 'Using ANTHROPIC_AUTH_TOKEN from the environment';
+    case 'claude-login':
+      return status.login?.email
+        ? `Signed in to Claude as ${status.login.email}${status.login.organisation ? ` (${status.login.organisation})` : ''}`
+        : 'Signed in to Claude';
+    default:
+      return 'Not connected to Claude yet';
+  }
+}
+
 export default function SettingsView() {
   const rules = useStore((s) => s.rules);
   const setRules = useStore((s) => s.setRules);
-  const [hasKey, setHasKey] = useState(false);
+  const [auth, setAuth] = useState<AuthStatus | null>(null);
   const [keyInput, setKeyInput] = useState('');
-  const [msg, setMsg] = useState<string | null>(null);
+  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [busy, setBusy] = useState<string | null>(null);
 
-  useEffect(() => {
-    window.satis.aiHasKey().then(setHasKey);
+  const refreshAuth = useCallback(async () => {
+    setAuth(await window.satis.authStatus());
   }, []);
 
+  useEffect(() => {
+    void refreshAuth();
+  }, [refreshAuth]);
+
+  async function signIn() {
+    setMsg(null);
+    setBusy('Waiting for you to finish signing in in your browser…');
+    const res = await window.satis.authSignIn();
+    setBusy(null);
+    setMsg({ ok: res.ok, text: res.message });
+    await refreshAuth();
+  }
+
   async function saveKey() {
-    await window.satis.aiSetKey(keyInput.trim());
-    setHasKey(!!keyInput.trim());
+    const key = keyInput.trim();
+    await window.satis.authSetKey(key);
     setKeyInput('');
-    setMsg(keyInput.trim() ? 'API key stored (encrypted with your OS keychain where available).' : 'API key removed.');
+    await refreshAuth();
+    setMsg({
+      ok: true,
+      text: key
+        ? 'API key saved. Press Test connection to check it works.'
+        : 'API key removed from this app.',
+    });
+  }
+
+  async function test() {
+    setMsg(null);
+    setBusy('Testing the connection…');
+    const res = await window.satis.authTest();
+    setBusy(null);
+    setMsg({ ok: res.ok, text: res.message });
   }
 
   const minima = rules.unitMinimumGia;
@@ -30,31 +77,112 @@ export default function SettingsView() {
     <div>
       <div className="page-title">Settings</div>
 
-      <h3 className="section">AI floorplan reading</h3>
+      <h3 className="section">Claude access for floorplan reading</h3>
       <p className="note">
-        PDF and image floorplans are interpreted by Claude (Anthropic). The key is stored locally on this machine and
-        used only for extraction requests. DXF import and manual entry work without a key.
+        PDF and image floorplans are read by Claude. You can either sign in with your Claude account or paste an
+        Anthropic API key, whichever you have. Credentials stay on this machine and are only used for floorplan
+        extraction. DXF import and manual floor entry work without either.
       </p>
+
+      {auth && (
+        <div className={auth.ready ? 'ok-box' : 'warn-box'}>
+          <div>
+            <span className={`badge ${auth.ready ? 'pass' : 'fail'}`} style={{ marginRight: 8 }}>
+              {auth.ready ? 'Connected' : 'Not connected'}
+            </span>
+            {sourceLabel(auth)}
+          </div>
+          {auth.shadowed && (
+            <div style={{ marginTop: 6 }}>
+              You are also signed in to Claude, but an API key takes precedence. Remove the key (save an empty key
+              below) to use the sign-in instead.
+            </div>
+          )}
+          {auth.login?.expired && !auth.login.refreshable && (
+            <div style={{ marginTop: 6 }}>Your Claude sign-in has expired. Sign in again to renew it.</div>
+          )}
+          {auth.storedKey && !auth.keychain && (
+            <div style={{ marginTop: 6 }}>
+              This system has no keychain available, so the saved key is held in a file readable only by your user
+              account rather than encrypted.
+            </div>
+          )}
+        </div>
+      )}
+
+      <h4 className="subsection">Sign in with your Claude account</h4>
+      <p className="note">
+        Opens your browser to sign in, then hands the app a token it refreshes on its own. No key to copy, and nothing
+        to re-enter later. This uses the Anthropic command-line tool, which manages the sign-in for every Anthropic app
+        on this machine, so it needs to be installed once.
+      </p>
+      <div style={{ marginBottom: 14 }}>
+        <button className="btn" onClick={signIn} disabled={!!busy}>
+          {auth?.login ? 'Sign in again' : 'Sign in with Claude'}
+        </button>
+        <button className="btn ghost" onClick={() => window.satis.authOpenLink('cli-install')}>
+          Installing the Anthropic CLI
+        </button>
+      </div>
+      {auth && !auth.cli.available && (
+        <p className="note">
+          {auth.cli.conflict
+            ? `${auth.cli.conflict} Install the Anthropic CLI to sign in from here, or paste an API key below.`
+            : 'The Anthropic CLI was not found on this machine, so signing in from here is not available yet. Install it using the link above, or paste an API key below.'}
+        </p>
+      )}
+      {auth?.login && (
+        <p className="note">
+          Signing out is handled by the CLI rather than this app, because the same sign-in is shared with other
+          Anthropic tools. Run &quot;ant auth logout&quot; in a terminal to sign out everywhere.
+        </p>
+      )}
+
+      <h4 className="subsection">Or use an Anthropic API key</h4>
       <div className="grid c2">
         <label className="field">
-          Anthropic API key {hasKey ? '— configured ✓' : '— not configured'}
+          Anthropic API key {auth?.storedKey ? '(saved)' : '(not saved)'}
           <input
             type="password"
-            placeholder={hasKey ? '•••••••••••••••• (enter new key to replace, empty to remove)' : 'sk-ant-…'}
+            placeholder={
+              auth?.storedKey ? '•••••••••••••••• (enter a new key to replace, or save empty to remove)' : 'sk-ant-…'
+            }
             value={keyInput}
             onChange={(e) => setKeyInput(e.target.value)}
           />
         </label>
         <label className="field">
           &nbsp;
-          <button className="btn" onClick={saveKey} style={{ marginTop: 5 }}>
-            Save key
-          </button>
+          <span style={{ display: 'block', marginTop: 5 }}>
+            <button className="btn" onClick={saveKey}>
+              Save key
+            </button>
+            <button className="btn ghost" onClick={() => window.satis.authOpenLink('console-keys')}>
+              Create a key
+            </button>
+          </span>
         </label>
       </div>
-      {msg && <div className="ok-box">{msg}</div>}
 
-      <h3 className="section">NDSS ruleset — minimum unit sizes (sqm)</h3>
+      <div style={{ marginBottom: 10 }}>
+        <button className="btn ghost" onClick={test} disabled={!!busy || !auth?.ready}>
+          Test connection
+        </button>
+        <button className="btn ghost" onClick={() => void refreshAuth()} disabled={!!busy}>
+          Recheck
+        </button>
+      </div>
+      {busy && <div className="ok-box">{busy}</div>}
+      {msg && <div className={msg.ok ? 'ok-box' : 'warn-box'}>{msg.text}</div>}
+      {auth && !auth.envKey && !auth.envToken && (
+        <p className="note">
+          ANTHROPIC_API_KEY is also picked up when it is set. On Mac and Linux a variable set in your shell profile is
+          only visible to this app when the app is launched from a terminal, so saving the key above is the reliable
+          route.
+        </p>
+      )}
+
+      <h3 className="section">NDSS ruleset: minimum unit sizes (sqm)</h3>
       <p className="note">
         Defaults follow the UK Nationally Described Space Standard (2015) plus common building-regs-derived rules.
         Edits apply to newly generated options. Planning matters (permitted development, Class MA, fire strategy,
@@ -70,7 +198,7 @@ export default function SettingsView() {
         <tbody>
           {(Object.keys(minima) as UnitTypeKey[]).map((k) => (
             <tr key={k}>
-              <td>{k.replace('_', ' — ').replace('p', ' person')}</td>
+              <td>{k.replace('_', ', ').replace('p', ' person')}</td>
               <td className="num">
                 <input
                   type="number"

@@ -1,50 +1,17 @@
 // Electron main process: window lifecycle, project file I/O, xlsx export
 // from the bundled Appraisal Model template, and AI floorplan extraction.
 
-import { app, BrowserWindow, dialog, ipcMain, safeStorage, shell } from 'electron';
+import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron';
 import path from 'node:path';
 import fs from 'node:fs';
 import { exportWorkbook } from './xlsxExport';
-import { extractEnvelopes } from './ai';
+import { extractEnvelopes, MODEL } from './ai';
+import { authStatus, initAuth, setStoredKey, signInWithClaude, testConnection } from './auth';
 
 const isDev = !!process.env.VITE_DEV_SERVER_URL;
 
 function resourcesDir(): string {
   return isDev ? path.join(app.getAppPath(), 'resources') : path.join(process.resourcesPath, 'resources');
-}
-
-function configPath(): string {
-  return path.join(app.getPath('userData'), 'config.json');
-}
-
-interface StoredConfig {
-  apiKeyEncrypted?: string; // base64 of safeStorage-encrypted key
-  apiKeyPlain?: string; // fallback when safeStorage is unavailable
-}
-
-function readConfig(): StoredConfig {
-  try {
-    return JSON.parse(fs.readFileSync(configPath(), 'utf-8'));
-  } catch {
-    return {};
-  }
-}
-
-function writeConfig(cfg: StoredConfig) {
-  fs.mkdirSync(path.dirname(configPath()), { recursive: true });
-  fs.writeFileSync(configPath(), JSON.stringify(cfg), { mode: 0o600 });
-}
-
-function getApiKey(): string | null {
-  const cfg = readConfig();
-  if (cfg.apiKeyEncrypted && safeStorage.isEncryptionAvailable()) {
-    try {
-      return safeStorage.decryptString(Buffer.from(cfg.apiKeyEncrypted, 'base64'));
-    } catch {
-      return null;
-    }
-  }
-  return cfg.apiKeyPlain ?? null;
 }
 
 function createWindow() {
@@ -76,6 +43,7 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
+  initAuth(app.getPath('userData'));
   createWindow();
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
@@ -182,28 +150,39 @@ ipcMain.handle('floorplan:openFiles', async () => {
   });
 });
 
-ipcMain.handle('ai:hasKey', () => getApiKey() !== null);
+// ---------------------------------------------------------------------------
+// Credentials. The renderer can ask what is configured and change it, but no
+// key or token is ever sent back over the bridge.
+// ---------------------------------------------------------------------------
 
-ipcMain.handle('ai:setKey', (_e, key: string) => {
-  if (!key) {
-    writeConfig({});
-    return true;
-  }
-  if (safeStorage.isEncryptionAvailable()) {
-    writeConfig({ apiKeyEncrypted: safeStorage.encryptString(key).toString('base64') });
-  } else {
-    writeConfig({ apiKeyPlain: key });
-  }
+ipcMain.handle('auth:status', () => authStatus());
+
+ipcMain.handle('auth:setKey', (_e, key: string) => {
+  setStoredKey(key);
   return true;
+});
+
+ipcMain.handle('auth:signIn', () => signInWithClaude());
+
+ipcMain.handle('auth:test', () => testConnection(MODEL));
+
+// Fixed destinations rather than a URL parameter, so the renderer cannot use
+// this to open anything it likes.
+const LINKS: Record<string, string> = {
+  'console-keys': 'https://platform.claude.com/settings/keys',
+  'cli-install': 'https://platform.claude.com/docs/en/api/sdks/cli',
+};
+
+ipcMain.handle('auth:openLink', (_e, which: string) => {
+  const url = LINKS[which];
+  if (url) shell.openExternal(url);
+  return !!url;
 });
 
 ipcMain.handle(
   'ai:extract',
-  async (_e, payload: { name: string; ext: string; base64: string; hint?: string }) => {
-    const key = getApiKey();
-    if (!key) throw new Error('No API key configured. Add your Anthropic API key in Settings.');
-    return extractEnvelopes(key, payload);
-  },
+  async (_e, payload: { name: string; ext: string; base64: string; hint?: string }) =>
+    extractEnvelopes(payload),
 );
 
 ipcMain.handle('export:xlsx', async (_e, payload: { scheduleJson: string; inputsJson: string; suggestedName: string }) => {

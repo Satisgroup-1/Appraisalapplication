@@ -15,9 +15,10 @@ The app opens with the SATIS letter-drop intro (as on the group website), then l
 to enter its workspace:
 
 1. **Building** — import floorplans:
-   - **PDF / images** are interpreted with AI (Claude vision; add an Anthropic API key in
-     Settings). Extraction assumptions and scale basis are surfaced for review — always
-     confirm dimensions before generating options.
+   - **PDF / images** are interpreted with AI (Claude vision; connect an account in
+     Settings — see [Connecting Claude](#connecting-claude)). Extraction assumptions and
+     scale basis are surfaced for review — always confirm dimensions before generating
+     options.
    - **DXF** files are parsed deterministically (largest closed polyline = envelope,
      `STAIR`/`LIFT`/`CORE` layers = cores, `WIN*` layers = windows).
    - **Manual entry** — type dimensions, window counts and core placement per floor.
@@ -37,6 +38,39 @@ to enter its workspace:
    delayed sales, refinance & rent, refinance-then-sell) and sensitivity grids. Export a
    populated copy of the Appraisal Model workbook (`.xlsx`) — the workbook's own formulas
    recalculate on open in Excel.
+
+## Connecting Claude
+
+Only the PDF and image floorplan reader calls Claude; DXF import, manual entry, the layout
+engine, the NDSS validator and the whole DCF appraisal run entirely offline. Settings offers
+two ways to connect, and shows which one a request will actually use:
+
+- **Sign in with Claude** — opens the browser, and the token is refreshed automatically from
+  then on. Nothing to copy or re-enter. The sign-in is performed by the
+  [Anthropic CLI](https://platform.claude.com/docs/en/api/sdks/cli) (`ant auth login`), which
+  owns the OAuth flow and stores one profile shared with every Anthropic tool on the machine,
+  so the CLI has to be installed once. The app never handles the tokens itself; the SDK reads
+  and refreshes that profile. Signing out is `ant auth logout`, deliberately left to the CLI
+  because the profile is shared.
+- **An Anthropic API key** — pasted into Settings and encrypted with the OS keychain
+  (`safeStorage`). Where no keychain exists the key is written to a file readable only by the
+  user account, and Settings says so rather than implying encryption.
+
+`ANTHROPIC_API_KEY` and `ANTHROPIC_AUTH_TOKEN` are honoured when set. Note that on macOS and
+Linux a variable exported from a shell profile is invisible to an app launched from Finder or
+a desktop launcher, so it only applies when the app is started from a terminal.
+
+Precedence matches the SDK's own resolution order exactly, so the reported credential is the
+one that will be used: stored key, then `ANTHROPIC_API_KEY`, then `ANTHROPIC_AUTH_TOKEN`, then
+the Claude sign-in. When a key shadows a sign-in, Settings says so rather than leaving the
+account label misleading. `tests/auth.test.ts` pins this order.
+
+**Test connection** in Settings resolves the active credential and retrieves the model record,
+translating failures into plain English (rejected credentials, no model access, no credit,
+rate limited, unreachable API) instead of surfacing a raw status code.
+
+Credentials never cross into the renderer: resolution, storage and every API call happen in
+the Electron main process, and the IPC surface returns account labels only.
 
 ## Development
 

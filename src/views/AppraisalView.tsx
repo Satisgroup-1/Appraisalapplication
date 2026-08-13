@@ -50,7 +50,7 @@ export default function AppraisalView() {
       `${project.name.replace(/\s+/g, '_')}_${useDemo ? 'demo' : option?.id ?? 'appraisal'}`,
     );
     if (path) {
-      setExportMsg(`Workbook exported to ${path} — open in Excel to recalculate.`);
+      setExportMsg(`Workbook exported to ${path}. Open in Excel to recalculate.`);
       window.satis.showItemInFolder(path);
     }
   }
@@ -76,7 +76,7 @@ export default function AppraisalView() {
           </button>
         ))}
         <button className={`pill ${useDemo ? 'on' : ''}`} onClick={() => setUseDemo(true)}>
-          Demo — Appraisal Model 1 scheme
+          Demo: Appraisal Model 1 scheme
         </button>
       </div>
 
@@ -176,28 +176,28 @@ function SummaryTab({ result }: { result: AppraisalResult }) {
           </thead>
           <tbody>
             <tr>
-              <td>S1 — Immediate sale at PC</td>
+              <td>S1: Immediate sale at PC</td>
               <td className="num">{fmtGBP(scenarios.s1.netProfit)}</td>
               <td className="num">{fmtPct(scenarios.s1.profitOnGdv)}</td>
               <td className="num">{fmtPct(scenarios.s1.investorRoi)}</td>
               <td className="num">{scenarios.s1.durationMonths}</td>
             </tr>
             <tr>
-              <td>S2 — Delayed sales (dev loan)</td>
+              <td>S2: Delayed sales (dev loan)</td>
               <td className="num">{fmtGBP(scenarios.s2.netProfit)}</td>
               <td className="num">{fmtPct(scenarios.s1.gdvAdjusted === 0 ? 0 : scenarios.s2.netProfit / scenarios.s1.gdvAdjusted)}</td>
               <td className="num">{fmtPct(scenarios.s2.investorRoi)}</td>
               <td className="num">{scenarios.s2.totalDurationMonths}</td>
             </tr>
             <tr>
-              <td>S3 — Refinance &amp; rent (pa cashflow)</td>
+              <td>S3: Refinance &amp; rent (pa cashflow)</td>
               <td className="num">{fmtGBP(scenarios.s3.netAnnualCashflow)}</td>
-              <td className="num">—</td>
+              <td className="num">-</td>
               <td className="num">{fmtPct(scenarios.s3.cashOnCash)}</td>
               <td className="num">hold</td>
             </tr>
             <tr>
-              <td>S4 — Refinance then delayed sales</td>
+              <td>S4: Refinance then delayed sales</td>
               <td className="num">{fmtGBP(scenarios.s4.netProfit)}</td>
               <td className="num">{fmtPct(scenarios.s1.gdvAdjusted === 0 ? 0 : scenarios.s4.netProfit / scenarios.s1.gdvAdjusted)}</td>
               <td className="num">{fmtPct(scenarios.s4.investorRoi)}</td>
@@ -273,7 +273,7 @@ function CostsTab({ result }: { result: AppraisalResult }) {
 
       {bb && (
         <>
-          <h3 className="section">Build cost (D01) — from room-type £/sqft rates</h3>
+          <h3 className="section">Build cost (D01) from room-type £/sqft rates</h3>
           <table className="data" style={{ maxWidth: 700 }}>
             <thead>
               <tr>
@@ -390,7 +390,7 @@ function ScenariosTab({ result }: { result: AppraisalResult }) {
   return (
     <div className="grid c2" style={{ alignItems: 'start' }}>
       <div>
-        <h3 className="section">S1 — Immediate sale at practical completion</h3>
+        <h3 className="section">S1: Immediate sale at practical completion</h3>
         <table className="data">
           <tbody>
             <Row k="GDV (adjusted for price lever)" v={fmtGBP(sc.s1.gdvAdjusted)} />
@@ -404,7 +404,7 @@ function ScenariosTab({ result }: { result: AppraisalResult }) {
           </tbody>
         </table>
 
-        <h3 className="section">S3 — Refinance at PC &amp; rent</h3>
+        <h3 className="section">S3: Refinance at PC &amp; rent</h3>
         <table className="data">
           <tbody>
             <Row k="Mortgage advance (LTV × GDV)" v={fmtGBP(sc.s3.mortgageAdvance)} />
@@ -422,7 +422,7 @@ function ScenariosTab({ result }: { result: AppraisalResult }) {
         </table>
       </div>
       <div>
-        <h3 className="section">S2 — Delayed sales (dev loan rolls)</h3>
+        <h3 className="section">S2: Delayed sales (dev loan rolls)</h3>
         <table className="data">
           <tbody>
             <Row k="Months to sell out" v={String(sc.s2.monthsToSellOut)} />
@@ -435,7 +435,7 @@ function ScenariosTab({ result }: { result: AppraisalResult }) {
           </tbody>
         </table>
 
-        <h3 className="section">S4 — Refinance at PC, then delayed sales</h3>
+        <h3 className="section">S4: Refinance at PC, then delayed sales</h3>
         <table className="data">
           <tbody>
             <Row k="Refinance principal (= dev payoff)" v={fmtGBP(sc.s4.refiPrincipal)} />
@@ -456,7 +456,7 @@ function SensitivityTab({ result }: { result: AppraisalResult }) {
   const s = result.sensitivity;
   return (
     <div>
-      <h3 className="section">Grid 1 — S1 net profit vs sale price movement</h3>
+      <h3 className="section">Grid 1: S1 net profit vs sale price movement</h3>
       <table className="data" style={{ maxWidth: 560 }}>
         <thead>
           <tr>
@@ -478,7 +478,7 @@ function SensitivityTab({ result }: { result: AppraisalResult }) {
         </tbody>
       </table>
 
-      <h3 className="section">Grid 2 — S2 net profit: price movement × sales velocity (approximation)</h3>
+      <h3 className="section">Grid 2: S2 net profit by price movement × sales velocity (approximation)</h3>
       <table className="data" style={{ maxWidth: 760 }}>
         <thead>
           <tr>
@@ -505,7 +505,7 @@ function SensitivityTab({ result }: { result: AppraisalResult }) {
       </table>
       <p className="note">Approximate: assumes straight-line paydown of the dev loan; the exact base case is Scenario 2.</p>
 
-      <h3 className="section">Grid 3 — Refinance &amp; rent: net annual cashflow by refi rate × LTV</h3>
+      <h3 className="section">Grid 3: Refinance &amp; rent net annual cashflow by refi rate × LTV</h3>
       <table className="data" style={{ maxWidth: 660 }}>
         <thead>
           <tr>

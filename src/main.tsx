@@ -46,10 +46,23 @@ if (!window.satis) {
     saveProject: async () => null,
     openProject: async () => null,
     openFloorplanFiles: async () => [],
-    aiHasKey: async () => false,
-    aiSetKey: async () => true,
+    authStatus: async () => ({
+      source: 'none' as const,
+      ready: false,
+      storedKey: false,
+      envKey: false,
+      envToken: false,
+      login: null,
+      shadowed: false,
+      cli: { available: false },
+      keychain: false,
+    }),
+    authSetKey: async () => true,
+    authSignIn: async () => ({ ok: false, message: 'Signing in is only available in the desktop app.' }),
+    authTest: async () => ({ ok: false, message: 'Connection testing is only available in the desktop app.' }),
+    authOpenLink: async () => false,
     aiExtract: async () => {
-      throw new Error('AI extraction is only available in the desktop app.');
+      throw new Error('Floorplan reading is only available in the desktop app.');
     },
     exportXlsx: async () => null,
     exportSvg: async () => null,

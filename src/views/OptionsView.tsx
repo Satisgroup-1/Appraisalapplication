@@ -39,7 +39,7 @@ export default function OptionsView() {
       <div>
         <div className="page-title">Conversion options</div>
         <div className="empty-state">
-          Capture the building first — import floorplans on the Building page, then generate options here.
+          Capture the building first. Import floorplans on the Building page, then generate options here.
         </div>
       </div>
     );
@@ -70,13 +70,13 @@ export default function OptionsView() {
         )}
       </div>
       {optionsStale && options.length > 0 && (
-        <div className="warn-box">Building or pricing has changed since these options were generated — regenerate.</div>
+        <div className="warn-box">Building or pricing has changed since these options were generated. Regenerate.</div>
       )}
 
       {options.length === 0 ? (
         <div className="empty-state">
-          Press Generate to enumerate conversions of “{project.name}” — commercial→residential, unit splits at three
-          mix strategies, lateral floor-through apartments and a whole-building merge — validated against the NDSS
+          Press Generate to enumerate conversions of “{project.name}”: commercial→residential, unit splits at three
+          mix strategies, lateral floor-through apartments and a whole-building merge, all validated against the NDSS
           ruleset and priced from “{project.pricing.name}”.
         </div>
       ) : (
@@ -162,7 +162,7 @@ function OptionDetail({ option, onAppraise }: { option: ConversionOption; onAppr
     <div style={{ marginTop: 34 }}>
       <div className="page-title">
         {option.title}
-        <span className="hint">Feasibility schematics — not architecture. Planning matters are out of scope.</span>
+        <span className="hint">Feasibility schematics, not architecture. Planning matters are out of scope.</span>
       </div>
 
       {option.warnings.length > 0 && (
@@ -205,7 +205,7 @@ function OptionDetail({ option, onAppraise }: { option: ConversionOption; onAppr
             </tr>
           ))}
           <tr className="total">
-            <td colSpan={4}>TOTAL — {option.totals.units} units</td>
+            <td colSpan={4}>TOTAL ({option.totals.units} units)</td>
             <td className="num">{fmtNum(option.totals.niaSqm, 1)}</td>
             <td className="num">{fmtNum(option.totals.niaSqft)}</td>
             <td className="num" />
@@ -251,7 +251,7 @@ function OptionDetail({ option, onAppraise }: { option: ConversionOption; onAppr
                       </span>
                       {u.issues.map((iss, k) => (
                         <div key={k} className="compliance-issue">
-                          — {iss}
+                          · {iss}
                         </div>
                       ))}
                     </div>
@@ -265,7 +265,7 @@ function OptionDetail({ option, onAppraise }: { option: ConversionOption; onAppr
                     </summary>
                     {compliance.advisories.map((a, k) => (
                       <div key={k} className="assumption">
-                        — {a}
+                        · {a}
                       </div>
                     ))}
                   </details>

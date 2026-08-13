@@ -212,7 +212,7 @@ export function generateOptions(building: Envelope[], rules: Rules, spec: Pricin
       options.push(
         makeOption(
           `full_${s}`,
-          `All residential — ${s.replace('_', ' ')}`,
+          `All residential (${s.replace('_', ' ')})`,
           'full_residential',
           s,
           'Every floor converted to apartments off a central corridor.',
@@ -239,7 +239,7 @@ export function generateOptions(building: Envelope[], rules: Rules, spec: Pricin
         options.push(
           makeOption(
             `mixed_${s}`,
-            `Ground commercial + resi uppers — ${s.replace('_', ' ')}`,
+            `Ground commercial + resi uppers (${s.replace('_', ' ')})`,
             'mixed_ground_commercial',
             s,
             'Ground floor retained in commercial use; upper floors converted to apartments.',
@@ -273,7 +273,7 @@ export function generateOptions(building: Envelope[], rules: Rules, spec: Pricin
         'Lateral floor-through apartments',
         'floor_through',
         'floor_through',
-        'One generous lateral apartment per floor — fewer, larger units.',
+        'One generous lateral apartment per floor: fewer, larger units.',
         plans,
         retained,
         rules,
@@ -313,7 +313,7 @@ export function generateOptions(building: Envelope[], rules: Rules, spec: Pricin
         'Single dwelling (merge all floors)',
         'whole_house',
         'whole_house',
-        'The whole building combined into one house — e.g. flats merged back into a single dwelling.',
+        'The whole building combined into one house, e.g. flats merged back into a single dwelling.',
         [merged],
         [],
         rules,

@@ -58,7 +58,7 @@ function demoFloor(floor: string, use: Envelope['use']): Envelope {
       ...winXs.map((x) => ({ x, side: 'front' as const })),
       ...winXs.map((x) => ({ x, side: 'rear' as const })),
     ],
-    note: 'Demo floor — 26m x 13m, windows at 2.5m centres both facades',
+    note: 'Demo floor: 26m x 13m, windows at 2.5m centres both facades',
     assumptions: ['Scale assumed from demo data'],
   };
 }
@@ -75,7 +75,7 @@ export function demoProject(): Project {
   return {
     version: 1,
     id: `proj-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
-    name: 'Demo — Former Retail Building',
+    name: 'Demo: Former Retail Building',
     address: '123 High Street, Manchester',
     createdAt: now,
     updatedAt: now,

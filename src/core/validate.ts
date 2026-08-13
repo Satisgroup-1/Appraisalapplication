@@ -75,16 +75,16 @@ export function validateUnit(u: PlannedUnit, rules: Rules): string[] {
  *  when it was assumed. */
 export function floorAdvisories(plan: FloorPlanResult, rules: Rules): string[] {
   const adv: string[] = [
-    `Ceiling height ≥${rules.heights.minCeiling}m over ≥${Math.round(rules.heights.minCeilingCoverage * 100)}% of GIA assumed — verify on measured survey.`,
-    `Glazing ≥${Math.round(rules.windows.glazingMinRatioOfRoomFloor * 100)}% of room floor area assumed for habitable rooms — depends on actual window sizes.`,
+    `Ceiling height ≥${rules.heights.minCeiling}m over ≥${Math.round(rules.heights.minCeilingCoverage * 100)}% of GIA assumed. Verify on measured survey.`,
+    `Glazing ≥${Math.round(rules.windows.glazingMinRatioOfRoomFloor * 100)}% of room floor area assumed for habitable rooms, and depends on actual window sizes.`,
   ];
   if (plan.corridor) {
-    adv.push('Corridor-and-bays layout gives single-aspect units — some LPAs restrict single-aspect (esp. north-facing) dwellings.');
+    adv.push('Corridor-and-bays layout gives single-aspect units, and some LPAs restrict single-aspect (esp. north-facing) dwellings.');
   }
   if (plan.units.some((u) => u.type === 'studio_1p')) {
     adv.push('Studio minimum of 37sqm assumes a shower room; NDSS requires 39sqm where a bath is provided.');
   }
-  adv.push('Planning matters (permitted development / Class MA, fire strategy, natural light tests, external amenity) are out of scope — treat as risks.');
+  adv.push('Planning matters (permitted development / Class MA, fire strategy, natural light tests, external amenity) are out of scope. Treat as risks.');
   return adv;
 }
 

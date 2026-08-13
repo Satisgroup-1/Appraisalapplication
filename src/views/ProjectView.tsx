@@ -52,10 +52,10 @@ export default function ProjectView() {
       } else {
         // PDF / image -> AI extraction
         try {
-          const hasKey = await window.satis.aiHasKey();
-          if (!hasKey) {
+          const auth = await window.satis.authStatus();
+          if (!auth.ready) {
             setError(
-              'No Anthropic API key configured — add one in Settings, or trace the plan manually with "Add floor".',
+              'Claude is not connected yet. Open Settings to sign in with Claude or paste an API key, or trace the plan manually with "Add floor".',
             );
             continue;
           }
@@ -75,7 +75,7 @@ export default function ProjectView() {
           setAiNotes([
             `Scale basis: ${result.scaleBasis}`,
             ...result.warnings.map((w) => `Warning: ${w}`),
-            'Review each floor’s dimensions below and confirm before generating options — a wrong scale invalidates everything.',
+            'Review each floor’s dimensions below and confirm before generating options: a wrong scale invalidates everything.',
           ]);
         } catch (e) {
           setError(`${f.name}: ${(e as Error).message}`);
@@ -109,7 +109,8 @@ export default function ProjectView() {
         </button>
       </div>
       <p className="note">
-        PDF and image plans are interpreted with AI (API key in Settings) — always confirm the extracted dimensions.
+        PDF and image plans are interpreted by Claude (connect an account in Settings). Always confirm the extracted
+        dimensions.
         DXF files are parsed directly. Envelopes are schematic: rectangle-based feasibility geometry, not architecture.
       </p>
 
@@ -133,7 +134,7 @@ export default function ProjectView() {
             onChange={(e) => setProjectMeta({ listedOrConservation: e.target.value === 'yes' })}
           >
             <option value="no">No</option>
-            <option value="yes">Yes — flag window alterations</option>
+            <option value="yes">Yes, flag window alterations</option>
           </select>
         </label>
       </div>
@@ -273,11 +274,11 @@ function FloorEditor({
       </div>
       <div className="grid c4">
         <label className="field">
-          Windows — front facade
+          Front facade windows
           <input type="number" min={0} value={frontWins} onChange={(e) => setWindows(parseInt(e.target.value || '0', 10), rearWins)} />
         </label>
         <label className="field">
-          Windows — rear facade
+          Rear facade windows
           <input type="number" min={0} value={rearWins} onChange={(e) => setWindows(frontWins, parseInt(e.target.value || '0', 10))} />
         </label>
         <label className="field">
@@ -301,7 +302,7 @@ function FloorEditor({
           </summary>
           {floor.assumptions!.map((a, i) => (
             <div key={i} className="assumption">
-              — {a}
+              · {a}
             </div>
           ))}
         </details>
