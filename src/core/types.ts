@@ -415,12 +415,24 @@ export interface AppraisalResult {
 
 export interface Project {
   version: 1;
+  /** Stable id within the projects library. */
+  id: string;
   name: string;
   address: string;
   createdAt: string;
+  updatedAt: string;
   listedOrConservation: boolean;
   floors: Envelope[];
   pricing: PricingSpec;
   /** id of option adopted for export, if any */
   adoptedOptionId?: string;
+}
+
+/** Lightweight card data for the projects homepage. */
+export interface ProjectSummary {
+  id: string;
+  name: string;
+  address: string;
+  floorCount: number;
+  updatedAt: string;
 }

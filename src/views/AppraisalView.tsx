@@ -22,18 +22,21 @@ export default function AppraisalView() {
   const option = options.find((o) => o.id === selectedOptionId) ?? null;
   const schedule: ScheduleRow[] | null = useDemo ? DEMO_SCHEDULE : option?.schedule ?? null;
   const roomAreas = useDemo ? undefined : option?.roomAreas;
+  const pricing = project?.pricing ?? null;
 
   const result: AppraisalResult | null = useMemo(() => {
-    if (!schedule || !schedule.length) return null;
+    if (!schedule || !schedule.length || !pricing) return null;
     try {
-      return runAppraisal(schedule, project.pricing, roomAreas);
+      return runAppraisal(schedule, pricing, roomAreas);
     } catch {
       return null;
     }
-  }, [schedule, project.pricing, roomAreas]);
+  }, [schedule, pricing, roomAreas]);
+
+  if (!project) return null;
 
   async function exportXlsx() {
-    if (!schedule) return;
+    if (!schedule || !project) return;
     setExportMsg(null);
     const inputs = {
       address: project.address || project.name,

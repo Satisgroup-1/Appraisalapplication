@@ -10,6 +10,10 @@ Built with Electron + React + TypeScript, styled to the Satis brand guidelines (
 
 ## Workflow
 
+The app opens with the SATIS letter-drop intro (as on the group website), then lands on the
+**Projects** homepage — a library of schemes with framed cards. Projects auto-save; select one
+to enter its workspace:
+
 1. **Building** — import floorplans:
    - **PDF / images** are interpreted with AI (Claude vision; add an Anthropic API key in
      Settings). Extraction assumptions and scale basis are surfaced for review — always
@@ -67,9 +71,12 @@ signing config under the `build` key in `package.json`.
 
 ## Brand
 
-Monochrome palette (`#ffffff` / `#000000` / `#ced1d2`), letterspaced SATIS wordmark. Work Sans
-(the brand's secondary/web face, OFL-licensed) is bundled; if you hold a Fieldwork licence,
-drop the font files into `src/assets/fonts` and add `@font-face` rules — the CSS font stack
+The design system follows the Satis group website (`satis-group-website`): warm paper
+surfaces (`#f5f1e9`), brass accents (`#a5813f`), clay/sage status colours, indexed eyebrow
+section labels, and brass crop-mark frame corners on project cards — layered over the
+Satis_Brand_V7 fundamentals (letterspaced SATIS wordmark, monochrome ink). Work Sans (the
+brand's secondary/web face, OFL-licensed) is bundled; if you hold a Fieldwork licence, drop
+the font files into `src/assets/fonts` and add `@font-face` rules — the CSS font stack
 already prefers Fieldwork.
 
 ## Scope notes

@@ -6,7 +6,19 @@ export interface ImportedFile {
   content: string; // utf-8 text for dxf, base64 for pdf/images
 }
 
+export interface ProjectSummaryIpc {
+  id: string;
+  name: string;
+  address: string;
+  floorCount: number;
+  updatedAt: string;
+}
+
 const api = {
+  projectsList: (): Promise<ProjectSummaryIpc[]> => ipcRenderer.invoke('projects:list'),
+  projectsLoad: (id: string): Promise<string | null> => ipcRenderer.invoke('projects:load', id),
+  projectsSave: (id: string, json: string): Promise<boolean> => ipcRenderer.invoke('projects:save', id, json),
+  projectsDelete: (id: string): Promise<boolean> => ipcRenderer.invoke('projects:delete', id),
   saveProject: (json: string, suggestedName: string): Promise<string | null> =>
     ipcRenderer.invoke('project:save', json, suggestedName),
   openProject: (): Promise<{ path: string; json: string } | null> => ipcRenderer.invoke('project:open'),
