@@ -38,7 +38,7 @@ export default function HomeView() {
     <div className="home">
       <header className="home-hero">
         <div className="home-wordmark">SATIS</div>
-        <div className="home-sub">Appraisal — floorplan conversion &amp; development DCF</div>
+        <div className="home-sub">Appraisal: floorplan conversion &amp; development DCF</div>
       </header>
 
       <Eyebrow index="01" label="Projects" />
@@ -62,7 +62,7 @@ export default function HomeView() {
         <div className="empty-state">
           No projects yet.
           <br />
-          Start a new project, or create the demo — a former retail building ready to convert.
+          Start a new project, or create the demo: a former retail building ready to convert.
         </div>
       ) : (
         <div className="project-grid">
@@ -89,7 +89,7 @@ export default function HomeView() {
 
       <footer className="home-foot">
         <span>SATIS GROUP</span>
-        <span>Feasibility schematics &amp; financial estimates — not architecture or advice</span>
+        <span>Feasibility schematics &amp; financial estimates, not architecture or advice</span>
       </footer>
     </div>
   );
@@ -110,7 +110,7 @@ function ProjectCard({
 }) {
   const updated = summary.updatedAt
     ? new Date(summary.updatedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
-    : '—';
+    : 'not yet saved';
   return (
     <div className="project-card">
       <span className="corner tl" aria-hidden="true" />

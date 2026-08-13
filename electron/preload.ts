@@ -1,4 +1,7 @@
 import { contextBridge, ipcRenderer } from 'electron';
+import type { AuthStatus } from './auth';
+
+export type { AuthStatus, AuthSource, ClaudeLogin, CliInfo } from './auth';
 
 export interface ImportedFile {
   name: string;
@@ -23,8 +26,12 @@ const api = {
     ipcRenderer.invoke('project:save', json, suggestedName),
   openProject: (): Promise<{ path: string; json: string } | null> => ipcRenderer.invoke('project:open'),
   openFloorplanFiles: (): Promise<ImportedFile[]> => ipcRenderer.invoke('floorplan:openFiles'),
-  aiHasKey: (): Promise<boolean> => ipcRenderer.invoke('ai:hasKey'),
-  aiSetKey: (key: string): Promise<boolean> => ipcRenderer.invoke('ai:setKey', key),
+  authStatus: (): Promise<AuthStatus> => ipcRenderer.invoke('auth:status'),
+  authSetKey: (key: string): Promise<boolean> => ipcRenderer.invoke('auth:setKey', key),
+  authSignIn: (): Promise<{ ok: boolean; message: string }> => ipcRenderer.invoke('auth:signIn'),
+  authTest: (): Promise<{ ok: boolean; message: string }> => ipcRenderer.invoke('auth:test'),
+  authOpenLink: (which: 'console-keys' | 'cli-install'): Promise<boolean> =>
+    ipcRenderer.invoke('auth:openLink', which),
   aiExtract: (payload: { name: string; ext: string; base64: string; hint?: string }): Promise<unknown> =>
     ipcRenderer.invoke('ai:extract', payload),
   exportXlsx: (scheduleJson: string, inputsJson: string, suggestedName: string): Promise<string | null> =>

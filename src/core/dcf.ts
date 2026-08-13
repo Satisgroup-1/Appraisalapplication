@@ -491,7 +491,7 @@ export function runAppraisal(schedule: ScheduleRow[], spec: PricingSpec, roomAre
   const warnings: string[] = [];
   if (prog.pcMonth > MONTHS) {
     warnings.push(
-      `Programme runs to month ${prog.pcMonth}, beyond the ${MONTHS}-month cashflow horizon — finance costs are understated. Shorten the programme.`,
+      `Programme runs to month ${prog.pcMonth}, beyond the ${MONTHS}-month cashflow horizon, so finance costs are understated. Shorten the programme.`,
     );
   }
   if (prog.legalMonths !== f.legalMonths || prog.preConMonths !== f.preConMonths) {
@@ -502,11 +502,11 @@ export function runAppraisal(schedule: ScheduleRow[], spec: PricingSpec, roomAre
     Math.ceil(totals.units / f.sales.velocityPerMonth) > SELLDOWN_MONTHS
   ) {
     warnings.push(
-      `Sell-out takes longer than the ${SELLDOWN_MONTHS}-month scenario horizon — delayed-sale interest is understated.`,
+      `Sell-out takes longer than the ${SELLDOWN_MONTHS}-month scenario horizon, so delayed-sale interest is understated.`,
     );
   }
   if (spec.buildCostMode === 'roomRates' && !roomAreas) {
-    warnings.push('No room-type areas for this schedule — build cost falls back to the fixed D01 amount.');
+    warnings.push('No room-type areas for this schedule, so build cost falls back to the fixed D01 amount.');
   }
 
   return {

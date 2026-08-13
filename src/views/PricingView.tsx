@@ -98,10 +98,10 @@ export default function PricingView() {
         </tbody>
       </table>
 
-      <h3 className="section">Build cost — £/sqft by room type</h3>
+      <h3 className="section">Build cost: £/sqft by room type</h3>
       <p className="note">
-        With room-type rates on, the build cost (dev cost line D01) is computed from each option's actual room areas —
-        kitchens/living, bedrooms, bathrooms, halls, common circulation and retained commercial — so denser layouts
+        With room-type rates on, the build cost (dev cost line D01) is computed from each option's actual room areas
+        (kitchens/living, bedrooms, bathrooms, halls, common circulation and retained commercial), so denser layouts
         with more wet rooms cost more to build. Hand-entered schedules without room data fall back to the fixed D01
         amount below.
       </p>
@@ -191,7 +191,7 @@ export default function PricingView() {
         </label>
       </div>
 
-      <h3 className="section">Bridging loan — site purchase</h3>
+      <h3 className="section">Bridging loan: site purchase</h3>
       <div className="grid c4">
         <PctField label="LTV on purchase" value={spec.finance.bridge.ltv} onChange={(v) => patchFinance({ bridge: { ...spec.finance.bridge, ltv: v } })} />
         <PctField label="Interest rate pa" value={spec.finance.bridge.ratePa} onChange={(v) => patchFinance({ bridge: { ...spec.finance.bridge, ratePa: v } })} />

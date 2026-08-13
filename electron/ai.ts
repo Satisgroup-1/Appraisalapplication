@@ -1,11 +1,11 @@
 // AI floorplan extraction: send a PDF or image of floorplans to the Claude
 // API and receive structured envelope JSON (per-floor polygon, windows,
 // cores) matching the app's Envelope schema. Runs in the Electron main
-// process so the API key never reaches the renderer.
+// process so credentials never reach the renderer.
 
-import Anthropic from '@anthropic-ai/sdk';
+import { buildClient } from './auth';
 
-const MODEL = 'claude-opus-5';
+export const MODEL = 'claude-opus-5';
 
 const ENVELOPE_SCHEMA = {
   type: 'object',
@@ -109,11 +109,13 @@ const MEDIA: Record<string, MediaType> = {
   webp: 'image/webp',
 };
 
-export async function extractEnvelopes(
-  apiKey: string,
-  payload: { name: string; ext: string; base64: string; hint?: string },
-): Promise<unknown> {
-  const client = new Anthropic({ apiKey });
+export async function extractEnvelopes(payload: {
+  name: string;
+  ext: string;
+  base64: string;
+  hint?: string;
+}): Promise<unknown> {
+  const client = await buildClient();
 
   const fileBlock =
     payload.ext === 'pdf'

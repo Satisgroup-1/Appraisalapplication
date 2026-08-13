@@ -42,11 +42,11 @@ export function planToSvg(plan: FloorPlanResult, env: Envelope, opts?: { title?:
     `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" ${font}>`,
     `<rect width="${width}" height="${height}" fill="#ffffff"/>`,
     `<text x="${PAD}" y="28" font-size="13" letter-spacing="3" fill="${INK}">${esc(
-      (opts?.title ?? `PROPOSED CONVERSION — FLOOR ${plan.floor}`).toUpperCase(),
+      (opts?.title ?? `PROPOSED CONVERSION · FLOOR ${plan.floor}`).toUpperCase(),
     )}</text>`,
     `<line x1="${PAD}" y1="38" x2="${width - PAD}" y2="38" stroke="${INK}" stroke-width="0.75"/>`,
     `<text x="${PAD}" y="52" font-size="10" fill="${MUTED}">${esc(
-      `${plan.units.length} unit${plan.units.length === 1 ? '' : 's'} · NIA ${plan.niaSqm} sqm · net:gross ${(plan.netToGross * 100).toFixed(0)}% · ${String(plan.strategy).replace('_', ' ')} — schematic for feasibility only`,
+      `${plan.units.length} unit${plan.units.length === 1 ? '' : 's'} · NIA ${plan.niaSqm} sqm · net:gross ${(plan.netToGross * 100).toFixed(0)}% · ${String(plan.strategy).replace('_', ' ')} · schematic for feasibility only`,
     )}</text>`,
   ];
 
