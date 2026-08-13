@@ -64,7 +64,8 @@
             "x64"
           ]
         }
-      ]
+      ],
+      "artifactName": "Satis-Appraisal-Setup.${ext}"
     },
     "nsis": {
       "oneClick": false,
@@ -79,7 +80,8 @@
           ]
         }
       ],
-      "category": "public.app-category.finance"
+      "category": "public.app-category.finance",
+      "artifactName": "Satis-Appraisal.${ext}"
     }
   }
 }
