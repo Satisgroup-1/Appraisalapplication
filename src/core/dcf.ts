@@ -13,13 +13,15 @@ import type {
   FinanceSummary,
   MonthRow,
   PricingSpec,
+  RoomAreas,
   ScenarioResults,
   ScheduleRow,
   SensitivityResults,
 } from './types';
+import { SQM_TO_SQFT } from './rules';
 
-const MONTHS = 48; // '4. Cashflow' columns E..AZ
-const SELLDOWN_MONTHS = 36; // '5. Scenarios' columns E..AN
+export const MONTHS = 48; // '4. Cashflow' columns E..AZ
+export const SELLDOWN_MONTHS = 36; // '5. Scenarios' columns E..AN
 
 export interface ScheduleTotals {
   units: number; // UI F40 = COUNTA
@@ -46,10 +48,36 @@ export function scheduleTotals(rows: ScheduleRow[]): ScheduleTotals {
   };
 }
 
-export function computeDevCosts(spec: PricingSpec, totals: ScheduleTotals): DevCostsComputed {
+/** Build cost from room-type areas x £/sqft rates. */
+export function buildCostFromRooms(
+  spec: PricingSpec,
+  roomAreas: RoomAreas,
+): { total: number; breakdown: DevCostsComputed['buildBreakdown'] } {
+  const items: { label: string; sqm: number; rate: number }[] = [
+    { label: 'Living / kitchen', sqm: roomAreas.kitchenLivingSqm, rate: spec.roomRates.kitchenLiving },
+    { label: 'Bedrooms', sqm: roomAreas.bedroomSqm, rate: spec.roomRates.bedroom },
+    { label: 'Bathrooms', sqm: roomAreas.bathroomSqm, rate: spec.roomRates.bathroom },
+    { label: 'Halls / storage', sqm: roomAreas.hallStorageSqm, rate: spec.roomRates.hallStorage },
+    { label: 'Circulation & cores', sqm: roomAreas.circulationSqm, rate: spec.roomRates.circulation },
+    { label: 'Commercial (retained)', sqm: roomAreas.commercialSqm, rate: spec.roomRates.commercial },
+  ];
+  const breakdown = items
+    .filter((i) => i.sqm > 0)
+    .map((i) => {
+      const sqft = i.sqm * SQM_TO_SQFT;
+      return { label: i.label, sqm: i.sqm, sqft, ratePsf: i.rate, amount: sqft * i.rate };
+    });
+  return { total: breakdown.reduce((s, b) => s + b.amount, 0), breakdown };
+}
+
+export function computeDevCosts(spec: PricingSpec, totals: ScheduleTotals, roomAreas?: RoomAreas): DevCostsComputed {
   const f = spec.finance;
   const buildLine = spec.devCosts.find((l) => l.code === 'D01');
-  const buildCost = buildLine?.kind === 'fixed' ? buildLine.value : 0;
+  const fixedBuildCost = buildLine?.kind === 'fixed' ? buildLine.value : 0;
+
+  const useRoomRates = spec.buildCostMode === 'roomRates' && !!roomAreas;
+  const roomResult = useRoomRates ? buildCostFromRooms(spec, roomAreas!) : null;
+  const buildCost = roomResult ? roomResult.total : fixedBuildCost;
 
   const groups: DevCostsComputed['groups'] = {
     legals: { lines: [], total: 0 },
@@ -65,7 +93,7 @@ export function computeDevCosts(spec: PricingSpec, totals: ScheduleTotals): DevC
     let amount = 0;
     switch (line.kind) {
       case 'fixed':
-        amount = line.value;
+        amount = line.code === 'D01' ? buildCost : line.value;
         break;
       case 'pctPurchase': // e.g. B05 = D15 * '2. Inputs'!E5
         amount = line.value * f.purchasePrice;
@@ -91,7 +119,14 @@ export function computeDevCosts(spec: PricingSpec, totals: ScheduleTotals): DevC
     f.purchasePrice +
     (Object.keys(groups) as DevCostGroup[]).reduce((s, g) => s + groups[g].total, 0); // F87
 
-  return { purchase: f.purchasePrice, groups, totalPreFinance, buildCost };
+  return {
+    purchase: f.purchasePrice,
+    groups,
+    totalPreFinance,
+    buildCost,
+    buildCostSource: roomResult ? 'roomRates' : 'fixed',
+    buildBreakdown: roomResult ? roomResult.breakdown : null,
+  };
 }
 
 export interface Programme {
@@ -103,13 +138,18 @@ export interface Programme {
 }
 
 export function programmeOf(f: FinanceInputs, totals: ScheduleTotals): Programme {
-  const conMonths = totals.maxBuildMonths;
+  // Phase lengths are divisors in the cashflow spread (the workbook divides
+  // by them too) — clamp to >= 1 month so a zero input cannot silently drop
+  // a whole cost category or produce NaN.
+  const legalMonths = Math.max(1, Math.round(f.legalMonths));
+  const preConMonths = Math.max(1, Math.round(f.preConMonths));
+  const conMonths = Math.max(1, Math.round(totals.maxBuildMonths));
   return {
-    legalMonths: f.legalMonths,
-    preConMonths: f.preConMonths,
+    legalMonths,
+    preConMonths,
     conMonths,
-    conStartMonth: f.preConMonths + 1,
-    pcMonth: f.preConMonths + conMonths,
+    conStartMonth: preConMonths + 1,
+    pcMonth: preConMonths + conMonths,
   };
 }
 
@@ -439,15 +479,38 @@ export function computeSensitivity(
 }
 
 /** Run the full appraisal for a unit schedule under a pricing spec. */
-export function runAppraisal(schedule: ScheduleRow[], spec: PricingSpec): AppraisalResult {
+export function runAppraisal(schedule: ScheduleRow[], spec: PricingSpec, roomAreas?: RoomAreas): AppraisalResult {
   const totals = scheduleTotals(schedule);
   const f = spec.finance;
-  const dev = computeDevCosts(spec, totals);
+  const dev = computeDevCosts(spec, totals, roomAreas);
   const prog = programmeOf(f, totals);
   const { rows, finance } = computeCashflow(f, dev, prog, totals);
   const scenarios = computeScenarios(f, totals, dev, finance, prog);
   const sensitivity = computeSensitivity(f, totals, dev, finance, scenarios);
+
+  const warnings: string[] = [];
+  if (prog.pcMonth > MONTHS) {
+    warnings.push(
+      `Programme runs to month ${prog.pcMonth}, beyond the ${MONTHS}-month cashflow horizon — finance costs are understated. Shorten the programme.`,
+    );
+  }
+  if (prog.legalMonths !== f.legalMonths || prog.preConMonths !== f.preConMonths) {
+    warnings.push('Legal / pre-construction periods below 1 month were clamped to 1.');
+  }
+  if (
+    f.sales.velocityPerMonth > 0 &&
+    Math.ceil(totals.units / f.sales.velocityPerMonth) > SELLDOWN_MONTHS
+  ) {
+    warnings.push(
+      `Sell-out takes longer than the ${SELLDOWN_MONTHS}-month scenario horizon — delayed-sale interest is understated.`,
+    );
+  }
+  if (spec.buildCostMode === 'roomRates' && !roomAreas) {
+    warnings.push('No room-type areas for this schedule — build cost falls back to the fixed D01 amount.');
+  }
+
   return {
+    warnings,
     schedule,
     totals: {
       units: totals.units,

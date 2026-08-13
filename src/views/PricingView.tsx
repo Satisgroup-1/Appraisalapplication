@@ -2,7 +2,8 @@
 // development cost lines, with save/load of named presets.
 
 import { useState } from 'react';
-import type { DevCostLine, PricingSpec } from '../core/types';
+import type { DevCostLine, PricingSpec, RoomRates } from '../core/types';
+import { normalizePricing } from '../core/pricing';
 import { useStore } from '../state/store';
 
 export default function PricingView() {
@@ -24,10 +25,11 @@ export default function PricingView() {
     const res = await window.satis.openProject();
     if (!res) return;
     try {
-      const p = JSON.parse(res.json) as PricingSpec;
+      const p = JSON.parse(res.json) as Partial<PricingSpec>;
       if (!p.rates || !p.finance || !p.devCosts) throw new Error('Not a pricing preset file.');
-      setPricing(p);
-      setMsg(`Loaded preset "${p.name}"`);
+      const normalized = normalizePricing(p);
+      setPricing(normalized);
+      setMsg(`Loaded preset "${normalized.name}"`);
     } catch (e) {
       setMsg(`Could not load preset: ${(e as Error).message}`);
     }
@@ -93,6 +95,59 @@ export default function PricingView() {
           ))}
         </tbody>
       </table>
+
+      <h3 className="section">Build cost — £/sqft by room type</h3>
+      <p className="note">
+        With room-type rates on, the build cost (dev cost line D01) is computed from each option's actual room areas —
+        kitchens/living, bedrooms, bathrooms, halls, common circulation and retained commercial — so denser layouts
+        with more wet rooms cost more to build. Hand-entered schedules without room data fall back to the fixed D01
+        amount below.
+      </p>
+      <div className="grid c3">
+        <label className="field">
+          Build cost mode
+          <select
+            value={spec.buildCostMode}
+            onChange={(e) => patch({ buildCostMode: e.target.value as PricingSpec['buildCostMode'] })}
+          >
+            <option value="roomRates">Room-type £/sqft rates</option>
+            <option value="fixed">Fixed amount (line D01)</option>
+          </select>
+        </label>
+      </div>
+      {spec.buildCostMode === 'roomRates' && (
+        <table className="data" style={{ maxWidth: 560 }}>
+          <thead>
+            <tr>
+              <th>Room type</th>
+              <th className="num">Build £/sqft</th>
+            </tr>
+          </thead>
+          <tbody>
+            {(
+              [
+                ['kitchenLiving', 'Living / kitchen (incl. kitchen fit-out)'],
+                ['bedroom', 'Bedrooms'],
+                ['bathroom', 'Bathrooms (sanitaryware, tiling, ventilation)'],
+                ['hallStorage', 'Halls / storage'],
+                ['circulation', 'Circulation & cores (common areas)'],
+                ['commercial', 'Commercial (retained floors)'],
+              ] as [keyof RoomRates, string][]
+            ).map(([k, label]) => (
+              <tr key={k}>
+                <td>{label}</td>
+                <td className="num">
+                  <input
+                    type="number"
+                    value={spec.roomRates[k]}
+                    onChange={(e) => patch({ roomRates: { ...spec.roomRates, [k]: num(e.target.value) } })}
+                  />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
 
       <h3 className="section">Build programme</h3>
       <div className="grid c3">

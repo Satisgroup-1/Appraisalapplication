@@ -23,7 +23,7 @@ export default function OptionsView() {
     const m = new Map<string, number>();
     for (const o of options) {
       try {
-        m.set(o.id, runAppraisal(o.schedule, project.pricing).scenarios.s1.netProfit);
+        m.set(o.id, runAppraisal(o.schedule, project.pricing, o.roomAreas).scenarios.s1.netProfit);
       } catch {
         /* unpriceable option */
       }
@@ -254,6 +254,18 @@ function OptionDetail({ option, onAppraise }: { option: ConversionOption; onAppr
                   );
                 })}
                 {compliance.netToGrossNote && <div className="assumption">Note: {compliance.netToGrossNote}</div>}
+                {compliance.advisories.length > 0 && (
+                  <details style={{ marginTop: 6 }}>
+                    <summary style={{ fontSize: 11, color: 'var(--grey-text)', cursor: 'pointer' }}>
+                      Not verifiable from schematics ({compliance.advisories.length})
+                    </summary>
+                    {compliance.advisories.map((a, k) => (
+                      <div key={k} className="assumption">
+                        — {a}
+                      </div>
+                    ))}
+                  </details>
+                )}
               </div>
             )}
           </div>

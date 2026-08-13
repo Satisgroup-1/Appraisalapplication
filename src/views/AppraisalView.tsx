@@ -21,15 +21,16 @@ export default function AppraisalView() {
 
   const option = options.find((o) => o.id === selectedOptionId) ?? null;
   const schedule: ScheduleRow[] | null = useDemo ? DEMO_SCHEDULE : option?.schedule ?? null;
+  const roomAreas = useDemo ? undefined : option?.roomAreas;
 
   const result: AppraisalResult | null = useMemo(() => {
     if (!schedule || !schedule.length) return null;
     try {
-      return runAppraisal(schedule, project.pricing);
+      return runAppraisal(schedule, project.pricing, roomAreas);
     } catch {
       return null;
     }
-  }, [schedule, project.pricing]);
+  }, [schedule, project.pricing, roomAreas]);
 
   async function exportXlsx() {
     if (!schedule) return;
@@ -37,6 +38,8 @@ export default function AppraisalView() {
     const inputs = {
       address: project.address || project.name,
       ...project.pricing.finance,
+      devCostLines: project.pricing.devCosts.map((l) => ({ code: l.code, kind: l.kind, value: l.value })),
+      buildCostOverride: result?.devCosts.buildCostSource === 'roomRates' ? result.devCosts.buildCost : null,
     };
     const path = await window.satis.exportXlsx(
       JSON.stringify(schedule),
@@ -82,6 +85,13 @@ export default function AppraisalView() {
         </div>
       ) : (
         <>
+          {result.warnings.length > 0 && (
+            <div className="warn-box">
+              {result.warnings.map((w, i) => (
+                <div key={i}>{w}</div>
+              ))}
+            </div>
+          )}
           <KpiRow result={result} />
           <div style={{ margin: '4px 0 18px' }}>
             <button className="btn" onClick={exportXlsx}>
@@ -240,6 +250,7 @@ function Row({ k, v, total }: { k: string; v: string; total?: boolean }) {
 
 function CostsTab({ result }: { result: AppraisalResult }) {
   const d = result.devCosts;
+  const bb = d.buildBreakdown;
   const groups: { key: keyof typeof d.groups; title: string }[] = [
     { key: 'legals', title: '(B) Legals & acquisition' },
     { key: 'professional', title: '(C) Professional fees' },
@@ -256,6 +267,39 @@ function CostsTab({ result }: { result: AppraisalResult }) {
           <Row k="(A) Purchase price" v={fmtGBP(d.purchase)} />
         </tbody>
       </table>
+
+      {bb && (
+        <>
+          <h3 className="section">Build cost (D01) — from room-type £/sqft rates</h3>
+          <table className="data" style={{ maxWidth: 700 }}>
+            <thead>
+              <tr>
+                <th>Room type</th>
+                <th className="num">Sqm</th>
+                <th className="num">Sqft</th>
+                <th className="num">£/sqft</th>
+                <th className="num">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              {bb.map((b) => (
+                <tr key={b.label}>
+                  <td>{b.label}</td>
+                  <td className="num">{fmtNum(b.sqm, 1)}</td>
+                  <td className="num">{fmtNum(b.sqft)}</td>
+                  <td className="num">{fmtNum(b.ratePsf)}</td>
+                  <td className="num">{fmtGBP(b.amount)}</td>
+                </tr>
+              ))}
+              <tr className="total">
+                <td colSpan={4}>BUILD COST (main contract)</td>
+                <td className="num">{fmtGBP(d.buildCost)}</td>
+              </tr>
+            </tbody>
+          </table>
+        </>
+      )}
+
       <div className="grid c2" style={{ alignItems: 'start' }}>
         {groups.map((g) => (
           <table className="data" key={g.key}>

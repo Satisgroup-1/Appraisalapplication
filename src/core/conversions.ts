@@ -11,6 +11,7 @@ import type {
   MixStrategy,
   PricingSpec,
   RetainedFloor,
+  RoomAreas,
   ScheduleRow,
 } from './types';
 import type { Rules } from './rules';
@@ -90,6 +91,51 @@ export function deriveSchedule(
   return rows;
 }
 
+/**
+ * Sum floor areas by room type across an option's plans. Any residual area a
+ * unit has beyond its drawn rooms (minor tiling gaps in the schematic model)
+ * is allocated to living/kitchen. Circulation = gross minus net internal area
+ * of converted floors (common corridors + retained cores).
+ */
+export function roomAreasOf(plans: FloorPlanResult[], retained: RetainedFloor[]): RoomAreas {
+  const a: RoomAreas = {
+    kitchenLivingSqm: 0,
+    bedroomSqm: 0,
+    bathroomSqm: 0,
+    hallStorageSqm: 0,
+    circulationSqm: 0,
+    commercialSqm: 0,
+  };
+  for (const plan of plans) {
+    for (const u of plan.units) {
+      let roomSum = 0;
+      for (const r of u.rooms) {
+        roomSum += r.area;
+        switch (r.type) {
+          case 'bedroom':
+            a.bedroomSqm += r.area;
+            break;
+          case 'bathroom':
+            a.bathroomSqm += r.area;
+            break;
+          case 'hall':
+            a.hallStorageSqm += r.area;
+            break;
+          default:
+            a.kitchenLivingSqm += r.area;
+        }
+      }
+      a.kitchenLivingSqm += Math.max(0, u.giaSqm - roomSum);
+    }
+    a.circulationSqm += Math.max(0, plan.floorGiaSqm - plan.niaSqm);
+  }
+  for (const r of retained) a.commercialSqm += r.sqm;
+  (Object.keys(a) as (keyof RoomAreas)[]).forEach((k) => {
+    a[k] = round1(a[k]);
+  });
+  return a;
+}
+
 function totalsOf(rows: ScheduleRow[]) {
   const niaSqm = rows.reduce((s, r) => s + r.sqm, 0);
   return {
@@ -112,6 +158,7 @@ function makeOption(
   retained: RetainedFloor[],
   rules: Rules,
   spec: PricingSpec,
+  roomAreasOverride?: RoomAreas,
 ): ConversionOption {
   const compliance = floors.map((f) => validateFloor(f, rules));
   const schedule = deriveSchedule(floors, retained, spec);
@@ -133,6 +180,7 @@ function makeOption(
     compliance,
     allCompliant: compliance.every((c) => c.allPass),
     warnings,
+    roomAreas: roomAreasOverride ?? roomAreasOf(floors, retained),
     schedule,
     totals: totalsOf(schedule),
   };
@@ -270,6 +318,9 @@ export function generateOptions(building: Envelope[], rules: Rules, spec: Pricin
         [],
         rules,
         spec,
+        // Room areas from the per-floor plans: the merged schedule row carries
+        // one set of rooms, but the build cost must cover every floor.
+        roomAreasOf(plans, []),
       ),
     );
   }

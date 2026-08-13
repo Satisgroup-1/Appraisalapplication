@@ -29,7 +29,7 @@ export interface Rules {
     glazingMinRatioOfRoomFloor: number;
     habitableRoomTypes: string[];
   };
-  storage: { bed1: number; bed2: number; bed3: number };
+  storage: { studio: number; bed1: number; bed2: number; bed3: number };
   heights: { minCeiling: number; minCeilingCoverage: number };
   circulation: { corridorMinWidth: number; unitHallMinWidth: number };
   mixStrategies: Record<MixStrategy, { prefer: UnitTypeKey[]; allow: UnitTypeKey[] }>;
@@ -70,7 +70,8 @@ export const DEFAULT_RULES: Rules = {
     glazingMinRatioOfRoomFloor: 0.2, // guideline approximation
     habitableRoomTypes: ['living', 'bedroom', 'kitchen_living'],
   },
-  storage: { bed1: 1.5, bed2: 2.0, bed3: 2.5 },
+  storage: { studio: 1.0, bed1: 1.5, bed2: 2.0, bed3: 2.5 }, // NDSS built-in storage
+
   heights: { minCeiling: 2.3, minCeilingCoverage: 0.75 },
   circulation: { corridorMinWidth: 1.2, unitHallMinWidth: 0.9 },
   mixStrategies: {

@@ -95,6 +95,9 @@ export interface FloorCompliance {
   netToGrossNote: string | null;
   units: UnitCompliance[];
   allPass: boolean;
+  /** Requirements that cannot be verified from schematic geometry — always
+   *  surfaced so the report never silently implies they were checked. */
+  advisories: string[];
 }
 
 /** A floor kept in its existing (e.g. commercial) use within an option. */
@@ -117,6 +120,8 @@ export interface ConversionOption {
   compliance: FloorCompliance[];
   allCompliant: boolean;
   warnings: string[];
+  /** Floor areas by room type, used for room-rate build costing. */
+  roomAreas: RoomAreas;
   schedule: ScheduleRow[];
   totals: {
     units: number;
@@ -158,6 +163,26 @@ export interface UnitPricing {
   monthlyRentPsf: number; // £ per sqft per month
 }
 
+/** Build cost £/sqft by room type — drives line D01 when buildCostMode = 'roomRates'. */
+export interface RoomRates {
+  kitchenLiving: number; // open-plan living/kitchen (includes kitchen fit-out)
+  bedroom: number;
+  bathroom: number; // sanitaryware, tiling, ventilation
+  hallStorage: number;
+  circulation: number; // common corridors, retained cores, landlord areas
+  commercial: number; // retained commercial shell & core / fit-out allowance
+}
+
+/** Floor areas by room type for one conversion option (sqm). */
+export interface RoomAreas {
+  kitchenLivingSqm: number;
+  bedroomSqm: number;
+  bathroomSqm: number;
+  hallStorageSqm: number;
+  circulationSqm: number;
+  commercialSqm: number;
+}
+
 export interface PricingSpec {
   name: string;
   /** £psf sale and rent rates by unit category. */
@@ -175,6 +200,15 @@ export interface PricingSpec {
     perFloorMonths: number;
     commercialMonths: number;
   };
+  /**
+   * How build cost (dev cost line D01) is derived:
+   *  - 'roomRates': from the option's room-type areas x roomRates £/sqft
+   *    (falls back to the fixed D01 amount when no room data is available,
+   *    e.g. a hand-entered schedule).
+   *  - 'fixed': always the D01 line amount.
+   */
+  buildCostMode: 'fixed' | 'roomRates';
+  roomRates: RoomRates;
   finance: FinanceInputs;
   devCosts: DevCostLine[];
 }
@@ -250,6 +284,9 @@ export interface DevCostsComputed {
   groups: Record<DevCostGroup, { lines: { code: string; label: string; amount: number }[]; total: number }>;
   totalPreFinance: number; // '3. Dev Costs' F87
   buildCost: number; // line D01 amount (for psf metric)
+  buildCostSource: 'fixed' | 'roomRates';
+  /** Per-room-type build cost breakdown when buildCostSource = 'roomRates'. */
+  buildBreakdown: { label: string; sqm: number; sqft: number; ratePsf: number; amount: number }[] | null;
 }
 
 export interface MonthRow {
@@ -346,6 +383,8 @@ export interface SensitivityResults {
 }
 
 export interface AppraisalResult {
+  /** Modelling caveats (truncated cashflow horizon, clamped inputs, ...). */
+  warnings: string[];
   schedule: ScheduleRow[];
   totals: {
     units: number;

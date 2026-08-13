@@ -4,6 +4,7 @@
 import { useState } from 'react';
 import type { Envelope, Project } from '../core/types';
 import { polyArea } from '../core/layout';
+import { normalizePricing } from '../core/pricing';
 import { useStore } from '../state/store';
 import { parseDxfToEnvelope } from '../dxf';
 
@@ -99,6 +100,7 @@ export default function ProjectView() {
     try {
       const p = JSON.parse(res.json) as Project;
       if (p.version !== 1) throw new Error('Unsupported project version.');
+      p.pricing = normalizePricing(p.pricing ?? {});
       loadProject(p, res.path);
     } catch (e) {
       setError(`Could not open project: ${(e as Error).message}`);

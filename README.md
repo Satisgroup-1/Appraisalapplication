@@ -17,9 +17,12 @@ Built with Electron + React + TypeScript, styled to the Satis brand guidelines (
    - **DXF** files are parsed deterministically (largest closed polyline = envelope,
      `STAIR`/`LIFT`/`CORE` layers = cores, `WIN*` layers = windows).
    - **Manual entry** — type dimensions, window counts and core placement per floor.
-2. **Pricing** — sale £psf and rent rates by unit type, build programme, purchase/finance
-   parameters (bridge, development loan, equity split, sales assumptions, refinance) and the
-   full development-cost schedule. Save/load named presets as JSON files.
+2. **Pricing** — sale £psf and rent rates by unit type, **build £/sqft by room type**
+   (living/kitchen, bedrooms, bathrooms, halls, circulation, retained commercial — the build
+   cost is computed from each option's actual room areas, so layouts with more wet rooms cost
+   more), build programme, purchase/finance parameters (bridge, development loan, equity
+   split, sales assumptions, refinance) and the full development-cost schedule. Save/load
+   named presets as JSON files.
 3. **Options** — one click enumerates conversion options: all-residential at three unit-mix
    strategies (max units / balanced / family), ground-commercial + residential uppers,
    floor-through lateral flats, and a whole-building merge. Every unit is validated against
@@ -44,6 +47,11 @@ The DCF engine (`src/core/dcf.ts`) is a cell-by-cell port of `Appraisal_Model_1.
 `tests/dcf.test.ts` asserts it reproduces the exact values Excel computed for the demo scheme
 (cached workbook results). The layout engine and NDSS validator are ports of the
 `floorplan-converter` agent skill (`scripts/layout.py`, `validate.py`).
+
+See **AUDIT.md** for the full model audit: golden tests, financial identity tests, the
+regulation review of the floorplan converter, and a LibreOffice cross-check
+(`./scripts/crosscheck.sh`) that recalculates an exported workbook headlessly and verifies the
+engine matches the workbook's own formulas to the penny on an independent scheme.
 
 ## Building installers
 

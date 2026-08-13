@@ -84,6 +84,21 @@ export const DEFAULT_FINANCE: FinanceInputs = {
 };
 
 /**
+ * Default build £/sqft by room type. Wet rooms carry sanitaryware/tiling/
+ * ventilation cost; living/kitchen includes the kitchen fit-out; circulation
+ * covers common corridors and retained cores; commercial is a shell-and-core
+ * allowance for retained commercial floors. Editable per preset.
+ */
+export const DEFAULT_ROOM_RATES = {
+  kitchenLiving: 200,
+  bedroom: 150,
+  bathroom: 400,
+  hallStorage: 140,
+  circulation: 110,
+  commercial: 90,
+};
+
+/**
  * Default pricing preset. Sale £psf / rent rates derived from the demo unit
  * schedule in Appraisal_Model_1 (2-beds averaging ~£630psf, commercial at
  * ~£254psf, rents ~£2.0-2.2/sqft/month).
@@ -99,12 +114,29 @@ export const DEFAULT_PRICING: PricingSpec = {
     house: { salePsf: 600, monthlyRentPsf: 1.7 },
   },
   build: { baseMonths: 10, perFloorMonths: 1, commercialMonths: 6 },
+  buildCostMode: 'roomRates',
+  roomRates: DEFAULT_ROOM_RATES,
   finance: DEFAULT_FINANCE,
   devCosts: DEFAULT_DEV_COSTS,
 };
 
 export function clonePricing(p: PricingSpec): PricingSpec {
   return JSON.parse(JSON.stringify(p));
+}
+
+/** Fill gaps in a pricing spec loaded from an older project/preset file. */
+export function normalizePricing(p: Partial<PricingSpec>): PricingSpec {
+  const base = clonePricing(DEFAULT_PRICING);
+  return {
+    ...base,
+    ...p,
+    rates: { ...base.rates, ...(p.rates ?? {}) },
+    build: { ...base.build, ...(p.build ?? {}) },
+    buildCostMode: p.buildCostMode ?? 'fixed', // old files priced from fixed D01
+    roomRates: { ...base.roomRates, ...(p.roomRates ?? {}) },
+    finance: { ...base.finance, ...(p.finance ?? {}) },
+    devCosts: p.devCosts ?? base.devCosts,
+  };
 }
 
 /** Map a schedule unit type label to a pricing rate category. */
