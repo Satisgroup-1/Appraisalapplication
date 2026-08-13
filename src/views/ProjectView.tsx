@@ -4,7 +4,6 @@
 import { useState } from 'react';
 import type { Envelope, Project } from '../core/types';
 import { polyArea } from '../core/layout';
-import { normalizePricing } from '../core/pricing';
 import { useStore } from '../state/store';
 import { parseDxfToEnvelope } from '../dxf';
 
@@ -28,16 +27,14 @@ export default function ProjectView() {
   const setProjectMeta = useStore((s) => s.setProjectMeta);
   const upsertFloor = useStore((s) => s.upsertFloor);
   const removeFloor = useStore((s) => s.removeFloor);
-  const loadDemo = useStore((s) => s.loadDemo);
-  const newProject = useStore((s) => s.newProject);
-  const loadProject = useStore((s) => s.loadProject);
-  const setSavedPath = useStore((s) => s.setSavedPath);
   const setBusy = useStore((s) => s.setBusy);
   const busy = useStore((s) => s.busy);
   const setView = useStore((s) => s.setView);
 
   const [aiNotes, setAiNotes] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
+
+  if (!project) return null;
 
   async function importPlans() {
     setError(null);
@@ -47,7 +44,7 @@ export default function ProjectView() {
     for (const f of files) {
       if (f.ext === 'dxf') {
         try {
-          const env = parseDxfToEnvelope(f.content, nextFloorLabel(project));
+          const env = parseDxfToEnvelope(f.content, nextFloorLabel(project!));
           upsertFloor(env);
         } catch (e) {
           setError(`DXF ${f.name}: ${(e as Error).message}`);
@@ -89,22 +86,8 @@ export default function ProjectView() {
     }
   }
 
-  async function saveProject() {
-    const path = await window.satis.saveProject(JSON.stringify(project, null, 2), project.name.replace(/\s+/g, '_'));
-    if (path) setSavedPath(path);
-  }
-
-  async function openProject() {
-    const res = await window.satis.openProject();
-    if (!res) return;
-    try {
-      const p = JSON.parse(res.json) as Project;
-      if (p.version !== 1) throw new Error('Unsupported project version.');
-      p.pricing = normalizePricing(p.pricing ?? {});
-      loadProject(p, res.path);
-    } catch (e) {
-      setError(`Could not open project: ${(e as Error).message}`);
-    }
+  async function exportProjectFile() {
+    await window.satis.saveProject(JSON.stringify(project, null, 2), project!.name.replace(/\s+/g, '_'));
   }
 
   return (
@@ -121,17 +104,8 @@ export default function ProjectView() {
         <button className="btn ghost" onClick={() => upsertFloor(blankFloor(project))}>
           Add floor manually
         </button>
-        <button className="btn ghost" onClick={saveProject}>
-          Save project
-        </button>
-        <button className="btn ghost" onClick={openProject}>
-          Open project
-        </button>
-        <button className="btn ghost" onClick={loadDemo}>
-          Load demo
-        </button>
-        <button className="btn ghost" onClick={newProject}>
-          New
+        <button className="btn ghost" onClick={exportProjectFile}>
+          Export project file
         </button>
       </div>
       <p className="note">
@@ -174,7 +148,7 @@ export default function ProjectView() {
         <div className="empty-state">
           No floors captured yet.
           <br />
-          Import floorplans (PDF, image or DXF), add a floor manually, or load the demo building.
+          Import floorplans (PDF, image or DXF) or add a floor manually.
         </div>
       ) : (
         project.floors.map((f) => (

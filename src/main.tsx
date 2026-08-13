@@ -4,9 +4,45 @@ import App from './App';
 import './styles.css';
 
 // Browser/dev fallback: outside Electron the preload bridge is absent, so
-// stub it with no-ops to keep the renderer usable for UI development.
+// stub it (projects persist to localStorage) to keep the renderer usable
+// for UI development.
 if (!window.satis) {
+  const KEY = 'satis-projects';
+  const read = (): Record<string, string> => {
+    try {
+      return JSON.parse(localStorage.getItem(KEY) ?? '{}');
+    } catch {
+      return {};
+    }
+  };
+  const write = (v: Record<string, string>) => localStorage.setItem(KEY, JSON.stringify(v));
   window.satis = {
+    projectsList: async () =>
+      Object.values(read())
+        .map((json) => {
+          const p = JSON.parse(json);
+          return {
+            id: p.id,
+            name: p.name ?? 'Untitled scheme',
+            address: p.address ?? '',
+            floorCount: p.floors?.length ?? 0,
+            updatedAt: p.updatedAt ?? '',
+          };
+        })
+        .sort((a, b) => (a.updatedAt < b.updatedAt ? 1 : -1)),
+    projectsLoad: async (id) => read()[id] ?? null,
+    projectsSave: async (id, json) => {
+      const all = read();
+      all[id] = json;
+      write(all);
+      return true;
+    },
+    projectsDelete: async (id) => {
+      const all = read();
+      delete all[id];
+      write(all);
+      return true;
+    },
     saveProject: async () => null,
     openProject: async () => null,
     openFloorplanFiles: async () => [],

@@ -71,11 +71,14 @@ export const DEMO_BUILDING: Envelope[] = [
 ];
 
 export function demoProject(): Project {
+  const now = new Date().toISOString();
   return {
     version: 1,
+    id: `proj-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
     name: 'Demo — Former Retail Building',
     address: '123 High Street, Manchester',
-    createdAt: new Date().toISOString(),
+    createdAt: now,
+    updatedAt: now,
     listedOrConservation: false,
     floors: JSON.parse(JSON.stringify(DEMO_BUILDING)),
     pricing: clonePricing(DEFAULT_PRICING),

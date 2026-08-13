@@ -21,6 +21,7 @@ export default function OptionsView() {
 
   const profits = useMemo(() => {
     const m = new Map<string, number>();
+    if (!project) return m;
     for (const o of options) {
       try {
         m.set(o.id, runAppraisal(o.schedule, project.pricing, o.roomAreas).scenarios.s1.netProfit);
@@ -29,7 +30,9 @@ export default function OptionsView() {
       }
     }
     return m;
-  }, [options, project.pricing]);
+  }, [options, project]);
+
+  if (!project) return null;
 
   if (!project.floors.length) {
     return (
@@ -109,10 +112,10 @@ function OptionCard({
   const project = useStore((s) => s.project);
   const thumbSvg = useMemo(() => {
     const plan = option.floors[0];
-    if (!plan) return '';
+    if (!plan || !project) return '';
     const env = project.floors.find((f) => f.floor === plan.floor) ?? project.floors[0];
     return env ? planToSvg(plan, env) : '';
-  }, [option, project.floors]);
+  }, [option, project]);
 
   return (
     <button className={`option-card ${selected ? 'selected' : ''}`} onClick={onSelect}>
@@ -146,12 +149,13 @@ function OptionCard({
 
 function OptionDetail({ option, onAppraise }: { option: ConversionOption; onAppraise: () => void }) {
   const project = useStore((s) => s.project);
+  if (!project) return null;
 
   async function exportSvg(floorIdx: number) {
     const plan = option.floors[floorIdx];
-    const env = project.floors.find((f) => f.floor === plan.floor);
+    const env = project!.floors.find((f) => f.floor === plan.floor);
     if (!env) return;
-    await window.satis.exportSvg(planToSvg(plan, env), `${project.name}_${option.id}_floor${plan.floor}`);
+    await window.satis.exportSvg(planToSvg(plan, env), `${project!.name}_${option.id}_floor${plan.floor}`);
   }
 
   return (

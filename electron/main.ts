@@ -90,6 +90,56 @@ app.on('window-all-closed', () => {
 // IPC handlers
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// Projects library: every project lives as one JSON file under
+// userData/projects/<id>.json, so the app opens onto a homepage of projects.
+// ---------------------------------------------------------------------------
+
+function projectsDir(): string {
+  const dir = path.join(app.getPath('userData'), 'projects');
+  fs.mkdirSync(dir, { recursive: true });
+  return dir;
+}
+
+ipcMain.handle('projects:list', () => {
+  const dir = projectsDir();
+  const out: { id: string; name: string; address: string; floorCount: number; updatedAt: string }[] = [];
+  for (const f of fs.readdirSync(dir)) {
+    if (!f.endsWith('.json')) continue;
+    try {
+      const p = JSON.parse(fs.readFileSync(path.join(dir, f), 'utf-8'));
+      out.push({
+        id: p.id ?? f.replace(/\.json$/, ''),
+        name: p.name ?? 'Untitled scheme',
+        address: p.address ?? '',
+        floorCount: Array.isArray(p.floors) ? p.floors.length : 0,
+        updatedAt: p.updatedAt ?? p.createdAt ?? new Date(0).toISOString(),
+      });
+    } catch {
+      /* skip unreadable file */
+    }
+  }
+  out.sort((a, b) => (a.updatedAt < b.updatedAt ? 1 : -1));
+  return out;
+});
+
+ipcMain.handle('projects:load', (_e, id: string) => {
+  const file = path.join(projectsDir(), `${path.basename(id)}.json`);
+  if (!fs.existsSync(file)) return null;
+  return fs.readFileSync(file, 'utf-8');
+});
+
+ipcMain.handle('projects:save', (_e, id: string, json: string) => {
+  fs.writeFileSync(path.join(projectsDir(), `${path.basename(id)}.json`), json, 'utf-8');
+  return true;
+});
+
+ipcMain.handle('projects:delete', (_e, id: string) => {
+  const file = path.join(projectsDir(), `${path.basename(id)}.json`);
+  if (fs.existsSync(file)) fs.unlinkSync(file);
+  return true;
+});
+
 ipcMain.handle('project:save', async (_e, json: string, suggestedName: string) => {
   const { canceled, filePath } = await dialog.showSaveDialog({
     title: 'Save project',

@@ -10,8 +10,10 @@ export default function PricingView() {
   const project = useStore((s) => s.project);
   const setPricing = useStore((s) => s.setPricing);
   const setView = useStore((s) => s.setView);
-  const spec = project.pricing;
   const [msg, setMsg] = useState<string | null>(null);
+
+  if (!project) return null;
+  const spec = project.pricing;
 
   const patch = (p: Partial<PricingSpec>) => setPricing({ ...spec, ...p });
   const patchFinance = (p: Partial<PricingSpec['finance']>) => patch({ finance: { ...spec.finance, ...p } });
