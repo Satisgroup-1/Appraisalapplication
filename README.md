@@ -54,12 +54,15 @@ engine, the NDSS validator and the whole DCF appraisal run entirely offline. Set
 two ways to connect, and shows which one a request will actually use:
 
 - **Sign in with Claude** — opens the browser, and the token is refreshed automatically from
-  then on. Nothing to copy or re-enter. The sign-in is performed by the
-  [Anthropic CLI](https://platform.claude.com/docs/en/api/sdks/cli) (`ant auth login`), which
-  owns the OAuth flow and stores one profile shared with every Anthropic tool on the machine,
-  so the CLI has to be installed once. The app never handles the tokens itself; the SDK reads
-  and refreshes that profile. Signing out is `ant auth logout`, deliberately left to the CLI
-  because the profile is shared.
+  then on. Nothing to copy or re-enter, and nothing to install by hand. The sign-in is
+  performed by the [Anthropic CLI](https://platform.claude.com/docs/en/api/sdks/cli)
+  (`ant auth login`), which owns the OAuth flow and stores one profile shared with every
+  Anthropic tool on the machine. If the CLI is not already installed, the app downloads the
+  pinned release itself on first sign-in (into its own data directory) and verifies it
+  against a SHA-256 recorded in the source (`electron/cliInstall.ts`) before running it; a
+  copy the user installed always takes precedence. The app never handles the tokens itself;
+  the SDK reads and refreshes that profile. Signing out is `ant auth logout`, deliberately
+  left to the CLI because the profile is shared.
 - **An Anthropic API key** — pasted into Settings and encrypted with the OS keychain
   (`safeStorage`). Where no keychain exists the key is written to a file readable only by the
   user account, and Settings says so rather than implying encryption.

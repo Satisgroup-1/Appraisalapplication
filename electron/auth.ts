@@ -19,6 +19,7 @@ import path from 'node:path';
 import fs from 'node:fs';
 import Anthropic from '@anthropic-ai/sdk';
 import { loadConfig, loadCredentials } from '@anthropic-ai/sdk/core/credentials';
+import { installCli } from './cliInstall';
 
 /** Beta value the API requires on requests authenticated with a bearer token. */
 const OAUTH_BETA = 'oauth-2025-04-20';
@@ -70,10 +71,12 @@ interface StoredConfig {
 }
 
 let configFile = '';
+let managedBinDir = '';
 
 /** Called once at startup: userData is only known after app.whenReady. */
 export function initAuth(userDataDir: string) {
   configFile = path.join(userDataDir, 'config.json');
+  managedBinDir = path.join(userDataDir, 'bin');
 }
 
 function readConfig(): StoredConfig {
@@ -172,14 +175,20 @@ async function detectLogin(): Promise<ClaudeLogin | null> {
 
 function antCandidates(): string[] {
   const home = os.homedir();
+  // The copy the app downloaded itself comes last: a CLI the user installed
+  // (and keeps updated) always wins over the app-managed pinned version.
+  const managed = managedBinDir
+    ? [path.join(managedBinDir, process.platform === 'win32' ? 'ant.exe' : 'ant')]
+    : [];
   if (process.platform === 'win32') {
-    return ['ant.exe', 'ant', path.join(home, 'go', 'bin', 'ant.exe')];
+    return ['ant.exe', 'ant', path.join(home, 'go', 'bin', 'ant.exe'), ...managed];
   }
   return [
     'ant',
     '/opt/homebrew/bin/ant', // Homebrew on Apple silicon
     '/usr/local/bin/ant', // Homebrew on Intel, and the tarball install
     path.join(home, 'go', 'bin', 'ant'), // go install
+    ...managed,
   ];
 }
 
@@ -229,35 +238,64 @@ export async function findAnt(refresh = false): Promise<CliInfo & { cmd?: string
 }
 
 /**
- * Runs `ant auth login`, which opens the browser and writes an OAuth profile
- * the SDK then picks up. Long timeout: the user has to sign in and pick a
- * workspace in between.
+ * Makes sure a usable CLI exists, downloading the pinned release into the
+ * app's own directory when none is installed. Returns the CLI to run, or a
+ * failure message. Exported for the "download only" path and for tests.
  */
-export async function signInWithClaude(): Promise<{ ok: boolean; message: string }> {
-  const cli = await findAnt(true);
-  if (!cli.available || !cli.cmd) {
+export async function ensureAnt(): Promise<{ cli?: CliInfo & { cmd?: string }; downloaded: boolean; error?: string }> {
+  let cli = await findAnt(true);
+  if (cli.available && cli.cmd) return { cli, downloaded: false };
+  // A conflict (`ant` resolving to Apache Ant) is not a blocker here: the
+  // managed copy lives at its own absolute path inside the app's data dir.
+  if (!managedBinDir) {
+    return { downloaded: false, error: 'The app has not finished starting up yet. Try again in a moment.' };
+  }
+  try {
+    await installCli(managedBinDir);
+  } catch (e) {
     return {
-      ok: false,
-      message:
-        cli.conflict ??
-        'The Anthropic CLI (ant) was not found on this machine. Install it, then press Sign in with Claude again.',
+      downloaded: false,
+      error: `The Anthropic CLI is not installed and downloading it automatically failed: ${(e as Error).message} You can install it manually (brew install anthropics/tap/ant) and try again, or use an API key instead.`,
     };
   }
+  cli = await findAnt(true);
+  if (!cli.available || !cli.cmd) {
+    return { downloaded: true, error: 'The CLI was downloaded but did not run on this machine. Install it manually or use an API key.' };
+  }
+  return { cli, downloaded: true };
+}
 
-  const { code, stdout, stderr } = await run(cli.cmd, ['auth', 'login'], 5 * 60_000);
+/**
+ * Runs `ant auth login`, which opens the browser and writes an OAuth profile
+ * the SDK then picks up. When no CLI is present it is first downloaded
+ * automatically (release pinned and checksum-verified in cliInstall.ts), so
+ * the user never has to install anything by hand. Long timeout: the user has
+ * to sign in and pick a workspace in between.
+ */
+export async function signInWithClaude(): Promise<{ ok: boolean; message: string }> {
+  const ensured = await ensureAnt();
+  if (ensured.error || !ensured.cli?.cmd) {
+    return { ok: false, message: ensured.error ?? 'The Anthropic CLI could not be prepared.' };
+  }
+  const cli = ensured.cli;
+  const note = ensured.downloaded
+    ? ' The Anthropic sign-in tool was downloaded automatically and verified against its published checksum.'
+    : '';
+
+  const { code, stdout, stderr } = await run(cli.cmd!, ['auth', 'login'], 5 * 60_000);
   if (code === 0) {
     const login = await detectLogin();
     return {
       ok: !!login,
       message: login
-        ? `Signed in${login.email ? ` as ${login.email}` : ''}${login.organisation ? ` (${login.organisation})` : ''}.`
+        ? `Signed in${login.email ? ` as ${login.email}` : ''}${login.organisation ? ` (${login.organisation})` : ''}.${note}`
         : 'The sign-in command finished but no Claude profile was written. Try running "ant auth login" in a terminal.',
     };
   }
   const detail = (stderr || stdout).trim().split('\n').slice(-3).join(' ');
   return {
     ok: false,
-    message: `Sign-in did not complete${detail ? `: ${detail}` : '.'} Running "ant auth login" in a terminal shows the full prompt.`,
+    message: `Sign-in did not complete${detail ? `: ${detail}` : '.'} Running "ant auth login" in a terminal shows the full prompt.${note}`,
   };
 }
 

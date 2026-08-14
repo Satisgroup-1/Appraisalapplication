@@ -43,7 +43,11 @@ export default function SettingsView() {
 
   async function signIn() {
     setMsg(null);
-    setBusy('Waiting for you to finish signing in in your browser…');
+    setBusy(
+      auth?.cli.available
+        ? 'Waiting for you to finish signing in in your browser…'
+        : 'Fetching the sign-in tool, then opening your browser… the download runs once and takes a moment.',
+    );
     const res = await window.satis.authSignIn();
     setBusy(null);
     setMsg({ ok: res.ok, text: res.message });
@@ -113,8 +117,9 @@ export default function SettingsView() {
       <h4 className="subsection">Sign in with your Claude account</h4>
       <p className="note">
         Opens your browser to sign in, then hands the app a token it refreshes on its own. No key to copy, and nothing
-        to re-enter later. This uses the Anthropic command-line tool, which manages the sign-in for every Anthropic app
-        on this machine, so it needs to be installed once.
+        to re-enter later. The sign-in itself is handled by the Anthropic command-line tool; if it is not already on
+        this machine the app downloads it automatically the first time you sign in, verifying it against a published
+        checksum. There is nothing to install by hand.
       </p>
       <div style={{ marginBottom: 14 }}>
         <button className="btn" onClick={signIn} disabled={!!busy}>
@@ -127,8 +132,8 @@ export default function SettingsView() {
       {auth && !auth.cli.available && (
         <p className="note">
           {auth.cli.conflict
-            ? `${auth.cli.conflict} Install the Anthropic CLI to sign in from here, or paste an API key below.`
-            : 'The Anthropic CLI was not found on this machine, so signing in from here is not available yet. Install it using the link above, or paste an API key below.'}
+            ? `${auth.cli.conflict} Signing in from here still works: the app fetches its own copy of the Anthropic CLI when you press the button.`
+            : 'The Anthropic sign-in tool is not on this machine yet. It will be downloaded automatically when you press Sign in with Claude; installing it yourself (link above) also works, as does pasting an API key below.'}
         </p>
       )}
       {auth?.login && (

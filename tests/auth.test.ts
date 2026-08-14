@@ -18,6 +18,12 @@ vi.mock('electron', () => ({
   },
 }));
 
+// The real installer downloads a release from GitHub; tests must never reach
+// the network. Each test decides whether the download "succeeds" (planting a
+// binary) or fails.
+const { installCliMock } = vi.hoisted(() => ({ installCliMock: vi.fn() }));
+vi.mock('../electron/cliInstall', () => ({ installCli: installCliMock }));
+
 const auth = await import('../electron/auth');
 
 let tmp = '';
@@ -50,6 +56,7 @@ function fakeCli(dir: string, versionOutput: string, exitCode = 0) {
 beforeEach(() => {
   tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'satis-auth-'));
   auth.initAuth(tmp);
+  installCliMock.mockReset().mockRejectedValue(new Error('No network in tests.'));
   delete process.env.ANTHROPIC_API_KEY;
   delete process.env.ANTHROPIC_AUTH_TOKEN;
   delete process.env.ANTHROPIC_PROFILE;
@@ -196,9 +203,44 @@ describe('locating the Anthropic CLI', () => {
     expect((await auth.findAnt()).available).toBe(true);
   });
 
-  it('declines to sign in when the CLI is missing, without throwing', async () => {
+  it('finds the app-managed copy at its absolute path, off PATH entirely', async () => {
+    // The managed copy lives in userData/bin, which is never on PATH.
+    const managed = path.join(tmp, 'bin');
+    fs.mkdirSync(managed, { recursive: true });
+    fs.writeFileSync(path.join(managed, 'ant'), '#!/bin/sh\necho "ant version 9.9.9"\n', { mode: 0o755 });
+    const cli = await auth.findAnt(true);
+    expect(cli.available).toBe(true);
+    expect(cli.cmd).toBe(path.join(managed, 'ant'));
+  });
+});
+
+describe('automatic CLI download', () => {
+  it('downloads the CLI when none is installed, then uses it', async () => {
+    installCliMock.mockImplementation(async (binDir: string) => {
+      fs.mkdirSync(binDir, { recursive: true });
+      const bin = path.join(binDir, 'ant');
+      fs.writeFileSync(bin, '#!/bin/sh\necho "ant version 1.23.0"\n', { mode: 0o755 });
+      return { binPath: bin, version: '1.23.0' };
+    });
+    const res = await auth.ensureAnt();
+    expect(installCliMock).toHaveBeenCalledWith(path.join(tmp, 'bin'));
+    expect(res.downloaded).toBe(true);
+    expect(res.cli?.available).toBe(true);
+    expect(res.error).toBeUndefined();
+  });
+
+  it('leaves a user-installed CLI alone rather than downloading', async () => {
+    fakeCli(path.join(tmp, 'path-bin'), 'ant version 1.2.3');
+    const res = await auth.ensureAnt();
+    expect(res.downloaded).toBe(false);
+    expect(res.cli?.available).toBe(true);
+    expect(installCliMock).not.toHaveBeenCalled();
+  });
+
+  it('declines to sign in with a clear message when the download fails, without throwing', async () => {
     const res = await auth.signInWithClaude();
     expect(res.ok).toBe(false);
-    expect(res.message).toMatch(/not found|Apache Ant/);
+    expect(res.message).toMatch(/downloading it automatically failed/i);
+    expect(res.message).toMatch(/API key/);
   });
 });
