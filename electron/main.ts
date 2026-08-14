@@ -5,7 +5,7 @@ import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron';
 import path from 'node:path';
 import fs from 'node:fs';
 import { exportWorkbook } from './xlsxExport';
-import { extractEnvelopes, MODEL } from './ai';
+import { extractEnvelopes, MODEL, projectHpi } from './ai';
 import { authStatus, initAuth, setStoredKey, signInWithClaude, testConnection } from './auth';
 
 const isDev = !!process.env.VITE_DEV_SERVER_URL;
@@ -185,17 +185,28 @@ ipcMain.handle(
     extractEnvelopes(payload),
 );
 
-ipcMain.handle('export:xlsx', async (_e, payload: { scheduleJson: string; inputsJson: string; suggestedName: string }) => {
-  const { canceled, filePath } = await dialog.showSaveDialog({
-    title: 'Export appraisal workbook',
-    defaultPath: `${payload.suggestedName || 'appraisal'}.xlsx`,
-    filters: [{ name: 'Excel workbook', extensions: ['xlsx'] }],
-  });
-  if (canceled || !filePath) return null;
-  const template = path.join(resourcesDir(), 'appraisal_template.xlsx');
-  await exportWorkbook(template, filePath, JSON.parse(payload.scheduleJson), JSON.parse(payload.inputsJson));
-  return filePath;
-});
+ipcMain.handle('ai:projectHpi', (_e, region: string) => projectHpi(String(region ?? '').slice(0, 200)));
+
+ipcMain.handle(
+  'export:xlsx',
+  async (_e, payload: { scheduleJson: string; inputsJson: string; suggestedName: string; modelV2Json?: string }) => {
+    const { canceled, filePath } = await dialog.showSaveDialog({
+      title: 'Export appraisal workbook',
+      defaultPath: `${payload.suggestedName || 'appraisal'}.xlsx`,
+      filters: [{ name: 'Excel workbook', extensions: ['xlsx'] }],
+    });
+    if (canceled || !filePath) return null;
+    const template = path.join(resourcesDir(), 'appraisal_template.xlsx');
+    await exportWorkbook(
+      template,
+      filePath,
+      JSON.parse(payload.scheduleJson),
+      JSON.parse(payload.inputsJson),
+      payload.modelV2Json ? JSON.parse(payload.modelV2Json) : null,
+    );
+    return filePath;
+  },
+);
 
 ipcMain.handle('export:svg', async (_e, svg: string, suggestedName: string) => {
   const { canceled, filePath } = await dialog.showSaveDialog({

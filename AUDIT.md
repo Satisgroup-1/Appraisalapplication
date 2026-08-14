@@ -101,9 +101,44 @@ completely, the total equals Σ area × rate, percentage-of-build lines (conting
 follow the computed cost, and hand-entered schedules fall back to the fixed D01 amount — which
 keeps the golden tests exact.
 
-## 5. Re-running the audit
+## 5. Model v2 — deliberate deviations from the workbook
+
+The engine started as a cell-by-cell port of the workbook. Model v2 corrects the workbook's
+timing simplifications, following answers to the audit's open questions. **The workbook is no
+longer the source of truth for finance timing** — only for the unit schedule, the cost
+schedule amounts, the bridge, and facility sizing. Every change below shifts *when* money
+moves, not *how much* a cost line is (cost totals still reconcile to the penny).
+
+| Change | Workbook behaviour | Model v2 behaviour (confirmed practice) |
+|---|---|---|
+| SDLT | Spread over the legal period | Paid on completion of the purchase (month 1) |
+| Bridge scope | (Same formula, now stated) | Advances against the purchase price only; SDLT, legals, valuation and design fees are equity |
+| Main contract drawdown | Straight-line over construction | Standard S-curve (smoothstep), standing in for a QS drawdown schedule; contingency follows the curve |
+| Architect & QS fees | Architect in pre-con, QS over construction | Both straight-lined from month 1 to PC (they run through design and build) |
+| Post-construction costs | Lump at PC | Straight-lined over the expected sell period |
+| Retention | None | 3% withheld from certificates; 1.5% released at PC, 1.5% held 12 months (defects), all editable |
+| VAT on purchase | None | If seller opted to tax: paid at completion, reclaimed ~2 months later; funded from equity or a VAT loan (fee + interest are the only real cost). SDLT-on-VAT warning surfaced |
+| Deposit interest | None | Earned on the retention pot and on sale surpluses after loan repayment; credited against costs |
+| GDV over time | Static | Optional HPI indexing: sale prices to each unit's sale month, refinance value to PC; rates from the projection agent (regional, sourced) or manual |
+| Profit split | Flat investor share | Same by default; optional waterfall (capital → pref compounded monthly on drawn capital → residual split) |
+| PG cost | Based on a provisional facility estimate | **Not modelled yet** — deliberately skipped until the facility term sheet (3-5 St John Street example) is provided; will be computed on the actual facility by iteration, not the estimate |
+
+Verification of v2 (`tests/model2.test.ts`): S-curve slices hand-checked and summing to 1;
+retention conservation and release months exact; SDLT/architect/QS/holding-cost timing asserted
+month by month on a hand-computable scheme; VAT flows net to zero with the loan's fee+interest
+matching a 3-line hand calculation; the HPI index reproduces closed-form compounding; waterfall
+pref equals 100k×(1.01¹²−1) on the canonical example, with hurdle-shortfall and loss cases;
+plus standing identities (Σ monthly costs = pre-finance total; investor + developer = net
+profit in every scenario and mode). Demo outputs are regression-pinned in `tests/dcf.test.ts`.
+
+`scripts/crosscheck.sh` now checks the figures the two models still define identically (unit
+schedule, pre-finance totals, bridge, facility sizing) against a LibreOffice recalculation of
+the exported workbook. The export writes the app's v2 results to a `7. App Model v2` sheet so
+workbook readers see both models side by side.
+
+## 6. Re-running the audit
 
 ```bash
-npm test                 # golden + identity + regulation tests (50 tests)
-./scripts/crosscheck.sh  # engine vs LibreOffice-recalculated workbook (needs libreoffice-calc)
+npm test                 # golden + parity + v2 mechanics + identity + regulation tests
+./scripts/crosscheck.sh  # shared figures vs LibreOffice-recalculated workbook (needs libreoffice-calc)
 ```

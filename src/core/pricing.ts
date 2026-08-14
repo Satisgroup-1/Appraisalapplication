@@ -76,6 +76,23 @@ export const DEFAULT_FINANCE: FinanceInputs = {
   giaSqft: 11586,
   legalMonths: 2,
   preConMonths: 3,
+  // VAT applies only when the seller has opted the property to tax: pay on
+  // completion, reclaim ~2 months later.
+  vat: {
+    optedToTax: false,
+    ratePct: 0.2,
+    reclaimLagMonths: 2,
+    fundedBy: 'equity',
+    vatLoan: { ratePa: 0.1, arrangementFee: 0.015 },
+  },
+  // 3% withheld from contractor certificates; half released at PC, half held
+  // 12 months for the defects period.
+  retention: { pctDuringWorks: 0.03, pctAfterPc: 0.015, releaseMonthsAfterPc: 12 },
+  depositRatePa: 0.035,
+  hpi: { enabled: false, annualPct: [0.03, 0.03, 0.03, 0.03, 0.03] },
+  // Current deals are a straight 50/50 with no pref; the waterfall option is
+  // ready for deals with a preferred return.
+  waterfall: { mode: 'simple', prefRatePa: 0.08, residualInvestorPct: 0.5 },
   bridge: { ltv: 0.65, ratePa: 0.1, arrangementFee: 0.02, exitFee: 0.01 },
   devLoan: { ratePa: 0.085, arrangementFee: 0.015, exitFee: 0.01, maxLtgdv: 0.65 },
   equity: { total: 1400000, investorShare: 0.5 },
@@ -127,6 +144,7 @@ export function clonePricing(p: PricingSpec): PricingSpec {
 /** Fill gaps in a pricing spec loaded from an older project/preset file. */
 export function normalizePricing(p: Partial<PricingSpec>): PricingSpec {
   const base = clonePricing(DEFAULT_PRICING);
+  const fin = (p.finance ?? {}) as Partial<FinanceInputs>;
   return {
     ...base,
     ...p,
@@ -134,7 +152,21 @@ export function normalizePricing(p: Partial<PricingSpec>): PricingSpec {
     build: { ...base.build, ...(p.build ?? {}) },
     buildCostMode: p.buildCostMode ?? 'fixed', // old files priced from fixed D01
     roomRates: { ...base.roomRates, ...(p.roomRates ?? {}) },
-    finance: { ...base.finance, ...(p.finance ?? {}) },
+    // Deep-merge nested finance blocks so files saved before a block existed
+    // (vat, retention, hpi, waterfall) pick up complete defaults.
+    finance: {
+      ...base.finance,
+      ...fin,
+      vat: { ...base.finance.vat, ...(fin.vat ?? {}), vatLoan: { ...base.finance.vat.vatLoan, ...(fin.vat?.vatLoan ?? {}) } },
+      retention: { ...base.finance.retention, ...(fin.retention ?? {}) },
+      hpi: { ...base.finance.hpi, ...(fin.hpi ?? {}) },
+      waterfall: { ...base.finance.waterfall, ...(fin.waterfall ?? {}) },
+      bridge: { ...base.finance.bridge, ...(fin.bridge ?? {}) },
+      devLoan: { ...base.finance.devLoan, ...(fin.devLoan ?? {}) },
+      equity: { ...base.finance.equity, ...(fin.equity ?? {}) },
+      sales: { ...base.finance.sales, ...(fin.sales ?? {}) },
+      refinance: { ...base.finance.refinance, ...(fin.refinance ?? {}) },
+    },
     devCosts: p.devCosts ?? base.devCosts,
   };
 }

@@ -650,6 +650,7 @@ label.field select:focus {
 .grid.c2 { grid-template-columns: 1fr 1fr; }
 .grid.c3 { grid-template-columns: 1fr 1fr 1fr; }
 .grid.c4 { grid-template-columns: repeat(4, 1fr); }
+.grid.c5 { grid-template-columns: repeat(5, 1fr); }
 
 /* ---------------------------------------------------------------- tables -- */
 

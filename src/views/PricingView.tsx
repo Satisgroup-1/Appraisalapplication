@@ -11,12 +11,45 @@ export default function PricingView() {
   const setPricing = useStore((s) => s.setPricing);
   const setView = useStore((s) => s.setView);
   const [msg, setMsg] = useState<string | null>(null);
+  const [hpiBusy, setHpiBusy] = useState(false);
+  const [hpiMsg, setHpiMsg] = useState<string | null>(null);
 
   if (!project) return null;
   const spec = project.pricing;
 
   const patch = (p: Partial<PricingSpec>) => setPricing({ ...spec, ...p });
   const patchFinance = (p: Partial<PricingSpec['finance']>) => patch({ finance: { ...spec.finance, ...p } });
+  const fin = spec.finance;
+
+  async function runHpiAgent() {
+    setHpiMsg(null);
+    setHpiBusy(true);
+    try {
+      const auth = await window.satis.authStatus();
+      if (!auth.ready) {
+        setHpiMsg('Claude is not connected yet. Open Settings to sign in or add an API key, or enter rates manually.');
+        return;
+      }
+      const region = fin.hpi.region?.trim() || project!.address || 'UK';
+      const proj = await window.satis.aiProjectHpi(region);
+      patchFinance({
+        hpi: {
+          ...fin.hpi,
+          enabled: true,
+          annualPct: proj.annualPct,
+          region: proj.region,
+          rationale: proj.rationale,
+          sources: proj.sources,
+          projectedAt: proj.projectedAt,
+        },
+      });
+      setHpiMsg('Projection applied. Review the rates and rationale below; every figure stays editable.');
+    } catch (e) {
+      setHpiMsg(`Projection failed: ${(e as Error).message}`);
+    } finally {
+      setHpiBusy(false);
+    }
+  }
 
   async function savePreset() {
     const path = await window.satis.saveProject(JSON.stringify(spec, null, 2), `${spec.name.replace(/\s+/g, '_')}.pricing`);
@@ -191,7 +224,69 @@ export default function PricingView() {
         </label>
       </div>
 
+      <h3 className="section">VAT on the purchase</h3>
+      <p className="note">
+        If the seller has opted the property to tax, VAT is paid on the purchase price at completion and reclaimed
+        (typically two months later). It nets to zero as a cost, but has to be funded in the meantime: from equity, or
+        with a short VAT loan whose fee and interest are a real cost. SDLT is charged on the VAT-inclusive price, so
+        check the SDLT line when this is on.
+      </p>
+      <div className="grid c4">
+        <label className="field">
+          Seller opted to tax
+          <select
+            value={fin.vat.optedToTax ? 'yes' : 'no'}
+            onChange={(e) => patchFinance({ vat: { ...fin.vat, optedToTax: e.target.value === 'yes' } })}
+          >
+            <option value="no">No: no VAT on purchase</option>
+            <option value="yes">Yes: VAT paid &amp; reclaimed</option>
+          </select>
+        </label>
+        {fin.vat.optedToTax && (
+          <>
+            <PctField label="VAT rate" value={fin.vat.ratePct} onChange={(v) => patchFinance({ vat: { ...fin.vat, ratePct: v } })} />
+            <label className="field">
+              Reclaim lag (months)
+              <input
+                type="number"
+                min={0}
+                value={fin.vat.reclaimLagMonths}
+                onChange={(e) => patchFinance({ vat: { ...fin.vat, reclaimLagMonths: num(e.target.value) } })}
+              />
+            </label>
+            <label className="field">
+              Funded by
+              <select
+                value={fin.vat.fundedBy}
+                onChange={(e) => patchFinance({ vat: { ...fin.vat, fundedBy: e.target.value as 'equity' | 'vatLoan' } })}
+              >
+                <option value="equity">Equity (working capital)</option>
+                <option value="vatLoan">VAT loan facility</option>
+              </select>
+            </label>
+            {fin.vat.fundedBy === 'vatLoan' && (
+              <>
+                <PctField
+                  label="VAT loan rate pa"
+                  value={fin.vat.vatLoan.ratePa}
+                  onChange={(v) => patchFinance({ vat: { ...fin.vat, vatLoan: { ...fin.vat.vatLoan, ratePa: v } } })}
+                />
+                <PctField
+                  label="VAT loan arrangement fee"
+                  value={fin.vat.vatLoan.arrangementFee}
+                  onChange={(v) => patchFinance({ vat: { ...fin.vat, vatLoan: { ...fin.vat.vatLoan, arrangementFee: v } } })}
+                />
+              </>
+            )}
+          </>
+        )}
+      </div>
+
       <h3 className="section">Bridging loan: site purchase</h3>
+      <p className="note">
+        The bridge advances against the purchase price only. SDLT, legals, valuation and design fees are paid from
+        equity: they are part of the equity raise, not the facility.
+      </p>
       <div className="grid c4">
         <PctField label="LTV on purchase" value={spec.finance.bridge.ltv} onChange={(v) => patchFinance({ bridge: { ...spec.finance.bridge, ltv: v } })} />
         <PctField label="Interest rate pa" value={spec.finance.bridge.ratePa} onChange={(v) => patchFinance({ bridge: { ...spec.finance.bridge, ratePa: v } })} />
@@ -206,6 +301,98 @@ export default function PricingView() {
         <PctField label="Exit fee" value={spec.finance.devLoan.exitFee} onChange={(v) => patchFinance({ devLoan: { ...spec.finance.devLoan, exitFee: v } })} />
         <PctField label="Max LTGDV covenant" value={spec.finance.devLoan.maxLtgdv} onChange={(v) => patchFinance({ devLoan: { ...spec.finance.devLoan, maxLtgdv: v } })} />
       </div>
+
+      <h3 className="section">Construction cashflow, retention &amp; cash</h3>
+      <p className="note">
+        The main contract draws on a standard S-curve (slow start, peak mid-programme, tail-off), standing in for a QS
+        drawdown schedule. Architect and QS fees straight-line from month 1 to practical completion; other professional
+        fees sit in pre-construction. Retention is withheld from every certificate, part released at PC and the rest
+        after the defects period. Cash held (the retention pot, sale surpluses) earns deposit interest.
+      </p>
+      <div className="grid c4">
+        <PctField
+          label="Retention during works"
+          value={fin.retention.pctDuringWorks}
+          onChange={(v) => patchFinance({ retention: { ...fin.retention, pctDuringWorks: v } })}
+        />
+        <PctField
+          label="Held after PC (defects)"
+          value={fin.retention.pctAfterPc}
+          onChange={(v) => patchFinance({ retention: { ...fin.retention, pctAfterPc: v } })}
+        />
+        <label className="field">
+          Defects period (months)
+          <input
+            type="number"
+            min={0}
+            value={fin.retention.releaseMonthsAfterPc}
+            onChange={(e) => patchFinance({ retention: { ...fin.retention, releaseMonthsAfterPc: num(e.target.value) } })}
+          />
+        </label>
+        <PctField label="Deposit interest rate pa" value={fin.depositRatePa} onChange={(v) => patchFinance({ depositRatePa: v })} />
+      </div>
+
+      <h3 className="section">House price inflation</h3>
+      <p className="note">
+        When on, sale prices are indexed forward to each unit&apos;s sale month and the refinance valuation to PC. The
+        projection agent researches current figures (ONS HPI, published 5-year forecasts) for the project&apos;s region
+        and fills the rates with sources; everything stays editable.
+      </p>
+      <div className="grid c4">
+        <label className="field">
+          Apply HPI to sale prices
+          <select
+            value={fin.hpi.enabled ? 'yes' : 'no'}
+            onChange={(e) => patchFinance({ hpi: { ...fin.hpi, enabled: e.target.value === 'yes' } })}
+          >
+            <option value="no">Off: prices as entered</option>
+            <option value="yes">On: index by sale month</option>
+          </select>
+        </label>
+        <label className="field">
+          Region
+          <input
+            placeholder={project.address || 'e.g. Manchester'}
+            value={fin.hpi.region ?? ''}
+            onChange={(e) => patchFinance({ hpi: { ...fin.hpi, region: e.target.value } })}
+          />
+        </label>
+        <label className="field">
+          &nbsp;
+          <button className="btn" onClick={runHpiAgent} disabled={hpiBusy} style={{ marginTop: 5 }}>
+            {hpiBusy ? 'Researching…' : 'Project with AI'}
+          </button>
+        </label>
+      </div>
+      <div className="grid c5" style={{ maxWidth: 720 }}>
+        {fin.hpi.annualPct.map((r, i) => (
+          <PctField
+            key={i}
+            label={`Year ${i + 1}`}
+            value={r}
+            onChange={(v) =>
+              patchFinance({ hpi: { ...fin.hpi, annualPct: fin.hpi.annualPct.map((x, j) => (j === i ? v : x)) } })
+            }
+          />
+        ))}
+      </div>
+      {hpiMsg && <div className={hpiMsg.startsWith('Projection applied') ? 'ok-box' : 'warn-box'}>{hpiMsg}</div>}
+      {fin.hpi.rationale && (
+        <details style={{ marginBottom: 12 }}>
+          <summary style={{ fontSize: 11.5, color: 'var(--grey-text)', cursor: 'pointer' }}>
+            Projection rationale &amp; sources
+            {fin.hpi.projectedAt ? ` (${new Date(fin.hpi.projectedAt).toLocaleDateString('en-GB')})` : ''}
+          </summary>
+          <p className="note" style={{ marginTop: 6 }}>
+            {fin.hpi.rationale}
+          </p>
+          {(fin.hpi.sources ?? []).map((s, i) => (
+            <div key={i} className="assumption">
+              · {s}
+            </div>
+          ))}
+        </details>
+      )}
 
       <h3 className="section">Equity &amp; sales</h3>
       <div className="grid c4">
@@ -224,6 +411,39 @@ export default function PricingView() {
           <input type="number" value={spec.finance.sales.velocityPerMonth} onChange={(e) => patchFinance({ sales: { ...spec.finance.sales, velocityPerMonth: num(e.target.value) } })} />
         </label>
         <PctField label="Price adjust vs GDV" value={spec.finance.sales.priceAdjust} onChange={(v) => patchFinance({ sales: { ...spec.finance.sales, priceAdjust: v } })} />
+      </div>
+
+      <h3 className="section">Profit split</h3>
+      <p className="note">
+        Simple split mirrors the current deals: profit × investor share, no preferred return. The waterfall pays
+        investor capital back first, then a preferred return compounded monthly on drawn capital, then splits the
+        residual: the structure more sophisticated investors will expect.
+      </p>
+      <div className="grid c4">
+        <label className="field">
+          Structure
+          <select
+            value={fin.waterfall.mode}
+            onChange={(e) => patchFinance({ waterfall: { ...fin.waterfall, mode: e.target.value as 'simple' | 'waterfall' } })}
+          >
+            <option value="simple">Simple split (current deals)</option>
+            <option value="waterfall">Waterfall: pref then split</option>
+          </select>
+        </label>
+        {fin.waterfall.mode === 'waterfall' && (
+          <>
+            <PctField
+              label="Preferred return pa"
+              value={fin.waterfall.prefRatePa}
+              onChange={(v) => patchFinance({ waterfall: { ...fin.waterfall, prefRatePa: v } })}
+            />
+            <PctField
+              label="Investor share above pref"
+              value={fin.waterfall.residualInvestorPct}
+              onChange={(v) => patchFinance({ waterfall: { ...fin.waterfall, residualInvestorPct: v } })}
+            />
+          </>
+        )}
       </div>
 
       <h3 className="section">Refinance / exit</h3>

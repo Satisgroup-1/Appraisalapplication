@@ -26,18 +26,26 @@ to enter its workspace:
    (living/kitchen, bedrooms, bathrooms, halls, circulation, retained commercial — the build
    cost is computed from each option's actual room areas, so layouts with more wet rooms cost
    more), build programme, purchase/finance parameters (bridge, development loan, equity
-   split, sales assumptions, refinance) and the full development-cost schedule. Save/load
-   named presets as JSON files.
+   split, sales assumptions, refinance), VAT on the purchase (opted-to-tax sellers: paid at
+   completion, reclaimed ~2 months later, equity- or VAT-loan-funded), contractor retention
+   (3% withheld, 1.5% at PC, 1.5% after the defects period), deposit interest on cash held,
+   **house price inflation** (a projection agent researches current regional figures and
+   forecasts with sources, or enter rates manually), the profit structure (simple split or a
+   preferred-return waterfall) and the full development-cost schedule. Save/load named presets
+   as JSON files.
 3. **Options** — one click enumerates conversion options: all-residential at three unit-mix
    strategies (max units / balanced / family), ground-commercial + residential uppers,
    floor-through lateral flats, and a whole-building merge. Every unit is validated against
    the NDSS ruleset (editable in Settings); each option gets a schematic SVG plan, a
    compliance report and a priced unit schedule.
 4. **Appraisal** — the adopted option runs through the DCF engine: development cost build-up,
-   48-month cashflow with bridge + development loan roll-up, four exit scenarios (sell at PC,
-   delayed sales, refinance & rent, refinance-then-sell) and sensitivity grids. Export a
-   populated copy of the Appraisal Model workbook (`.xlsx`) — the workbook's own formulas
-   recalculate on open in Excel.
+   a 48-month cashflow (bridge against the purchase only, S-curve build drawdown, SDLT on
+   completion, architect/QS fees to PC, retention withheld and released, VAT flows, dev loan
+   roll-up), four exit scenarios (sell at PC, delayed sales, refinance & rent,
+   refinance-then-sell) with HPI-indexed sale prices and per-scenario distribution waterfalls,
+   and sensitivity grids. Export a populated copy of the Appraisal Model workbook (`.xlsx`) —
+   sheets 1-6 recalculate with the workbook's own (classic) formulas, and a `7. App Model v2`
+   sheet carries the app's richer model and assumptions.
 
 ## Connecting Claude
 
@@ -81,7 +89,10 @@ npm test           # engine tests, incl. golden tests vs the Excel workbook
 npm run typecheck
 ```
 
-The DCF engine (`src/core/dcf.ts`) is a cell-by-cell port of `Appraisal_Model_1.xlsx`;
+The DCF engine (`src/core/dcf.ts`) began as a cell-by-cell port of `Appraisal_Model_1.xlsx`
+and has since deliberately deviated where the workbook simplified timing (S-curve drawdown,
+SDLT on completion, retention, VAT, HPI, waterfall) — the deviations and their verification
+are catalogued in AUDIT.md §5;
 `tests/dcf.test.ts` asserts it reproduces the exact values Excel computed for the demo scheme
 (cached workbook results). The layout engine and NDSS validator are ports of the
 `floorplan-converter` agent skill (`scripts/layout.py`, `validate.py`).

@@ -11,17 +11,63 @@ import type {
   DevCostsComputed,
   FinanceInputs,
   FinanceSummary,
+  HpiInputs,
   MonthRow,
   PricingSpec,
   RoomAreas,
   ScenarioResults,
   ScheduleRow,
   SensitivityResults,
+  WaterfallResult,
 } from './types';
 import { SQM_TO_SQFT } from './rules';
 
 export const MONTHS = 48; // '4. Cashflow' columns E..AZ
 export const SELLDOWN_MONTHS = 36; // '5. Scenarios' columns E..AN
+
+// ---------------------------------------------------------------------------
+// Timing helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Cumulative fraction of the main contract certified by the end of month m of
+ * an n-month build, on a standard S-curve (smoothstep: slow mobilisation, peak
+ * mid-programme, tail-off to completion). Stands in for a QS drawdown
+ * schedule; replace with actual certificates when a schedule exists.
+ */
+export function sCurveFraction(m: number, n: number): number {
+  const t = Math.min(1, Math.max(0, n === 0 ? 1 : m / n));
+  return t * t * (3 - 2 * t);
+}
+
+/** The month-m slice of the S-curve (certificates issued in that month). */
+export function sCurveMonth(m: number, n: number): number {
+  return sCurveFraction(m, n) - sCurveFraction(m - 1, n);
+}
+
+/**
+ * Cumulative house-price index from the purchase month to month m, from
+ * annual rates (year 1..N; the final rate persists beyond the array),
+ * compounded monthly. 1.0 when HPI is disabled.
+ */
+export function hpiIndexAt(hpi: HpiInputs, month: number): number {
+  if (!hpi.enabled || month <= 0 || hpi.annualPct.length === 0) return 1;
+  let idx = 1;
+  for (let k = 1; k <= month; k++) {
+    const year = Math.ceil(k / 12);
+    const rate = hpi.annualPct[Math.min(year, hpi.annualPct.length) - 1] ?? 0;
+    idx *= Math.pow(1 + rate, 1 / 12);
+  }
+  return idx;
+}
+
+/** Match cost lines that get special timing, by code with a label fallback
+ *  so renamed/custom lines still behave. */
+const isSdltLine = (code: string, label: string) => code === 'B04' || /sdlt|stamp\s*duty/i.test(label);
+const isArchitectLine = (code: string, label: string) => code === 'C01' || /architect/i.test(label);
+const isQsLine = (code: string, label: string) => code === 'D05' || /quantity\s*surveyor/i.test(label);
+const isBuildLine = (code: string) => code === 'D01';
+const isContingencyLine = (code: string, label: string) => code === 'D08' || /contingency/i.test(label);
 
 export interface ScheduleTotals {
   units: number; // UI F40 = COUNTA
@@ -167,39 +213,125 @@ export function computeCashflow(
   const { legalMonths, preConMonths, conMonths, conStartMonth, pcMonth } = prog;
   const g = dev.groups;
 
+  // The bridge funds ONLY the property purchase (confirmed lender practice):
+  // SDLT, legals, valuation and design fees are all paid from equity.
   const bridgeAdvance = f.purchasePrice * f.bridge.ltv; // E21
   // '2. Inputs' E22: estimated redemption = advance*(1+arr)*(1+rate/12)^preCon*(1+exit)
   const estRedemption =
     bridgeAdvance * (1 + f.bridge.arrangementFee) * Math.pow(1 + f.bridge.ratePa / 12, preConMonths) * (1 + f.bridge.exitFee);
-  // E29 facility = F87 - equity - advance + est. redemption
+  // E29 facility = F87 - equity - advance + est. redemption. The arrangement
+  // fee is set on the committed facility at signing, which is itself an
+  // estimate — so the estimate basis is faithful to how facilities are priced.
   const devFacilityEstimate = dev.totalPreFinance - f.equity.total - bridgeAdvance + estRedemption;
-  // E30 dev arrangement fee £ (rolled at first draw)
   const devArrangementFee = f.devLoan.arrangementFee * devFacilityEstimate;
+
+  // Cost-line splits that get their own timing.
+  const sumWhere = (grp: { lines: { code: string; label: string; amount: number }[] }, pred: (c: string, l: string) => boolean) =>
+    grp.lines.filter((l) => pred(l.code, l.label)).reduce((s, l) => s + l.amount, 0);
+  const sdltTotal = sumWhere(g.legals, isSdltLine); // paid on completion of the purchase
+  const legalsRest = g.legals.total - sdltTotal;
+  const architectTotal = sumWhere(g.professional, isArchitectLine); // runs through design AND construction
+  const professionalRest = g.professional.total - architectTotal;
+  const qsTotal = sumWhere(g.construction, isQsLine); // ditto
+  const buildTotal = sumWhere(g.construction, (c) => isBuildLine(c)); // main contract, on the S-curve
+  const contingencyTotal = sumWhere(g.construction, isContingencyLine); // spent as the build progresses
+  const constructionRest = g.construction.total - qsTotal - buildTotal - contingencyTotal;
+
+  // Post-construction holding costs straight-line over the expected sell
+  // period (confirmed practice), not a lump at PC.
+  const sellMonthsRaw = f.sales.velocityPerMonth > 0 ? Math.ceil(totals.units / f.sales.velocityPerMonth) : 1;
+  const postConStart = pcMonth + 1;
+  const postConMonths = Math.max(1, Math.min(sellMonthsRaw, MONTHS - pcMonth));
+
+  // Retention: withheld from each certificate, part released at PC, the rest
+  // at the end of the defects period.
+  const ret = f.retention;
+  const finalReleaseMonth = Math.min(pcMonth + Math.max(0, Math.round(ret.releaseMonthsAfterPc)), MONTHS);
+  const defectsHoldTarget = buildTotal * Math.max(0, ret.pctAfterPc);
+
+  // VAT on the purchase (opted-to-tax sellers only).
+  const vat = f.vat;
+  const vatOnPurchase = vat.optedToTax ? f.purchasePrice * vat.ratePct : 0;
+  const vatReclaimMonth = Math.min(1 + Math.max(0, Math.round(vat.reclaimLagMonths)), MONTHS);
+  const vatViaLoan = vat.optedToTax && vat.fundedBy === 'vatLoan';
+  const vatLoanFee = vatViaLoan ? vatOnPurchase * vat.vatLoan.arrangementFee : 0;
 
   const rows: MonthRow[] = [];
   let cumCosts = 0;
+  let cumNeed = 0; // costs + VAT working capital: what bridge+equity+dev loan must fund
   let prevBridgeBal = 0;
   let prevEquityCum = 0;
   let prevDevBal = 0;
+  let retentionBalance = 0;
+  let vatLoanBalance = 0;
+  let vatLoanInterestTotal = 0;
+  let equityAtPc = 0;
 
   for (let m = 1; m <= MONTHS; m++) {
-    // Cost rows (E8..E15 pattern)
+    // --- development costs (timing per confirmed practice) ---
     let costs = 0;
-    if (m === 1) costs += dev.purchase; // (A) purchase at month 1
-    if (m <= legalMonths) costs += g.legals.total / legalMonths; // (B)
-    if (m <= preConMonths) costs += g.professional.total / preConMonths; // (C)
+    let retentionWithheld = 0;
+    let retentionReleased = 0;
+    if (m === 1) costs += dev.purchase + sdltTotal; // (A) + SDLT on completion
+    if (m <= legalMonths) costs += legalsRest / legalMonths; // (B) other acquisition costs
+    if (m <= preConMonths) costs += professionalRest / preConMonths; // (C) design team
+    if (m <= pcMonth) costs += (architectTotal + qsTotal) / pcMonth; // architect & QS run to PC
     if (m > preConMonths && m <= pcMonth) {
-      costs += g.construction.total / conMonths; // (D)
+      const k = m - preConMonths;
+      const certified = buildTotal * sCurveMonth(k, conMonths); // (D01) S-curve certificate
+      retentionWithheld = certified * Math.max(0, ret.pctDuringWorks);
+      costs += certified - retentionWithheld;
+      costs += contingencyTotal * sCurveMonth(k, conMonths);
+      costs += constructionRest / conMonths;
       costs += g.duringConstruction.total / conMonths; // (E)
     }
     if (m === pcMonth) {
-      costs += g.postConstruction.total; // (F)
-      costs += g.salesMarketing.total; // (G)
+      // First moiety: release the pot down to the defects-period holdback.
+      retentionReleased += Math.max(0, retentionBalance + retentionWithheld - defectsHoldTarget);
+      costs += g.salesMarketing.total; // (G) marketing around completion
+    }
+    if (m === finalReleaseMonth && m >= pcMonth) {
+      // Defects period over: release whatever is still held.
+      retentionReleased += Math.max(0, retentionBalance + retentionWithheld - retentionReleased);
+    }
+    costs += retentionReleased;
+    if (pcMonth >= MONTHS ? m === MONTHS : m >= postConStart && m < postConStart + postConMonths) {
+      costs += g.postConstruction.total / postConMonths; // (F) holding costs over the sell period
     }
     if (m <= pcMonth) costs += g.other.total / pcMonth; // (H)
     cumCosts += costs;
 
-    // Bridge (rows 20-23)
+    // Deposit interest on the retention pot (held in the bank), accrued on
+    // the balance carried into the month.
+    const depositInterest = retentionBalance * (f.depositRatePa / 12);
+    retentionBalance = retentionBalance + retentionWithheld - retentionReleased;
+
+    // --- VAT on the purchase ---
+    const vatPaid = m === 1 ? vatOnPurchase : 0;
+    const vatReclaimed = m === vatReclaimMonth ? vatOnPurchase : 0;
+    let vatLoanShortfall = 0;
+    if (vatViaLoan) {
+      if (m === 1) {
+        vatLoanBalance = vatOnPurchase + vatLoanFee;
+      }
+      if (vatLoanBalance > 0) {
+        const vi = vatLoanBalance * (vat.vatLoan.ratePa / 12);
+        vatLoanInterestTotal += vi;
+        vatLoanBalance += vi;
+      }
+      if (m === vatReclaimMonth && vatLoanBalance > 0) {
+        // The reclaim repays the principal; the rolled fee + interest are the
+        // real cost, settled from project funds that month.
+        vatLoanShortfall = Math.max(0, vatLoanBalance - vatOnPurchase);
+        vatLoanBalance = 0;
+      }
+    }
+    // Equity-funded VAT is working capital: out at month 1, back at reclaim.
+    const vatEquityFlow = vat.optedToTax && !vatViaLoan ? vatPaid - vatReclaimed : 0;
+    const need = costs + vatEquityFlow + vatLoanShortfall;
+    cumNeed += need;
+
+    // --- bridge (rows 20-23): advances against the purchase only ---
     let bridgeInterest = 0;
     let bridgeBalance = 0;
     let bridgeRedemption = 0;
@@ -214,22 +346,25 @@ export function computeCashflow(
       if (m === conStartMonth) bridgeRedemption = prevBridgeBal * (1 + f.bridge.exitFee); // F23
     }
 
-    // Equity (rows 24-25): cumulative = MIN(total, MAX(0, cumCosts - advance))
-    const equityCum = Math.min(f.equity.total, Math.max(0, cumCosts - bridgeAdvance));
+    // --- equity: fills the gap the bridge leaves, frozen at PC (costs after
+    // PC are met from sales proceeds, not fresh equity) ---
+    const equityCum =
+      m <= pcMonth ? Math.min(f.equity.total, Math.max(0, cumNeed - bridgeAdvance)) : equityAtPc;
+    if (m === pcMonth) equityAtPc = equityCum;
     const equityMonth = equityCum - prevEquityCum;
 
-    // Dev loan (rows 26-28)
+    // --- dev loan (rows 26-28): draws from construction start to PC ---
     let devDrawdown = 0;
     let devInterest = 0;
     let devBalance = 0;
-    if (m >= conStartMonth) {
-      devDrawdown = Math.max(0, costs - equityMonth) + (m === conStartMonth ? bridgeRedemption + devArrangementFee : 0);
+    if (m >= conStartMonth && m <= pcMonth) {
+      devDrawdown = Math.max(0, need - equityMonth) + (m === conStartMonth ? bridgeRedemption + devArrangementFee : 0);
     }
     if (m > 1 && m <= pcMonth) devInterest = prevDevBal * (f.devLoan.ratePa / 12);
     devBalance = m > pcMonth ? 0 : prevDevBal + devInterest + devDrawdown;
     if (m === 1) devBalance = devDrawdown; // E28 = E26
 
-    const fundingGap = m < conStartMonth && cumCosts > bridgeAdvance + f.equity.total;
+    const fundingGap = m < conStartMonth && cumNeed > bridgeAdvance + f.equity.total;
 
     rows.push({
       month: m,
@@ -244,6 +379,13 @@ export function computeCashflow(
       devInterest,
       devBalance,
       fundingGap,
+      vatPaid,
+      vatReclaimed,
+      vatLoanBalance,
+      retentionWithheld,
+      retentionReleased,
+      retentionBalance,
+      depositInterest,
     });
 
     prevBridgeBal = bridgeBalance;
@@ -263,10 +405,20 @@ export function computeCashflow(
   const devPayoffAtPC = devBalanceAtPC + devExitFee; // C40
   const peakDevBalance = Math.max(...rows.map((r) => r.devBalance)); // C41
   const ltgdvAtPeak = totals.gdv === 0 ? 0 : peakDevBalance / totals.gdv; // C42
+  const retentionHeldPeak = Math.max(...rows.map((r) => r.retentionBalance));
+  const depositInterestRetention = rows.reduce((s, r) => s + r.depositInterest, 0);
   const totalFinanceCosts =
-    bridgeArrangementFee + bridgeInterestTotal + bridgeExitFee + devArrangementFee + devInterestTotal + devExitFee; // C43
-  const totalCostsAfterFinance = dev.totalPreFinance + totalFinanceCosts; // C44
-  const equityUsed = Math.max(...rows.map((r) => r.equityCum)); // C45
+    bridgeArrangementFee +
+    bridgeInterestTotal +
+    bridgeExitFee +
+    devArrangementFee +
+    devInterestTotal +
+    devExitFee +
+    vatLoanFee +
+    vatLoanInterestTotal; // C43 + VAT facility costs
+  // Deposit interest earned on the retention pot offsets total costs.
+  const totalCostsAfterFinance = dev.totalPreFinance + totalFinanceCosts - depositInterestRetention; // C44
+  const equityUsed = Math.max(...rows.map((r) => r.equityCum)); // C45 (peak: includes VAT working capital)
 
   return {
     rows,
@@ -285,6 +437,11 @@ export function computeCashflow(
       peakDevBalance,
       ltgdvAtPeak,
       ltgdvOk: ltgdvAtPeak <= f.devLoan.maxLtgdv,
+      vatOnPurchase,
+      vatLoanFee,
+      vatLoanInterest: vatLoanInterestTotal,
+      retentionHeldPeak,
+      depositInterestRetention,
       totalFinanceCosts,
       totalCostsAfterFinance,
       equityUsed,
@@ -292,25 +449,43 @@ export function computeCashflow(
   };
 }
 
-/** Sell-down loop shared by scenarios 2 and 4. */
-function sellDown(
-  units: number,
-  gdvAdjusted: number,
-  velocity: number,
-  agentFeePct: number,
-  legalPerUnit: number,
-  openingLoan: number,
-  monthlyRate: number,
-): { totalInterest: number; closingBalances: number[] } {
-  const avgPrice = units === 0 ? 0 : gdvAdjusted / units;
+/** Sell-down loop shared by scenarios 2 and 4. Sales pacing is uniform
+ *  (confirmed assumption); prices index forward by HPI to each sale month;
+ *  surplus cash after the loan is repaid earns deposit interest. */
+function sellDown(args: {
+  units: number;
+  gdvAtPcAdjusted: number; // GDV indexed to PC x price lever
+  hpi: HpiInputs;
+  pcMonth: number;
+  velocity: number;
+  agentFeePct: number;
+  legalPerUnit: number;
+  openingLoan: number;
+  monthlyRate: number;
+  depositRatePa: number;
+}): {
+  totalInterest: number;
+  hpiUplift: number;
+  depositInterest: number;
+  closingBalances: number[];
+} {
+  const { units, gdvAtPcAdjusted, hpi, pcMonth, velocity, agentFeePct, legalPerUnit, openingLoan, monthlyRate, depositRatePa } = args;
+  const avgPriceAtPc = units === 0 ? 0 : gdvAtPcAdjusted / units;
+  const indexAtPc = hpiIndexAt(hpi, pcMonth);
   let remaining = units;
   let opening = openingLoan;
   let totalInterest = 0;
+  let hpiUplift = 0;
+  let cash = 0;
+  let depositInterest = 0;
   const closingBalances: number[] = [];
   for (let m = 1; m <= SELLDOWN_MONTHS; m++) {
     const sold = Math.min(velocity, remaining);
     remaining -= sold;
-    const gross = sold * avgPrice;
+    // Price each month's sales at that month's index (relative to PC).
+    const factor = indexAtPc === 0 ? 1 : hpiIndexAt(hpi, pcMonth + m) / indexAtPc;
+    const gross = sold * avgPriceAtPc * factor;
+    hpiUplift += sold * avgPriceAtPc * (factor - 1);
     const net = gross * (1 - agentFeePct) - sold * legalPerUnit;
     const interest = opening * monthlyRate;
     totalInterest += interest;
@@ -318,8 +493,76 @@ function sellDown(
     const closing = opening + interest - repayment;
     closingBalances.push(closing);
     opening = closing;
+    // Deposit interest on the cash balance carried in, then bank this
+    // month's surplus (proceeds left after loan repayment).
+    depositInterest += cash * (depositRatePa / 12);
+    cash += Math.max(0, net) - repayment;
+    if (remaining === 0 && closing <= 0.01) break; // sold out and repaid: cash distributes
   }
-  return { totalInterest, closingBalances };
+  return { totalInterest, hpiUplift, depositInterest, closingBalances };
+}
+
+/**
+ * Profit distribution. 'simple' reproduces the current 50/50 deals; the
+ * waterfall pays investor capital back first (implicit: profit is after all
+ * costs), then a preferred return compounded monthly on drawn capital, then
+ * splits the residual. Losses are borne pro-rata to capital in both modes.
+ */
+export function computeWaterfall(
+  f: FinanceInputs,
+  rows: MonthRow[],
+  netProfit: number,
+  exitMonth: number,
+): WaterfallResult {
+  const share = f.equity.investorShare;
+  const wf = f.waterfall;
+  const committed = f.equity.total * share;
+
+  // Accrue pref on the investor's drawn balance, following the cashflow's
+  // actual equity deployment (a VAT reclaim hands capital back early and
+  // stops pref accruing on it).
+  let capBal = 0;
+  let pref = 0;
+  let drawnPeak = 0;
+  const horizon = Math.max(1, Math.round(exitMonth));
+  for (let m = 1; m <= horizon; m++) {
+    pref += (capBal + pref) * (wf.prefRatePa / 12); // no pref in the month of drawdown
+    const draw = (rows[m - 1]?.equityMonth ?? 0) * share;
+    capBal += draw;
+    drawnPeak = Math.max(drawnPeak, capBal);
+  }
+
+  const investorCapital = wf.mode === 'waterfall' ? drawnPeak : committed;
+  const developerCapital = f.equity.total - committed;
+
+  let prefPaid = 0;
+  let residualProfit = 0;
+  let investorProfit: number;
+  if (wf.mode !== 'waterfall' || netProfit <= 0) {
+    investorProfit = netProfit * share;
+    residualProfit = Math.max(0, netProfit);
+  } else {
+    prefPaid = Math.min(pref, netProfit);
+    residualProfit = netProfit - prefPaid;
+    investorProfit = prefPaid + residualProfit * wf.residualInvestorPct;
+  }
+  const developerProfit = netProfit - investorProfit;
+  const investorRoi = investorCapital === 0 ? 0 : investorProfit / investorCapital;
+
+  return {
+    mode: wf.mode,
+    exitMonth: horizon,
+    investorCapital,
+    developerCapital,
+    prefAccrued: wf.mode === 'waterfall' ? pref : 0,
+    prefPaid,
+    prefShortfall: wf.mode === 'waterfall' && netProfit > 0 ? Math.max(0, pref - prefPaid) : 0,
+    residualProfit,
+    investorProfit,
+    developerProfit,
+    investorRoi,
+    investorRoiPa: horizon === 0 ? 0 : (investorRoi * 12) / horizon,
+  };
 }
 
 export function computeScenarios(
@@ -328,48 +571,59 @@ export function computeScenarios(
   dev: DevCostsComputed,
   fin: FinanceSummary,
   prog: Programme,
+  rows: MonthRow[],
 ): ScenarioResults {
-  // Scenario 1 — immediate sale at PC
-  const gdvAdjusted = totals.gdv * (1 + f.sales.priceAdjust); // F5
+  // Scenario 1 — immediate sale at PC. Today's GDV is indexed forward to PC
+  // by the HPI projection (index 1.0 when disabled), then the price lever.
+  const hpiIndexAtPc = hpiIndexAt(f.hpi, prog.pcMonth);
+  const gdvAdjusted = totals.gdv * hpiIndexAtPc * (1 + f.sales.priceAdjust); // F5
   const netProfit1 = gdvAdjusted - fin.totalCostsAfterFinance; // F9
-  const investorEquity = f.equity.total * f.equity.investorShare; // E36
+  const wf1 = computeWaterfall(f, rows, netProfit1, prog.pcMonth);
   const s1 = {
     gdvAdjusted,
+    hpiIndexAtPc,
     netProfit: netProfit1,
     profitOnCost: fin.totalCostsAfterFinance === 0 ? 0 : netProfit1 / fin.totalCostsAfterFinance,
     profitOnGdv: gdvAdjusted === 0 ? 0 : netProfit1 / gdvAdjusted,
-    investorProfit: netProfit1 * f.equity.investorShare,
-    developerProfit: netProfit1 * (1 - f.equity.investorShare),
-    investorRoi: investorEquity === 0 ? 0 : (netProfit1 * f.equity.investorShare) / investorEquity,
+    investorProfit: wf1.investorProfit,
+    developerProfit: wf1.developerProfit,
+    investorRoi: wf1.investorRoi,
     durationMonths: prog.pcMonth,
-    investorRoiPa:
-      prog.pcMonth === 0 ? 0 : ((investorEquity === 0 ? 0 : (netProfit1 * f.equity.investorShare) / investorEquity) * 12) / prog.pcMonth,
+    investorRoiPa: wf1.investorRoiPa,
+    waterfall: wf1,
   };
 
   // Scenario 2 — delayed sales, dev loan keeps rolling (rows 23-39)
-  const sd2 = sellDown(
-    totals.units,
-    gdvAdjusted,
-    f.sales.velocityPerMonth,
-    f.sales.agentFeePct,
-    f.sales.legalPerUnit,
-    fin.devPayoffAtPC, // E28 = C40
-    f.devLoan.ratePa / 12,
-  );
+  const sd2 = sellDown({
+    units: totals.units,
+    gdvAtPcAdjusted: gdvAdjusted,
+    hpi: f.hpi,
+    pcMonth: prog.pcMonth,
+    velocity: f.sales.velocityPerMonth,
+    agentFeePct: f.sales.agentFeePct,
+    legalPerUnit: f.sales.legalPerUnit,
+    openingLoan: fin.devPayoffAtPC, // E28 = C40
+    monthlyRate: f.devLoan.ratePa / 12,
+    depositRatePa: f.depositRatePa,
+  });
   const monthsToSellOut = f.sales.velocityPerMonth === 0 ? 0 : Math.ceil(totals.units / f.sales.velocityPerMonth); // F33
   const monthsToRepay: number | '36+' =
-    sd2.closingBalances[SELLDOWN_MONTHS - 1] > 0.01
+    sd2.closingBalances.length >= SELLDOWN_MONTHS && sd2.closingBalances[SELLDOWN_MONTHS - 1] > 0.01
       ? '36+'
       : sd2.closingBalances.filter((b) => b > 0.01).length + 1; // F34
-  const netProfit2 = netProfit1 - sd2.totalInterest; // F36
+  const netProfit2 = netProfit1 + sd2.hpiUplift + sd2.depositInterest - sd2.totalInterest; // F36 + HPI + deposit interest
+  const wf2 = computeWaterfall(f, rows, netProfit2, prog.pcMonth + monthsToSellOut);
   const s2 = {
     monthsToSellOut,
     monthsToRepay,
     extraInterest: sd2.totalInterest, // F35
+    hpiUplift: sd2.hpiUplift,
+    depositInterestOnSurplus: sd2.depositInterest,
     netProfit: netProfit2,
-    investorProfit: netProfit2 * f.equity.investorShare, // F37
-    investorRoi: investorEquity === 0 ? 0 : (netProfit2 * f.equity.investorShare) / investorEquity, // F38
+    investorProfit: wf2.investorProfit, // F37
+    investorRoi: wf2.investorRoi, // F38
     totalDurationMonths: prog.pcMonth + monthsToSellOut, // F39
+    waterfall: wf2,
   };
 
   // Scenario 3 — refinance at PC & rent (rows 43-54)
@@ -399,24 +653,31 @@ export function computeScenarios(
   // Scenario 4 — refinance at PC, then delayed sales at the lower rate (rows 59-75)
   const refiPrincipal = fin.devPayoffAtPC; // F59 = F12
   const refiFeeRolled = refiPrincipal * f.refinance.arrangementFee; // F60
-  const sd4 = sellDown(
-    totals.units,
-    gdvAdjusted,
-    f.sales.velocityPerMonth,
-    f.sales.agentFeePct,
-    f.sales.legalPerUnit,
-    refiPrincipal + refiFeeRolled, // E66
-    f.refinance.ratePa / 12, // E67
-  );
-  const netProfit4 = netProfit1 - refiFeeRolled - sd4.totalInterest; // F72
+  const sd4 = sellDown({
+    units: totals.units,
+    gdvAtPcAdjusted: gdvAdjusted,
+    hpi: f.hpi,
+    pcMonth: prog.pcMonth,
+    velocity: f.sales.velocityPerMonth,
+    agentFeePct: f.sales.agentFeePct,
+    legalPerUnit: f.sales.legalPerUnit,
+    openingLoan: refiPrincipal + refiFeeRolled, // E66
+    monthlyRate: f.refinance.ratePa / 12, // E67
+    depositRatePa: f.depositRatePa,
+  });
+  const netProfit4 = netProfit1 + sd4.hpiUplift + sd4.depositInterest - refiFeeRolled - sd4.totalInterest; // F72 + HPI + deposit
+  const wf4 = computeWaterfall(f, rows, netProfit4, prog.pcMonth + monthsToSellOut);
   const s4 = {
     refiPrincipal,
     arrangementFee: refiFeeRolled,
     extraInterest: sd4.totalInterest, // F71
+    hpiUplift: sd4.hpiUplift,
+    depositInterestOnSurplus: sd4.depositInterest,
     netProfit: netProfit4,
     benefitVsS2: netProfit4 - netProfit2, // F73
-    investorProfit: netProfit4 * f.equity.investorShare, // F74
-    investorRoi: investorEquity === 0 ? 0 : (netProfit4 * f.equity.investorShare) / investorEquity, // F75
+    investorProfit: wf4.investorProfit, // F74
+    investorRoi: wf4.investorRoi, // F75
+    waterfall: wf4,
   };
 
   return { s1, s2, s3, s4 };
@@ -439,13 +700,17 @@ export function computeSensitivity(
   const salesLegalLine = dev.groups.salesMarketing.lines.find((l) => l.code === 'G04')?.amount ?? 0;
   const fixedCostBase = fin.totalCostsAfterFinance - salesAgentLine - salesLegalLine;
 
+  // Grids price off the same HPI-indexed base as scenario 1, so the 0% row
+  // reconciles with S1 whether or not HPI is on.
+  const gdvBase = totals.gdv * scen.s1.hpiIndexAtPc;
+
   // Grid 1: C8 = GDV*(1+p)*(1-agent) - legalPerUnit*units - F4
   const grid1 = GRID1_MOVES.map((p) => {
-    const netProfit = totals.gdv * (1 + p) * (1 - f.sales.agentFeePct) - f.sales.legalPerUnit * totals.units - fixedCostBase;
+    const netProfit = gdvBase * (1 + p) * (1 - f.sales.agentFeePct) - f.sales.legalPerUnit * totals.units - fixedCostBase;
     return {
       priceMove: p,
       netProfit,
-      profitOnGdv: totals.gdv === 0 ? 0 : netProfit / (totals.gdv * (1 + p)),
+      profitOnGdv: gdvBase === 0 ? 0 : netProfit / (gdvBase * (1 + p)),
     };
   });
 
@@ -456,7 +721,7 @@ export function computeSensitivity(
       priceMove: p,
       profits: GRID2_VELOCITIES.map((vel) => {
         const monthlyNet =
-          vel * ((totals.gdv * (1 + p)) / Math.max(totals.units, 1)) * (1 - f.sales.agentFeePct) - vel * f.sales.legalPerUnit;
+          vel * ((gdvBase * (1 + p)) / Math.max(totals.units, 1)) * (1 - f.sales.agentFeePct) - vel * f.sales.legalPerUnit;
         const monthsSellOut = Math.ceil(totals.units / vel);
         const monthsRepay = Math.ceil(fin.devPayoffAtPC / Math.max(1, monthlyNet));
         const months = Math.min(monthsSellOut, monthsRepay);
@@ -485,10 +750,23 @@ export function runAppraisal(schedule: ScheduleRow[], spec: PricingSpec, roomAre
   const dev = computeDevCosts(spec, totals, roomAreas);
   const prog = programmeOf(f, totals);
   const { rows, finance } = computeCashflow(f, dev, prog, totals);
-  const scenarios = computeScenarios(f, totals, dev, finance, prog);
+  const scenarios = computeScenarios(f, totals, dev, finance, prog, rows);
   const sensitivity = computeSensitivity(f, totals, dev, finance, scenarios);
 
   const warnings: string[] = [];
+  if (f.vat.optedToTax) {
+    warnings.push(
+      'Property is opted to tax: check the SDLT line, since stamp duty is charged on the VAT-inclusive price.',
+    );
+  }
+  if (prog.pcMonth + f.retention.releaseMonthsAfterPc > MONTHS) {
+    warnings.push(
+      `Final retention release (month ${prog.pcMonth + f.retention.releaseMonthsAfterPc}) falls beyond the ${MONTHS}-month horizon and is shown in month ${MONTHS}.`,
+    );
+  }
+  if (f.hpi.enabled && !f.hpi.annualPct.some((r) => r !== 0)) {
+    warnings.push('House price inflation is enabled but every annual rate is zero.');
+  }
   if (prog.pcMonth > MONTHS) {
     warnings.push(
       `Programme runs to month ${prog.pcMonth}, beyond the ${MONTHS}-month cashflow horizon, so finance costs are understated. Shorten the programme.`,

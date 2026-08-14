@@ -38,19 +38,77 @@ export default function AppraisalView() {
   async function exportXlsx() {
     if (!schedule || !project) return;
     setExportMsg(null);
+    const fin = project.pricing.finance;
     const inputs = {
       address: project.address || project.name,
-      ...project.pricing.finance,
+      ...fin,
       devCostLines: project.pricing.devCosts.map((l) => ({ code: l.code, kind: l.kind, value: l.value })),
       buildCostOverride: result?.devCosts.buildCostSource === 'roomRates' ? result.devCosts.buildCost : null,
     };
+    // The '7. App Model v2' sheet mirrors exactly what this screen shows.
+    const modelV2 = result
+      ? {
+          assumptions: [
+            'Bridge advances against the purchase price only; SDLT, legals, valuation and design fees paid from equity',
+            'SDLT paid on completion (month 1)',
+            'Main contract drawn on a standard S-curve; architect & QS fees straight-lined to PC',
+            `Retention: ${(fin.retention.pctDuringWorks * 100).toFixed(1)}% withheld, ${(fin.retention.pctAfterPc * 100).toFixed(1)}% held ${fin.retention.releaseMonthsAfterPc} months after PC`,
+            'Post-construction holding costs straight-lined over the sell period',
+            fin.vat.optedToTax
+              ? `VAT on purchase at ${(fin.vat.ratePct * 100).toFixed(0)}%, reclaimed after ${fin.vat.reclaimLagMonths} months, funded by ${fin.vat.fundedBy === 'vatLoan' ? 'VAT loan' : 'equity'}`
+              : 'No VAT on purchase (seller not opted to tax)',
+            `Deposit interest at ${(fin.depositRatePa * 100).toFixed(2)}% pa on cash held`,
+            fin.hpi.enabled
+              ? `HPI applied: years 1-5 at ${fin.hpi.annualPct.map((r) => (r * 100).toFixed(1) + '%').join(', ')}${fin.hpi.region ? ` (${fin.hpi.region})` : ''}`
+              : 'HPI off: sale prices as entered',
+            fin.waterfall.mode === 'waterfall'
+              ? `Waterfall: ${(fin.waterfall.prefRatePa * 100).toFixed(1)}% pref (monthly compounding), then ${(fin.waterfall.residualInvestorPct * 100).toFixed(0)}% investor`
+              : `Simple profit split: ${(fin.equity.investorShare * 100).toFixed(0)}% investor`,
+            'Sales pacing uniform across units',
+          ],
+          summary: [
+            ['GDV (today)', Math.round(result.totals.gdv)],
+            ['GDV indexed to PC', Math.round(result.scenarios.s1.gdvAdjusted)],
+            ['Total costs pre-finance', Math.round(result.devCosts.totalPreFinance)],
+            ['Total finance costs', Math.round(result.finance.totalFinanceCosts)],
+            ['Deposit interest on retention pot', Math.round(result.finance.depositInterestRetention)],
+            ['Total costs after finance', Math.round(result.finance.totalCostsAfterFinance)],
+            ['Peak dev loan', Math.round(result.finance.peakDevBalance)],
+            ['Peak equity deployed', Math.round(result.finance.equityUsed)],
+            ['Months to PC', result.programme.pcMonth],
+          ] as [string, number][],
+          scenarios: [
+            ['S1 net profit (sell at PC)', Math.round(result.scenarios.s1.netProfit)],
+            ['S1 investor / developer', `${Math.round(result.scenarios.s1.waterfall.investorProfit)} / ${Math.round(result.scenarios.s1.waterfall.developerProfit)}`],
+            ['S2 net profit (delayed sales)', Math.round(result.scenarios.s2.netProfit)],
+            ['S2 HPI uplift on later sales', Math.round(result.scenarios.s2.hpiUplift)],
+            ['S3 net annual cashflow (refi & rent)', Math.round(result.scenarios.s3.netAnnualCashflow)],
+            ['S4 net profit (refi then sell)', Math.round(result.scenarios.s4.netProfit)],
+          ] as [string, string | number][],
+          cashflow: result.cashflow
+            .filter((r) => Math.abs(r.costs) > 0.005 || r.devBalance > 0 || r.retentionBalance > 0 || r.vatPaid > 0 || r.vatReclaimed > 0)
+            .map((r) => ({
+              month: r.month,
+              costs: r.costs,
+              cumCosts: r.cumCosts,
+              vatFlow: r.vatReclaimed - r.vatPaid,
+              retentionBalance: r.retentionBalance,
+              bridgeBalance: r.bridgeBalance,
+              equityCum: r.equityCum,
+              devDrawdown: r.devDrawdown,
+              devInterest: r.devInterest,
+              devBalance: r.devBalance,
+            })),
+        }
+      : null;
     const path = await window.satis.exportXlsx(
       JSON.stringify(schedule),
       JSON.stringify(inputs),
       `${project.name.replace(/\s+/g, '_')}_${useDemo ? 'demo' : option?.id ?? 'appraisal'}`,
+      modelV2 ? JSON.stringify(modelV2) : undefined,
     );
     if (path) {
-      setExportMsg(`Workbook exported to ${path}. Open in Excel to recalculate.`);
+      setExportMsg(`Workbook exported to ${path}. Sheets 1-6 recalculate in Excel; '7. App Model v2' carries this screen's model.`);
       window.satis.showItemInFolder(path);
     }
   }
@@ -234,11 +292,53 @@ function SummaryTab({ result }: { result: AppraisalResult }) {
             <Row k="Dev loan arrangement fee" v={fmtGBP(finance.devArrangementFee)} />
             <Row k="Dev loan interest to PC" v={fmtGBP(finance.devInterestTotal)} />
             <Row k="Dev loan exit fee" v={fmtGBP(finance.devExitFee)} />
+            {finance.vatLoanFee > 0 && <Row k="VAT loan arrangement fee" v={fmtGBP(finance.vatLoanFee)} />}
+            {finance.vatLoanInterest > 0 && <Row k="VAT loan interest" v={fmtGBP(finance.vatLoanInterest)} />}
             <Row k="TOTAL FINANCE COSTS" v={fmtGBP(finance.totalFinanceCosts)} total />
+            {finance.depositInterestRetention > 0 && (
+              <Row k="Less: deposit interest on retention pot" v={`(${fmtGBP(finance.depositInterestRetention)})`} />
+            )}
           </tbody>
         </table>
+
+        {(finance.vatOnPurchase > 0 || finance.retentionHeldPeak > 0) && (
+          <>
+            <h3 className="section">Working capital</h3>
+            <table className="data">
+              <tbody>
+                {finance.vatOnPurchase > 0 && (
+                  <Row k="VAT paid on purchase (reclaimed later)" v={fmtGBP(finance.vatOnPurchase)} />
+                )}
+                <Row k="Peak retention pot held" v={fmtGBP(finance.retentionHeldPeak)} />
+              </tbody>
+            </table>
+          </>
+        )}
       </div>
     </div>
+  );
+}
+
+/** Distribution table for one scenario when the waterfall is on. */
+function WaterfallTable({ w }: { w: import('../core/types').WaterfallResult }) {
+  if (w.mode !== 'waterfall') return null;
+  return (
+    <table className="data">
+      <thead>
+        <tr>
+          <th colSpan={2}>Distribution waterfall (exit month {w.exitMonth})</th>
+        </tr>
+      </thead>
+      <tbody>
+        <Row k="Investor capital drawn (peak)" v={fmtGBP(w.investorCapital)} />
+        <Row k="Preferred return accrued" v={fmtGBP(w.prefAccrued)} />
+        <Row k="Pref paid from profit" v={fmtGBP(w.prefPaid)} />
+        {w.prefShortfall > 0 && <Row k="Pref shortfall (profit below hurdle)" v={fmtGBP(w.prefShortfall)} />}
+        <Row k="Residual profit split" v={fmtGBP(w.residualProfit)} />
+        <Row k="INVESTOR PROFIT" v={fmtGBP(w.investorProfit)} total />
+        <Row k="DEVELOPER PROFIT" v={fmtGBP(w.developerProfit)} total />
+      </tbody>
+    </table>
   );
 }
 
@@ -339,13 +439,24 @@ function CostsTab({ result }: { result: AppraisalResult }) {
 }
 
 function CashflowTab({ result }: { result: AppraisalResult }) {
-  const rows = result.cashflow.filter((r) => r.month <= Math.max(result.programme.pcMonth + 2, 14));
+  const pc = result.programme.pcMonth;
+  const hasVat = result.finance.vatOnPurchase > 0;
+  // Show the funding window, plus any later month with retention or VAT
+  // activity (the final retention release lands after the defects period).
+  const rows = result.cashflow.filter(
+    (r) =>
+      r.month <= Math.max(pc + 2, 14) ||
+      r.retentionReleased > 0 ||
+      r.vatReclaimed > 0 ||
+      Math.abs(r.costs) > 0.005,
+  );
   return (
     <div style={{ overflowX: 'auto' }}>
       <p className="note">
-        Costs spread evenly within each phase. Bridge rolls up from purchase and is redeemed by the development loan at
-        construction start (month {result.programme.conStartMonth}); the development loan rolls up to PC (month{' '}
-        {result.programme.pcMonth}).
+        The main contract draws on an S-curve; architect and QS fees run to PC; SDLT is paid on completion; retention
+        is withheld from certificates and released at PC and after the defects period; post-construction holding costs
+        straight-line over the sell period. Bridge rolls up from purchase and is redeemed by the development loan at
+        construction start (month {result.programme.conStartMonth}); the development loan rolls up to PC (month {pc}).
       </p>
       <table className="data">
         <thead>
@@ -353,7 +464,8 @@ function CashflowTab({ result }: { result: AppraisalResult }) {
             <th>Month</th>
             <th className="num">Costs</th>
             <th className="num">Cumulative</th>
-            <th className="num">Bridge interest</th>
+            {hasVat && <th className="num">VAT flow</th>}
+            <th className="num">Retention held</th>
             <th className="num">Bridge balance</th>
             <th className="num">Equity deployed</th>
             <th className="num">Dev drawdown</th>
@@ -363,15 +475,17 @@ function CashflowTab({ result }: { result: AppraisalResult }) {
         </thead>
         <tbody>
           {rows.map((r) => (
-            <tr key={r.month} style={r.month === result.programme.pcMonth ? { background: 'var(--grey-light)' } : undefined}>
+            <tr key={r.month} style={r.month === pc ? { background: 'var(--grey-light)' } : undefined}>
               <td>
                 {r.month}
                 {r.month === result.programme.conStartMonth && ' · start on site'}
-                {r.month === result.programme.pcMonth && ' · PC'}
+                {r.month === pc && ' · PC'}
+                {r.retentionReleased > 0 && r.month > pc && ' · retention release'}
               </td>
               <td className="num">{fmtNum(r.costs)}</td>
               <td className="num">{fmtNum(r.cumCosts)}</td>
-              <td className="num">{fmtNum(r.bridgeInterest)}</td>
+              {hasVat && <td className="num">{fmtNum(r.vatReclaimed - r.vatPaid)}</td>}
+              <td className="num">{fmtNum(r.retentionBalance)}</td>
               <td className="num">{fmtNum(r.bridgeBalance)}</td>
               <td className="num">{fmtNum(r.equityCum)}</td>
               <td className="num">{fmtNum(r.devDrawdown)}</td>
@@ -393,7 +507,10 @@ function ScenariosTab({ result }: { result: AppraisalResult }) {
         <h3 className="section">S1: Immediate sale at practical completion</h3>
         <table className="data">
           <tbody>
-            <Row k="GDV (adjusted for price lever)" v={fmtGBP(sc.s1.gdvAdjusted)} />
+            {sc.s1.hpiIndexAtPc !== 1 && (
+              <Row k="HPI index at PC (applied to GDV)" v={fmtNum(sc.s1.hpiIndexAtPc, 4)} />
+            )}
+            <Row k="GDV (indexed to PC, price lever applied)" v={fmtGBP(sc.s1.gdvAdjusted)} />
             <Row k="Total costs after finance" v={fmtGBP(result.finance.totalCostsAfterFinance)} />
             <Row k="NET PROFIT" v={fmtGBP(sc.s1.netProfit)} total />
             <Row k="Profit on cost" v={fmtPct(sc.s1.profitOnCost)} />
@@ -403,6 +520,7 @@ function ScenariosTab({ result }: { result: AppraisalResult }) {
             <Row k="Investor ROI per annum" v={fmtPct(sc.s1.investorRoiPa)} />
           </tbody>
         </table>
+        <WaterfallTable w={sc.s1.waterfall} />
 
         <h3 className="section">S3: Refinance at PC &amp; rent</h3>
         <table className="data">
@@ -428,12 +546,17 @@ function ScenariosTab({ result }: { result: AppraisalResult }) {
             <Row k="Months to sell out" v={String(sc.s2.monthsToSellOut)} />
             <Row k="Months until loan repaid" v={String(sc.s2.monthsToRepay)} />
             <Row k="Extra interest after PC" v={fmtGBP(sc.s2.extraInterest)} />
+            {sc.s2.hpiUplift !== 0 && <Row k="HPI uplift on later sales" v={fmtGBP(sc.s2.hpiUplift)} />}
+            {sc.s2.depositInterestOnSurplus > 0 && (
+              <Row k="Deposit interest on sale surpluses" v={fmtGBP(sc.s2.depositInterestOnSurplus)} />
+            )}
             <Row k="NET PROFIT" v={fmtGBP(sc.s2.netProfit)} total />
             <Row k="Investor profit share" v={fmtGBP(sc.s2.investorProfit)} />
             <Row k="Investor ROI" v={fmtPct(sc.s2.investorRoi)} />
             <Row k="Total duration (months)" v={String(sc.s2.totalDurationMonths)} />
           </tbody>
         </table>
+        <WaterfallTable w={sc.s2.waterfall} />
 
         <h3 className="section">S4: Refinance at PC, then delayed sales</h3>
         <table className="data">
@@ -441,12 +564,17 @@ function ScenariosTab({ result }: { result: AppraisalResult }) {
             <Row k="Refinance principal (= dev payoff)" v={fmtGBP(sc.s4.refiPrincipal)} />
             <Row k="Arrangement fee (rolled)" v={fmtGBP(sc.s4.arrangementFee)} />
             <Row k="Extra interest after PC (refi rate)" v={fmtGBP(sc.s4.extraInterest)} />
+            {sc.s4.hpiUplift !== 0 && <Row k="HPI uplift on later sales" v={fmtGBP(sc.s4.hpiUplift)} />}
+            {sc.s4.depositInterestOnSurplus > 0 && (
+              <Row k="Deposit interest on sale surpluses" v={fmtGBP(sc.s4.depositInterestOnSurplus)} />
+            )}
             <Row k="NET PROFIT" v={fmtGBP(sc.s4.netProfit)} total />
             <Row k="Benefit vs Scenario 2" v={fmtGBP(sc.s4.benefitVsS2)} />
             <Row k="Investor profit share" v={fmtGBP(sc.s4.investorProfit)} />
             <Row k="Investor ROI" v={fmtPct(sc.s4.investorRoi)} />
           </tbody>
         </table>
+        <WaterfallTable w={sc.s4.waterfall} />
       </div>
     </div>
   );

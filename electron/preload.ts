@@ -34,8 +34,16 @@ const api = {
     ipcRenderer.invoke('auth:openLink', which),
   aiExtract: (payload: { name: string; ext: string; base64: string; hint?: string }): Promise<unknown> =>
     ipcRenderer.invoke('ai:extract', payload),
-  exportXlsx: (scheduleJson: string, inputsJson: string, suggestedName: string): Promise<string | null> =>
-    ipcRenderer.invoke('export:xlsx', { scheduleJson, inputsJson, suggestedName }),
+  aiProjectHpi: (
+    region: string,
+  ): Promise<{ annualPct: number[]; region: string; rationale: string; sources: string[]; projectedAt: string }> =>
+    ipcRenderer.invoke('ai:projectHpi', region),
+  exportXlsx: (
+    scheduleJson: string,
+    inputsJson: string,
+    suggestedName: string,
+    modelV2Json?: string,
+  ): Promise<string | null> => ipcRenderer.invoke('export:xlsx', { scheduleJson, inputsJson, suggestedName, modelV2Json }),
   exportSvg: (svg: string, suggestedName: string): Promise<string | null> =>
     ipcRenderer.invoke('export:svg', svg, suggestedName),
   showItemInFolder: (p: string): Promise<void> => ipcRenderer.invoke('shell:showItem', p),

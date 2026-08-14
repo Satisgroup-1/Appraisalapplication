@@ -64,6 +64,9 @@ if (!window.satis) {
     aiExtract: async () => {
       throw new Error('Floorplan reading is only available in the desktop app.');
     },
+    aiProjectHpi: async () => {
+      throw new Error('HPI projection is only available in the desktop app.');
+    },
     exportXlsx: async () => null,
     exportSvg: async () => null,
     showItemInFolder: async () => {},
