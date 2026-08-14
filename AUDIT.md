@@ -136,7 +136,37 @@ schedule, pre-finance totals, bridge, facility sizing) against a LibreOffice rec
 the exported workbook. The export writes the app's v2 results to a `7. App Model v2` sheet so
 workbook readers see both models side by side.
 
-## 6. Re-running the audit
+## 6. Second financial audit (of model v2 itself)
+
+A full adversarial pass over the v2 engine, hunting defects in the new mechanics. Five
+findings, each demonstrated numerically before fixing and pinned by a test afterwards
+(`tests/model2.test.ts` → "financial audit fixes"):
+
+| # | Severity | Defect | Fix |
+|---|---|---|---|
+| 1 | HIGH | %-of-GDV sales costs (agent fees) were priced on **raw GDV** while the scenarios sell at HPI-indexed, price-levered GDV — fees understated by £5.9k on the demo under 5% HPI, and S1 disagreed with its own sensitivity grid by £4.7k at a +5% lever. | Sales-cost lines price on `GDV × hpiIndex(PC) × (1 + lever)`; the grids re-based on the same figure, so **grid 1's 0% row now equals S1 exactly** under any lever/HPI combination (asserted to 1e-6). |
+| 2 | MEDIUM | HPI uplift on delayed sales was credited to profit **gross of agent fees**, overstating S2/S4 by the fee on the growth (~£1.4k on the demo). | Uplift credited net: `uplift × (1 − agentFee)`. |
+| 3 | MEDIUM | A VAT reclaim landing **after construction start** with equity fully deployed simply vanished — it neither returned equity nor paid down the loan, overstating funding (£390k refund ignored in the probe case). | Negative funding need pays the dev loan down (drawdown may be negative), floored at the balance so it can never go below zero. |
+| 4 | LOW | Deposit interest could accrue on a **negative** cash balance in the sell-down (only reachable with absurd selling costs), charging phantom negative interest. | Interest accrues on `max(0, cash)`. |
+| 5 | MEDIUM | The waterfall's exit month used sell-out only, so on stressed deals where the loan outlives the sales the **pref stopped accruing before capital was actually distributable**, understating the investor's pref. | Exit = PC + max(sell-out, loan repayment months); a '36+' repayment tail accrues the full 36 months. |
+
+The same pass produced two standing defences:
+
+- **An automatic in-app audit** (`src/core/audit.ts`) that runs on every appraisal: it
+  re-derives every cost line from its driver, every unit cell (sqft = sqm × 10.7639,
+  GDV = sqft × £psf), every conservation identity (costs, retention, VAT, dev loan,
+  deposit interest), every scenario linkage (S1 = GDV − costs, S2 = S1 + uplift + deposit
+  − interest, grid 0-rows = scenarios) and every distribution (investor + developer = net
+  profit, pref ≤ accrued), 44 checks on the demo — displayed above the KPIs. Recoverable
+  input messes (non-finite numbers, impossible percentages, malformed HPI arrays, schedule
+  cells disagreeing with area × rate) are repaired before computing, and **every repair is
+  reported** — nothing is corrected silently. `tests/appaudit.test.ts` proves the auditor
+  passes clean runs and catches ten classes of seeded corruption.
+- **A Claude Code audit-agent team** for future changes: `.claude/agents/dcf-financial-auditor.md`
+  (adversarial mechanics review with numeric probes) and `.claude/agents/dcf-numeric-verifier.md`
+  (verification battery + independent recomputation), orchestrated by the `/audit-dcf` skill.
+
+## 7. Re-running the audit
 
 ```bash
 npm test                 # golden + parity + v2 mechanics + identity + regulation tests

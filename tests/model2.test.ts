@@ -54,6 +54,22 @@ function tinySpec(devCosts: PricingSpec['devCosts']): PricingSpec {
 const D01 = (value: number) =>
   ({ code: 'D01', group: 'construction', label: 'Build cost (main contract)', kind: 'fixed', value }) as const;
 
+/** The 12-unit shape used by the conservation and audit-fix tests. */
+const DEMO_SCHEDULE_12 = (): ScheduleRow[] =>
+  Array.from({ length: 12 }, (_, i) => ({
+    no: i + 1,
+    name: `Apartment ${i + 1}`,
+    floor: '1',
+    type: '2 bed',
+    sqm: 60,
+    sqft: 645.8,
+    salePsf: 610,
+    unitGdv: 645.8 * 610,
+    buildMonths: 12,
+    monthlyRent: 1300,
+    notes: '',
+  }));
+
 describe('S-curve', () => {
   it('is a smoothstep: half certified at mid-programme, slices sum to 1', () => {
     close(sCurveFraction(2, 4), 0.5, 1e-12);
@@ -211,10 +227,74 @@ describe('house price inflation', () => {
     const idx = Math.pow(1.05, 6 / 12);
     close(r.scenarios.s1.hpiIndexAtPc, idx, 1e-9);
     close(r.scenarios.s1.gdvAdjusted, 600000 * idx, 1e-6);
-    // 2 units at 1/month: sales in months PC+1 and PC+2 both sit above the PC index
+    // 2 units at 1/month: sales in months PC+1 and PC+2 both sit above the PC
+    // index; the uplift reaching profit is net of the agent's fee on it.
     expect(r.scenarios.s2.hpiUplift).toBeGreaterThan(0);
-    const perfectForesight = 600000 * (Math.pow(1.05, 7 / 12) / 2 + Math.pow(1.05, 8 / 12) / 2) - 600000 * idx;
-    close(r.scenarios.s2.hpiUplift, perfectForesight, 1);
+    const grossUplift = 600000 * (Math.pow(1.05, 7 / 12) / 2 + Math.pow(1.05, 8 / 12) / 2) - 600000 * idx;
+    close(r.scenarios.s2.hpiUplift, grossUplift * (1 - spec.finance.sales.agentFeePct), 1);
+  });
+});
+
+describe('financial audit fixes', () => {
+  it('prices %-of-GDV sales costs on the same revenue the scenarios sell at', () => {
+    const spec = clonePricing(DEFAULT_PRICING);
+    spec.buildCostMode = 'fixed';
+    spec.finance.sales.priceAdjust = 0.05;
+    spec.finance.hpi = { enabled: true, annualPct: [0.04, 0.04, 0.04, 0.04, 0.04] };
+    const r = runAppraisal(DEMO_SCHEDULE_12(), spec);
+    const g03 = r.devCosts.groups.salesMarketing.lines.find((l) => l.code === 'G03')!.amount;
+    close(g03, spec.finance.sales.agentFeePct * r.scenarios.s1.gdvAdjusted, 1e-6);
+  });
+
+  it('S1 equals the sensitivity grid at 0% movement, whatever the lever and HPI', () => {
+    for (const [adjust, hpiOn] of [
+      [0.05, true],
+      [-0.08, false],
+      [0, true],
+    ] as const) {
+      const spec = clonePricing(DEFAULT_PRICING);
+      spec.buildCostMode = 'fixed';
+      spec.finance.sales.priceAdjust = adjust;
+      spec.finance.hpi = { enabled: hpiOn, annualPct: [0.04, 0.03, 0.03, 0.02, 0.02] };
+      const r = runAppraisal(DEMO_SCHEDULE_12(), spec);
+      const zeroRow = r.sensitivity.grid1.find((g) => g.priceMove === 0)!;
+      close(zeroRow.netProfit, r.scenarios.s1.netProfit, 1e-6);
+    }
+  });
+
+  it('a VAT reclaim landing inside the loan window pays the dev loan down', () => {
+    const spec = clonePricing(DEFAULT_PRICING);
+    spec.buildCostMode = 'fixed';
+    spec.finance.vat.optedToTax = true; // reclaim at month 3
+    spec.finance.preConMonths = 1; // construction starts month 2
+    spec.finance.equity.total = 300000; // capped before the reclaim lands
+    const r = runAppraisal(DEMO_SCHEDULE_12(), spec);
+    const m3 = r.cashflow[2];
+    expect(m3.vatReclaimed).toBe(390000);
+    expect(m3.devDrawdown).toBeLessThan(0); // the refund reduces the balance...
+    expect(m3.devBalance).toBeGreaterThanOrEqual(0); // ...never below zero
+    expect(m3.devBalance).toBeLessThan(r.cashflow[1].devBalance);
+  });
+
+  it('waterfall exit waits for the loan repayment tail on a stressed deal', () => {
+    const spec = clonePricing(DEFAULT_PRICING);
+    spec.buildCostMode = 'fixed';
+    spec.finance.waterfall = { mode: 'waterfall', prefRatePa: 0.08, residualInvestorPct: 0.5 };
+    spec.finance.sales.velocityPerMonth = 12; // sold out a month after PC...
+    spec.finance.sales.priceAdjust = -0.4; // ...but proceeds can't clear the loan
+    const r = runAppraisal(DEMO_SCHEDULE_12(), spec);
+    expect(r.scenarios.s2.monthsToSellOut).toBe(1);
+    expect(r.scenarios.s2.monthsToRepay).toBe('36+');
+    expect(r.scenarios.s2.waterfall.exitMonth).toBe(r.programme.pcMonth + 36);
+  });
+
+  it('never charges negative deposit interest, even with absurd selling costs', () => {
+    const spec = clonePricing(DEFAULT_PRICING);
+    spec.buildCostMode = 'fixed';
+    spec.finance.sales.legalPerUnit = 1000000; // forces negative net proceeds
+    const r = runAppraisal(DEMO_SCHEDULE_12(), spec);
+    expect(r.scenarios.s2.depositInterestOnSurplus).toBeGreaterThanOrEqual(0);
+    expect(r.scenarios.s4.depositInterestOnSurplus).toBeGreaterThanOrEqual(0);
   });
 });
 

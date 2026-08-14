@@ -97,6 +97,12 @@ are catalogued in AUDIT.md §5;
 (cached workbook results). The layout engine and NDSS validator are ports of the
 `floorplan-converter` agent skill (`scripts/layout.py`, `validate.py`).
 
+Every appraisal runs through an **automatic financial audit** (`src/core/audit.ts`): 40+
+checks re-derive every cost line, unit cell, conservation identity, scenario linkage and
+profit distribution independently of the engine, and recoverable input messes are repaired
+with a visible note. For engine changes, run the `/audit-dcf` skill — it fans out the
+`dcf-financial-auditor` and `dcf-numeric-verifier` agents (`.claude/agents/`).
+
 See **AUDIT.md** for the full model audit: golden tests, financial identity tests, the
 regulation review of the floorplan converter, and a LibreOffice cross-check
 (`./scripts/crosscheck.sh`) that recalculates an exported workbook headlessly and verifies the

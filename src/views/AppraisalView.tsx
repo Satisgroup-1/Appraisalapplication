@@ -4,6 +4,8 @@
 
 import { useMemo, useState } from 'react';
 import { runAppraisal } from '../core/dcf';
+import { auditAppraisal, repairSchedule, sanitizeSpec } from '../core/audit';
+import type { AuditReport, AuditRepair } from '../core/audit';
 import { DEMO_SCHEDULE } from '../core/demo';
 import type { AppraisalResult, ScheduleRow } from '../core/types';
 import { fmtGBP, fmtNum, fmtPct, useStore } from '../state/store';
@@ -20,18 +22,30 @@ export default function AppraisalView() {
   const [exportMsg, setExportMsg] = useState<string | null>(null);
 
   const option = options.find((o) => o.id === selectedOptionId) ?? null;
-  const schedule: ScheduleRow[] | null = useDemo ? DEMO_SCHEDULE : option?.schedule ?? null;
+  const rawSchedule: ScheduleRow[] | null = useDemo ? DEMO_SCHEDULE : option?.schedule ?? null;
   const roomAreas = useDemo ? undefined : option?.roomAreas;
   const pricing = project?.pricing ?? null;
 
-  const result: AppraisalResult | null = useMemo(() => {
-    if (!schedule || !schedule.length || !pricing) return null;
+  // Every appraisal runs through the automatic financial audit: inputs are
+  // repaired where recoverable (and every repair reported), then the computed
+  // result is re-derived check by check.
+  const { result, schedule, audit, repairs } = useMemo((): {
+    result: AppraisalResult | null;
+    schedule: ScheduleRow[] | null;
+    audit: AuditReport | null;
+    repairs: AuditRepair[];
+  } => {
+    if (!rawSchedule || !rawSchedule.length || !pricing) return { result: null, schedule: null, audit: null, repairs: [] };
     try {
-      return runAppraisal(schedule, pricing, roomAreas);
+      const spec = sanitizeSpec(pricing);
+      const sched = repairSchedule(rawSchedule);
+      const res = runAppraisal(sched.schedule, spec.spec, roomAreas);
+      const auditReport = auditAppraisal(res, spec.spec, sched.schedule);
+      return { result: res, schedule: sched.schedule, audit: auditReport, repairs: [...spec.repairs, ...sched.repairs] };
     } catch {
-      return null;
+      return { result: null, schedule: null, audit: null, repairs: [] };
     }
-  }, [schedule, pricing, roomAreas]);
+  }, [rawSchedule, pricing, roomAreas]);
 
   if (!project) return null;
 
@@ -153,6 +167,7 @@ export default function AppraisalView() {
               ))}
             </div>
           )}
+          {audit && <AuditStrip audit={audit} repairs={repairs} />}
           <KpiRow result={result} />
           <div style={{ margin: '4px 0 18px' }}>
             <button className="btn" onClick={exportXlsx}>
@@ -175,6 +190,48 @@ export default function AppraisalView() {
           {tab === 'scenarios' && <ScenariosTab result={result} />}
           {tab === 'sensitivity' && <SensitivityTab result={result} />}
         </>
+      )}
+    </div>
+  );
+}
+
+/** Result of the automatic audit that runs on every appraisal. */
+function AuditStrip({ audit, repairs }: { audit: AuditReport; repairs: AuditRepair[] }) {
+  const failed = audit.checks.filter((c) => !c.pass);
+  return (
+    <div className={failed.length ? 'warn-box' : 'ok-box'} style={{ marginBottom: 14 }}>
+      <div>
+        <span className={`badge ${failed.length ? 'fail' : 'pass'}`} style={{ marginRight: 8 }}>
+          {failed.length ? `${failed.length} check${failed.length === 1 ? '' : 's'} failed` : 'Audit passed'}
+        </span>
+        Automatic financial audit: {audit.passCount} of {audit.checks.length} checks passed
+        {repairs.length > 0 && ` · ${repairs.length} input repair${repairs.length === 1 ? '' : 's'} applied`}
+      </div>
+      {failed.map((c) => (
+        <div key={c.id} className="compliance-issue">
+          · {c.label}
+          {c.detail ? ` (${c.detail})` : ''}
+        </div>
+      ))}
+      {repairs.length > 0 && (
+        <details style={{ marginTop: 6 }}>
+          <summary style={{ fontSize: 11, cursor: 'pointer' }}>What was repaired</summary>
+          {repairs.map((rep, i) => (
+            <div key={i} className="assumption">
+              · {rep.field}: {rep.from} → {rep.to} ({rep.reason})
+            </div>
+          ))}
+        </details>
+      )}
+      {!failed.length && (
+        <details style={{ marginTop: 6 }}>
+          <summary style={{ fontSize: 11, cursor: 'pointer' }}>What was checked</summary>
+          {audit.checks.map((c) => (
+            <div key={c.id} className="assumption">
+              ✓ {c.label}
+            </div>
+          ))}
+        </details>
       )}
     </div>
   );

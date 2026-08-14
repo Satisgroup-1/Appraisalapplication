@@ -64,7 +64,10 @@ function spec(): PricingSpec {
   s.finance.bridge = { ltv: 0.6, ratePa: 0.11, arrangementFee: 0.015, exitFee: 0.012 };
   s.finance.devLoan = { ratePa: 0.092, arrangementFee: 0.02, exitFee: 0.008, maxLtgdv: 0.7 };
   s.finance.equity = { total: 1050000, investorShare: 0.4 };
-  s.finance.sales = { agentFeePct: 0.018, legalPerUnit: 900, velocityPerMonth: 1, priceAdjust: -0.02 };
+  // priceAdjust stays 0 here: model v2 prices %-of-GDV sales costs on the
+  // levered/indexed GDV, while the workbook's G03 formula uses raw GDV — a
+  // non-zero lever would make pre-finance totals disagree by design.
+  s.finance.sales = { agentFeePct: 0.018, legalPerUnit: 900, velocityPerMonth: 1, priceAdjust: 0 };
   s.finance.refinance = { ltv: 0.6, ratePa: 0.061, arrangementFee: 0.012, voidPct: 0.06, mgmtPct: 0.12 };
   // Vary some dev cost lines from the template values.
   for (const l of s.devCosts) {

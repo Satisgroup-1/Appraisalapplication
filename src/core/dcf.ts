@@ -116,7 +116,18 @@ export function buildCostFromRooms(
   return { total: breakdown.reduce((s, b) => s + b.amount, 0), breakdown };
 }
 
-export function computeDevCosts(spec: PricingSpec, totals: ScheduleTotals, roomAreas?: RoomAreas): DevCostsComputed {
+export function computeDevCosts(
+  spec: PricingSpec,
+  totals: ScheduleTotals,
+  roomAreas?: RoomAreas,
+  /**
+   * Factor applied to %-of-GDV cost lines (sales agent fees) so they are
+   * priced on the SAME revenue the scenarios sell at — GDV indexed to PC and
+   * adjusted by the price lever. Pricing fees on raw GDV while revenue is
+   * indexed understates selling costs and breaks S1 = grid1's matching row.
+   */
+  salesGdvFactor = 1,
+): DevCostsComputed {
   const f = spec.finance;
   const buildLine = spec.devCosts.find((l) => l.code === 'D01');
   const fixedBuildCost = buildLine?.kind === 'fixed' ? buildLine.value : 0;
@@ -151,7 +162,7 @@ export function computeDevCosts(spec: PricingSpec, totals: ScheduleTotals, roomA
         amount = line.value * totals.units;
         break;
       case 'pctGDV': // G03 = E40 x F42 (rate from finance when line value is 0)
-        amount = (line.value || f.sales.agentFeePct) * totals.gdv;
+        amount = (line.value || f.sales.agentFeePct) * totals.gdv * salesGdvFactor;
         break;
       case 'salesLegalPerUnit': // G04 = E41 x F40
         amount = f.sales.legalPerUnit * totals.units;
@@ -354,13 +365,17 @@ export function computeCashflow(
     const equityMonth = equityCum - prevEquityCum;
 
     // --- dev loan (rows 26-28): draws from construction start to PC ---
-    let devDrawdown = 0;
     let devInterest = 0;
+    if (m > 1 && m <= pcMonth) devInterest = prevDevBal * (f.devLoan.ratePa / 12);
+    let devDrawdown = 0;
     let devBalance = 0;
     if (m >= conStartMonth && m <= pcMonth) {
-      devDrawdown = Math.max(0, need - equityMonth) + (m === conStartMonth ? bridgeRedemption + devArrangementFee : 0);
+      // A negative funding need (the VAT reclaim landing during the loan
+      // window while equity is fully deployed) PAYS THE LOAN DOWN rather
+      // than vanishing; floored so the balance cannot go below zero.
+      const grossNeed = need - equityMonth + (m === conStartMonth ? bridgeRedemption + devArrangementFee : 0);
+      devDrawdown = Math.max(grossNeed, -(prevDevBal + devInterest));
     }
-    if (m > 1 && m <= pcMonth) devInterest = prevDevBal * (f.devLoan.ratePa / 12);
     devBalance = m > pcMonth ? 0 : prevDevBal + devInterest + devDrawdown;
     if (m === 1) devBalance = devDrawdown; // E28 = E26
 
@@ -485,7 +500,9 @@ function sellDown(args: {
     // Price each month's sales at that month's index (relative to PC).
     const factor = indexAtPc === 0 ? 1 : hpiIndexAt(hpi, pcMonth + m) / indexAtPc;
     const gross = sold * avgPriceAtPc * factor;
-    hpiUplift += sold * avgPriceAtPc * (factor - 1);
+    // Uplift is net of the agent fee: the agent is paid on the achieved
+    // price, so only (1 - fee) of the growth reaches profit.
+    hpiUplift += sold * avgPriceAtPc * (factor - 1) * (1 - agentFeePct);
     const net = gross * (1 - agentFeePct) - sold * legalPerUnit;
     const interest = opening * monthlyRate;
     totalInterest += interest;
@@ -494,8 +511,9 @@ function sellDown(args: {
     closingBalances.push(closing);
     opening = closing;
     // Deposit interest on the cash balance carried in, then bank this
-    // month's surplus (proceeds left after loan repayment).
-    depositInterest += cash * (depositRatePa / 12);
+    // month's surplus (proceeds left after loan repayment). Only a positive
+    // balance earns; a freak negative-net month must not charge interest.
+    depositInterest += Math.max(0, cash) * (depositRatePa / 12);
     cash += Math.max(0, net) - repayment;
     if (remaining === 0 && closing <= 0.01) break; // sold out and repaid: cash distributes
   }
@@ -607,12 +625,14 @@ export function computeScenarios(
     depositRatePa: f.depositRatePa,
   });
   const monthsToSellOut = f.sales.velocityPerMonth === 0 ? 0 : Math.ceil(totals.units / f.sales.velocityPerMonth); // F33
-  const monthsToRepay: number | '36+' =
-    sd2.closingBalances.length >= SELLDOWN_MONTHS && sd2.closingBalances[SELLDOWN_MONTHS - 1] > 0.01
-      ? '36+'
-      : sd2.closingBalances.filter((b) => b > 0.01).length + 1; // F34
+  const repayMonthsOf = (bal: number[]): number | '36+' =>
+    bal.length >= SELLDOWN_MONTHS && bal[SELLDOWN_MONTHS - 1] > 0.01 ? '36+' : bal.filter((b) => b > 0.01).length + 1;
+  const monthsToRepay = repayMonthsOf(sd2.closingBalances); // F34
+  // Distributions cannot happen until the units are sold AND the loan is
+  // repaid — the pref accrues to whichever comes later.
+  const exitAfterPc2 = Math.max(monthsToSellOut, monthsToRepay === '36+' ? SELLDOWN_MONTHS : monthsToRepay);
   const netProfit2 = netProfit1 + sd2.hpiUplift + sd2.depositInterest - sd2.totalInterest; // F36 + HPI + deposit interest
-  const wf2 = computeWaterfall(f, rows, netProfit2, prog.pcMonth + monthsToSellOut);
+  const wf2 = computeWaterfall(f, rows, netProfit2, prog.pcMonth + exitAfterPc2);
   const s2 = {
     monthsToSellOut,
     monthsToRepay,
@@ -666,7 +686,9 @@ export function computeScenarios(
     depositRatePa: f.depositRatePa,
   });
   const netProfit4 = netProfit1 + sd4.hpiUplift + sd4.depositInterest - refiFeeRolled - sd4.totalInterest; // F72 + HPI + deposit
-  const wf4 = computeWaterfall(f, rows, netProfit4, prog.pcMonth + monthsToSellOut);
+  const repay4 = repayMonthsOf(sd4.closingBalances);
+  const exitAfterPc4 = Math.max(monthsToSellOut, repay4 === '36+' ? SELLDOWN_MONTHS : repay4);
+  const wf4 = computeWaterfall(f, rows, netProfit4, prog.pcMonth + exitAfterPc4);
   const s4 = {
     refiPrincipal,
     arrangementFee: refiFeeRolled,
@@ -700,9 +722,10 @@ export function computeSensitivity(
   const salesLegalLine = dev.groups.salesMarketing.lines.find((l) => l.code === 'G04')?.amount ?? 0;
   const fixedCostBase = fin.totalCostsAfterFinance - salesAgentLine - salesLegalLine;
 
-  // Grids price off the same HPI-indexed base as scenario 1, so the 0% row
-  // reconciles with S1 whether or not HPI is on.
-  const gdvBase = totals.gdv * scen.s1.hpiIndexAtPc;
+  // Grids price off the same base scenario 1 sells at — GDV indexed to PC
+  // with the price lever applied — so the 0% row equals S1 exactly, whatever
+  // the lever or HPI settings. Grid moves are on top of that base.
+  const gdvBase = totals.gdv * scen.s1.hpiIndexAtPc * (1 + f.sales.priceAdjust);
 
   // Grid 1: C8 = GDV*(1+p)*(1-agent) - legalPerUnit*units - F4
   const grid1 = GRID1_MOVES.map((p) => {
@@ -747,8 +770,10 @@ export function computeSensitivity(
 export function runAppraisal(schedule: ScheduleRow[], spec: PricingSpec, roomAreas?: RoomAreas): AppraisalResult {
   const totals = scheduleTotals(schedule);
   const f = spec.finance;
-  const dev = computeDevCosts(spec, totals, roomAreas);
   const prog = programmeOf(f, totals);
+  // Sales costs are priced on the revenue the scenarios actually sell at.
+  const salesGdvFactor = hpiIndexAt(f.hpi, prog.pcMonth) * (1 + f.sales.priceAdjust);
+  const dev = computeDevCosts(spec, totals, roomAreas, salesGdvFactor);
   const { rows, finance } = computeCashflow(f, dev, prog, totals);
   const scenarios = computeScenarios(f, totals, dev, finance, prog, rows);
   const sensitivity = computeSensitivity(f, totals, dev, finance, scenarios);
