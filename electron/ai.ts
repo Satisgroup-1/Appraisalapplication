@@ -161,3 +161,112 @@ export async function extractEnvelopes(payload: {
   if (!text || text.type !== 'text') throw new Error('No structured output returned.');
   return JSON.parse(text.text);
 }
+
+// ---------------------------------------------------------------------------
+// House price inflation projection agent
+// ---------------------------------------------------------------------------
+
+export interface HpiProjection {
+  annualPct: number[]; // 5 annual rates, decimals (0.03 = 3%)
+  region: string;
+  rationale: string;
+  sources: string[];
+  projectedAt: string;
+}
+
+const HPI_SCHEMA = {
+  type: 'object',
+  properties: {
+    annualPct: {
+      type: 'array',
+      description:
+        'Projected annual house price growth for years 1..5 from today, as decimals (0.03 = 3%). Negative values allowed.',
+      items: { type: 'number' },
+    },
+    region: { type: 'string', description: 'The region the projection covers.' },
+    rationale: {
+      type: 'string',
+      description: 'Concise reasoning (<=120 words): current market data, forecast figures used, and how they were weighed.',
+    },
+    sources: {
+      type: 'array',
+      description: 'Named sources with dates, e.g. "ONS UK HPI, May 2026" or "Savills mainstream forecast 2026-2030".',
+      items: { type: 'string' },
+    },
+  },
+  required: ['annualPct', 'region', 'rationale', 'sources'],
+  additionalProperties: false,
+} as const;
+
+/**
+ * Projects house price inflation for a region from real-world figures.
+ *
+ * Two calls on purpose: the research call uses web search, whose results
+ * carry citations, and citations are incompatible with structured outputs —
+ * so a second, cheap call extracts the numbers against the schema instead of
+ * risking a 400 by combining them.
+ */
+export async function projectHpi(region: string): Promise<HpiProjection> {
+  const client = await buildClient();
+
+  const research = client.messages.stream({
+    model: MODEL,
+    max_tokens: 16000,
+    tools: [{ type: 'web_search_20260209', name: 'web_search', max_uses: 8 } as never],
+    messages: [
+      {
+        role: 'user',
+        content: `You are preparing a house price inflation assumption for a UK residential development appraisal in: ${region || 'the UK'}.
+
+Research CURRENT figures (search, do not answer from memory):
+1. The latest ONS UK House Price Index annual growth, national and for this region.
+2. Published 5-year house price forecasts covering this region (OBR, Savills, Knight Frank, JLL, Hamptons, Rightmove or similar).
+3. Anything region-specific that should move the assumption (major regeneration, supply pipeline, local market reports).
+
+Then give year-by-year projected annual growth rates for years 1-5 from today for this region, as percentages, with a short justification and the named, dated sources for each figure. Be conservative where forecasts disagree; an appraisal is harmed more by optimism than caution.`,
+      },
+    ],
+  });
+  const researchMsg = await research.finalMessage();
+  if (researchMsg.stop_reason === 'refusal') {
+    throw new Error('The model declined the research request. Enter rates manually.');
+  }
+  const researchText = researchMsg.content
+    .filter((b) => b.type === 'text')
+    .map((b) => (b as { text: string }).text)
+    .join('\n');
+  if (!researchText.trim()) throw new Error('The research step returned nothing. Enter rates manually.');
+
+  const extract = await client.messages.create({
+    model: MODEL,
+    max_tokens: 4000,
+    output_config: { format: { type: 'json_schema', schema: HPI_SCHEMA as unknown as Record<string, unknown> } },
+    messages: [
+      {
+        role: 'user',
+        content: `Extract the 5-year house price projection from this analysis into the schema. Rates as decimals (3% -> 0.03). Exactly 5 entries in annualPct, year 1 first.\n\n${researchText}`,
+      },
+    ],
+  });
+  if (extract.stop_reason === 'refusal') throw new Error('Extraction was declined. Enter rates manually.');
+  const block = extract.content.find((b) => b.type === 'text');
+  if (!block || block.type !== 'text') throw new Error('No structured projection returned.');
+  const parsed = JSON.parse(block.text) as Omit<HpiProjection, 'projectedAt'>;
+
+  // Guard the numbers before they reach the model inputs: exactly 5 rates,
+  // each within a sane band (-15%..+20% a year).
+  const rates = (parsed.annualPct ?? []).slice(0, 5).map((r) => {
+    const n = Number(r);
+    if (!Number.isFinite(n)) throw new Error('Projection contained a non-numeric rate.');
+    return Math.max(-0.15, Math.min(0.2, n));
+  });
+  while (rates.length < 5) rates.push(rates[rates.length - 1] ?? 0);
+
+  return {
+    annualPct: rates,
+    region: parsed.region || region,
+    rationale: parsed.rationale ?? '',
+    sources: Array.isArray(parsed.sources) ? parsed.sources.slice(0, 8) : [],
+    projectedAt: new Date().toISOString(),
+  };
+}

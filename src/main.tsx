@@ -64,6 +64,20 @@ if (!window.satis) {
     aiExtract: async () => {
       throw new Error('Floorplan reading is only available in the desktop app.');
     },
+    aiProjectHpi: async () => {
+      throw new Error('HPI projection is only available in the desktop app.');
+    },
+    aiEstimateSales: async () => {
+      throw new Error('Pricing estimates are only available in the desktop app.');
+    },
+    aiEstimateBuild: async () => {
+      throw new Error('Pricing estimates are only available in the desktop app.');
+    },
+    aiEstimateFinance: async () => {
+      throw new Error('Pricing estimates are only available in the desktop app.');
+    },
+    calibrationLoad: async () => ({ tenders: [], termSheets: [] }),
+    calibrationSave: async () => true,
     exportXlsx: async () => null,
     exportSvg: async () => null,
     showItemInFolder: async () => {},

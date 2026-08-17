@@ -54,8 +54,11 @@ describe('financial identities (any scheme)', () => {
         expect(spent).toBeCloseTo(r.devCosts.totalPreFinance, 4);
       });
 
-      it('costs after finance = pre-finance + finance costs', () => {
-        expect(r.finance.totalCostsAfterFinance).toBeCloseTo(r.devCosts.totalPreFinance + r.finance.totalFinanceCosts, 6);
+      it('costs after finance = pre-finance + finance costs - deposit interest credit', () => {
+        expect(r.finance.totalCostsAfterFinance).toBeCloseTo(
+          r.devCosts.totalPreFinance + r.finance.totalFinanceCosts - r.finance.depositInterestRetention,
+          6,
+        );
       });
 
       it('dev loan balance at PC = drawdowns + rolled interest', () => {

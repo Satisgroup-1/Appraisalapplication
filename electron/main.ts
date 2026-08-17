@@ -5,8 +5,10 @@ import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron';
 import path from 'node:path';
 import fs from 'node:fs';
 import { exportWorkbook } from './xlsxExport';
-import { extractEnvelopes, MODEL } from './ai';
+import { extractEnvelopes, MODEL, projectHpi } from './ai';
+import { estimateBuild, estimateFinance, estimateSales, type FinanceDealShape } from './estimate';
 import { authStatus, initAuth, setStoredKey, signInWithClaude, testConnection } from './auth';
+import type { CalibrationRecords, TenderRecord, TermSheetRecord } from '../src/core/types';
 
 const isDev = !!process.env.VITE_DEV_SERVER_URL;
 
@@ -185,17 +187,94 @@ ipcMain.handle(
     extractEnvelopes(payload),
 );
 
-ipcMain.handle('export:xlsx', async (_e, payload: { scheduleJson: string; inputsJson: string; suggestedName: string }) => {
-  const { canceled, filePath } = await dialog.showSaveDialog({
-    title: 'Export appraisal workbook',
-    defaultPath: `${payload.suggestedName || 'appraisal'}.xlsx`,
-    filters: [{ name: 'Excel workbook', extensions: ['xlsx'] }],
-  });
-  if (canceled || !filePath) return null;
-  const template = path.join(resourcesDir(), 'appraisal_template.xlsx');
-  await exportWorkbook(template, filePath, JSON.parse(payload.scheduleJson), JSON.parse(payload.inputsJson));
-  return filePath;
+ipcMain.handle('ai:projectHpi', (_e, region: string) => projectHpi(String(region ?? '').slice(0, 200)));
+
+// ---------------------------------------------------------------------------
+// Pricing estimate research agents. Payloads are re-validated here because
+// the renderer is not trusted to shape what goes into a prompt.
+// ---------------------------------------------------------------------------
+
+ipcMain.handle('ai:estimateSales', (_e, payload: { address: string; unitTypes: string[] }) =>
+  estimateSales({
+    address: String(payload?.address ?? '').slice(0, 300),
+    unitTypes: Array.isArray(payload?.unitTypes) ? payload.unitTypes.map((t) => String(t).slice(0, 40)).slice(0, 10) : [],
+  }),
+);
+
+ipcMain.handle('ai:estimateBuild', (_e, payload: { region: string; giaSqft: number }) =>
+  estimateBuild({
+    region: String(payload?.region ?? '').slice(0, 300),
+    giaSqft: Number(payload?.giaSqft) || 0,
+    tenders: loadCalibration().tenders,
+  }),
+);
+
+ipcMain.handle('ai:estimateFinance', (_e, payload: { deal: FinanceDealShape }) =>
+  estimateFinance({
+    deal: {
+      purchasePrice: Number(payload?.deal?.purchasePrice) || 0,
+      bridgeLtv: Number(payload?.deal?.bridgeLtv) || 0,
+      devFacilityEstimate: Number(payload?.deal?.devFacilityEstimate) || 0,
+      gdv: Number(payload?.deal?.gdv) || 0,
+      assetType: String(payload?.deal?.assetType ?? '').slice(0, 120),
+    },
+    termSheets: loadCalibration().termSheets,
+  }),
+);
+
+// ---------------------------------------------------------------------------
+// Calibration records (the user's tender results and lender term sheets):
+// one JSON file in userData, shared across every project.
+// ---------------------------------------------------------------------------
+
+function calibrationFile(): string {
+  return path.join(app.getPath('userData'), 'calibration.json');
+}
+
+function loadCalibration(): CalibrationRecords {
+  try {
+    const raw = JSON.parse(fs.readFileSync(calibrationFile(), 'utf-8')) as Partial<CalibrationRecords>;
+    return {
+      tenders: Array.isArray(raw.tenders) ? (raw.tenders as TenderRecord[]) : [],
+      termSheets: Array.isArray(raw.termSheets) ? (raw.termSheets as TermSheetRecord[]) : [],
+    };
+  } catch {
+    return { tenders: [], termSheets: [] };
+  }
+}
+
+ipcMain.handle('calibration:load', () => loadCalibration());
+
+ipcMain.handle('calibration:save', (_e, json: string) => {
+  const parsed = JSON.parse(json) as Partial<CalibrationRecords>;
+  const clean: CalibrationRecords = {
+    tenders: Array.isArray(parsed.tenders) ? parsed.tenders.slice(0, 200) : [],
+    termSheets: Array.isArray(parsed.termSheets) ? parsed.termSheets.slice(0, 200) : [],
+  };
+  fs.writeFileSync(calibrationFile(), JSON.stringify(clean, null, 2), 'utf-8');
+  return true;
 });
+
+ipcMain.handle(
+  'export:xlsx',
+  async (_e, payload: { scheduleJson: string; inputsJson: string; suggestedName: string; modelV2Json?: string }) => {
+    const { canceled, filePath } = await dialog.showSaveDialog({
+      title: 'Export appraisal workbook',
+      defaultPath: `${payload.suggestedName || 'appraisal'}.xlsx`,
+      filters: [{ name: 'Excel workbook', extensions: ['xlsx'] }],
+    });
+    if (canceled || !filePath) return null;
+    const template = path.join(resourcesDir(), 'appraisal_template.xlsx');
+    await exportWorkbook(
+      template,
+      filePath,
+      JSON.parse(payload.scheduleJson),
+      JSON.parse(payload.inputsJson),
+      payload.modelV2Json ? JSON.parse(payload.modelV2Json) : null,
+    );
+    return filePath;
+  },
+);
 
 ipcMain.handle('export:svg', async (_e, svg: string, suggestedName: string) => {
   const { canceled, filePath } = await dialog.showSaveDialog({

@@ -5,6 +5,8 @@
 // '2. Inputs'. The workbook's own formulas recalculate on open in Excel.
 
 import ExcelJS from 'exceljs';
+import { computeSdlt } from '../src/core/sdlt';
+import { isSdltLine } from '../src/core/dcf';
 
 interface ScheduleRowIn {
   no: number;
@@ -22,6 +24,9 @@ interface DevCostLineIn {
   code: string;
   kind: string;
   value: number;
+  /** Present in newer payloads so the SDLT line is found by the same
+   *  code-or-label rule the engine uses; absent falls back to code B04. */
+  label?: string;
 }
 
 interface InputsIn {
@@ -40,6 +45,10 @@ interface InputsIn {
   devCostLines?: DevCostLineIn[];
   /** Computed build cost (room-rate mode) to write into D01/F37. */
   buildCostOverride?: number | null;
+  /** Present when the caller spreads FinanceInputs: lets the export write the
+   *  band-computed SDLT the engine actually used, not the dormant typed B04. */
+  sdlt?: { regime?: 'nonResidential' | 'residentialCompany' | 'manual' };
+  vat?: { optedToTax?: boolean; ratePct?: number };
 }
 
 const BLUE = 'FF0000FF';
@@ -105,11 +114,32 @@ const DEV_COST_CELLS: Record<string, { cell: string; writes: 'amount' | 'rate' }
   H08: { cell: 'F84', writes: 'amount' },
 };
 
+/** App model v2 results, passed from the renderer so the exported sheet shows
+ *  exactly what the user saw (no recompute drift). */
+export interface ModelV2In {
+  assumptions: string[];
+  summary: [string, string | number][];
+  scenarios: [string, string | number][];
+  cashflow: {
+    month: number;
+    costs: number;
+    cumCosts: number;
+    vatFlow: number;
+    retentionBalance: number;
+    bridgeBalance: number;
+    equityCum: number;
+    devDrawdown: number;
+    devInterest: number;
+    devBalance: number;
+  }[];
+}
+
 export async function exportWorkbook(
   templatePath: string,
   outPath: string,
   schedule: ScheduleRowIn[],
   inputs: InputsIn,
+  modelV2?: ModelV2In | null,
 ): Promise<void> {
   const wb = new ExcelJS.Workbook();
   await wb.xlsx.readFile(templatePath);
@@ -182,11 +212,31 @@ export async function exportWorkbook(
   // build cost when one was computed.
   const dc = wb.getWorksheet('3. Dev Costs');
   if (dc && inputs.devCostLines) {
+    // Under an automatic SDLT regime the typed B04 value is dormant: the
+    // engine prices the line from HMRC bands (on the VAT-inclusive price when
+    // opted to tax), so the export must write the same computed figure or the
+    // workbook and the app disagree by exactly the drift in the typed value.
+    const regime = inputs.sdlt?.regime;
+    const autoSdlt =
+      regime && regime !== 'manual'
+        ? computeSdlt(
+            inputs.purchasePrice * (inputs.vat?.optedToTax ? 1 + (inputs.vat.ratePct ?? 0.2) : 1),
+            regime,
+          )
+        : null;
+    // The engine prices only the FIRST line matching isSdltLine from the
+    // bands; the export must write the same figure to the same line.
+    const sdltLine =
+      autoSdlt !== null
+        ? inputs.devCostLines.find((l) => l.kind === 'fixed' && isSdltLine(l.code, l.label ?? '')) ?? null
+        : null;
     for (const line of inputs.devCostLines) {
       const target = DEV_COST_CELLS[line.code];
       if (!target) continue;
       if (line.code === 'D01' && inputs.buildCostOverride != null) {
         dc.getCell(target.cell).value = Math.round(inputs.buildCostOverride);
+      } else if (line === sdltLine && autoSdlt !== null && target.writes === 'amount') {
+        dc.getCell(target.cell).value = autoSdlt;
       } else if (line.kind === 'fixed' && target.writes === 'amount') {
         dc.getCell(target.cell).value = line.value;
       } else if (target.writes === 'rate' && line.kind !== 'fixed') {
@@ -199,6 +249,62 @@ export async function exportWorkbook(
   const summary = wb.getWorksheet('SUMMARY');
   if (summary && inputs.address) {
     summary.getCell('B3').value = inputs.address;
+  }
+
+  // App model v2 sheet: the template's own sheets keep the workbook's classic
+  // formulas; this sheet carries the app's richer model (S-curve drawdown,
+  // SDLT on completion, retention, VAT, HPI, waterfall) so the export shows
+  // both. Values only — the v2 engine lives in the app, not in formulas.
+  if (modelV2) {
+    const old = wb.getWorksheet('7. App Model v2');
+    if (old) wb.removeWorksheet(old.id);
+    const ws = wb.addWorksheet('7. App Model v2');
+    ws.getColumn(1).width = 46;
+    ws.getColumn(2).width = 20;
+    let r = 1;
+    const title = (t: string) => {
+      ws.getCell(r, 1).value = t;
+      ws.getCell(r, 1).font = { name: 'Arial', size: 11, bold: true };
+      r += 1;
+    };
+    const pair = (k: string, v: string | number) => {
+      ws.getCell(r, 1).value = k;
+      ws.getCell(r, 2).value = v;
+      ws.getCell(r, 1).font = { name: 'Arial', size: 10 };
+      ws.getCell(r, 2).font = { name: 'Arial', size: 10 };
+      r += 1;
+    };
+
+    title('APP MODEL V2 — computed by Satis Appraisal');
+    pair('Note', 'Sheets 1-6 recalculate with the workbook’s own (simplified) formulas; this sheet is the app’s model.');
+    r += 1;
+    title('Assumptions');
+    for (const a of modelV2.assumptions) pair('·', a);
+    r += 1;
+    title('Summary');
+    for (const [k, v] of modelV2.summary) pair(k, v);
+    r += 1;
+    title('Scenarios');
+    for (const [k, v] of modelV2.scenarios) pair(k, v);
+    r += 1;
+    title('Monthly cashflow');
+    const headers = ['Month', 'Costs', 'Cumulative', 'VAT flow', 'Retention held', 'Bridge bal', 'Equity', 'Dev draw', 'Dev interest', 'Dev balance'];
+    headers.forEach((h, i) => {
+      const c = ws.getCell(r, i + 1);
+      c.value = h;
+      c.font = { name: 'Arial', size: 10, bold: true };
+    });
+    r += 1;
+    for (const m of modelV2.cashflow) {
+      const vals = [m.month, m.costs, m.cumCosts, m.vatFlow, m.retentionBalance, m.bridgeBalance, m.equityCum, m.devDrawdown, m.devInterest, m.devBalance];
+      vals.forEach((v, i) => {
+        const c = ws.getCell(r, i + 1);
+        c.value = typeof v === 'number' && i > 0 ? Math.round(v * 100) / 100 : v;
+        c.font = { name: 'Arial', size: 9 };
+        if (i > 0) c.numFmt = '#,##0';
+      });
+      r += 1;
+    }
   }
 
   // Force Excel to recalculate every formula on open (values were computed

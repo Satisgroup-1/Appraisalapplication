@@ -3,7 +3,7 @@
 // library; options and appraisals are derived on demand from the project.
 
 import { create } from 'zustand';
-import type { ConversionOption, Envelope, PricingSpec, Project, ProjectSummary } from '../core/types';
+import type { ConversionOption, Envelope, EstimateSet, PricingSpec, Project, ProjectSummary } from '../core/types';
 import { DEFAULT_RULES, type Rules } from '../core/rules';
 import { generateOptions } from '../core/conversions';
 import { demoProject } from '../core/demo';
@@ -51,6 +51,7 @@ interface AppState {
   upsertFloor: (floor: Envelope) => void;
   removeFloor: (id: string) => void;
   setPricing: (p: PricingSpec) => void;
+  setEstimates: (patch: Partial<EstimateSet>) => void;
   setRules: (r: Rules) => void;
   regenerate: () => void;
   selectOption: (id: string | null) => void;
@@ -174,6 +175,11 @@ export const useStore = create<AppState>((set, get) => ({
   removeFloor: (id) => withProject(set, get, (p) => ({ ...p, floors: p.floors.filter((f) => f.id !== id) })),
 
   setPricing: (pricing) => withProject(set, get, (p) => ({ ...p, pricing })),
+
+  // Estimates are suggestions with provenance; storing them changes no model
+  // input, so the generated options stay valid.
+  setEstimates: (patch) =>
+    withProject(set, get, (p) => ({ ...p, estimates: { ...(p.estimates ?? {}), ...patch } }), false),
 
   setRules: (rules) => set({ rules, optionsStale: true }),
 

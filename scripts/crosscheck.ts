@@ -64,7 +64,10 @@ function spec(): PricingSpec {
   s.finance.bridge = { ltv: 0.6, ratePa: 0.11, arrangementFee: 0.015, exitFee: 0.012 };
   s.finance.devLoan = { ratePa: 0.092, arrangementFee: 0.02, exitFee: 0.008, maxLtgdv: 0.7 };
   s.finance.equity = { total: 1050000, investorShare: 0.4 };
-  s.finance.sales = { agentFeePct: 0.018, legalPerUnit: 900, velocityPerMonth: 1, priceAdjust: -0.02 };
+  // priceAdjust stays 0 here: model v2 prices %-of-GDV sales costs on the
+  // levered/indexed GDV, while the workbook's G03 formula uses raw GDV — a
+  // non-zero lever would make pre-finance totals disagree by design.
+  s.finance.sales = { agentFeePct: 0.018, legalPerUnit: 900, velocityPerMonth: 1, priceAdjust: 0 };
   s.finance.refinance = { ltv: 0.6, ratePa: 0.061, arrangementFee: 0.012, voidPct: 0.06, mgmtPct: 0.12 };
   // Vary some dev cost lines from the template values.
   for (const l of s.devCosts) {
@@ -81,20 +84,18 @@ async function doExport() {
   fs.mkdirSync(OUT, { recursive: true });
   const s = spec();
   const r = runAppraisal(SCHEDULE, s);
+  // Since model v2 the engine deliberately deviates from the workbook's
+  // simplified cashflow (S-curve drawdown, SDLT on completion, architect/QS
+  // through to PC, retention, holding costs over the sell period, deposit
+  // interest) — see AUDIT.md. The cross-check therefore covers the figures
+  // the two models still define identically: the unit schedule, pre-finance
+  // cost totals, the bridge, and facility sizing.
   const engine = {
     gdv: r.totals.gdv,
     unitCount: r.totals.units,
     preFinanceCosts: r.devCosts.totalPreFinance,
     bridgeInterest: r.finance.bridgeInterestTotal,
     devArrangementFee: r.finance.devArrangementFee,
-    devBalanceAtPC: r.finance.devBalanceAtPC,
-    peakDevLoan: r.finance.peakDevBalance,
-    totalFinanceCosts: r.finance.totalFinanceCosts,
-    costsAfterFinance: r.finance.totalCostsAfterFinance,
-    s1NetProfit: r.scenarios.s1.netProfit,
-    s2NetProfit: r.scenarios.s2.netProfit,
-    s3Cashflow: r.scenarios.s3.netAnnualCashflow,
-    s4NetProfit: r.scenarios.s4.netProfit,
   };
   fs.writeFileSync(path.join(OUT, 'engine.json'), JSON.stringify(engine, null, 2));
   await exportWorkbook(
@@ -104,7 +105,11 @@ async function doExport() {
     {
       address: 'Cross-check scheme',
       ...s.finance,
-      devCostLines: s.devCosts.map((l) => ({ code: l.code, kind: l.kind, value: l.value })),
+      // Labels included so the export resolves the SDLT line by the same
+      // code-or-label rule the engine uses (the typed B04 is dormant here:
+      // the spec inherits the automatic non-residential regime, so both the
+      // engine and the export price it from the bands).
+      devCostLines: s.devCosts.map((l) => ({ code: l.code, kind: l.kind, value: l.value, label: l.label })),
       buildCostOverride: null,
     },
   );
@@ -129,14 +134,6 @@ async function doCompare() {
     preFinanceCosts: val('3. Dev Costs', 'F87'),
     bridgeInterest: val('4. Cashflow', 'C33'),
     devArrangementFee: val('2. Inputs', 'E30'),
-    devBalanceAtPC: val('4. Cashflow', 'C38'),
-    peakDevLoan: val('4. Cashflow', 'C41'),
-    totalFinanceCosts: val('4. Cashflow', 'C43'),
-    costsAfterFinance: val('4. Cashflow', 'C44'),
-    s1NetProfit: val('5. Scenarios', 'F9'),
-    s2NetProfit: val('5. Scenarios', 'F36'),
-    s3Cashflow: val('5. Scenarios', 'F50'),
-    s4NetProfit: val('5. Scenarios', 'F72'),
   };
 
   let failed = 0;
@@ -155,7 +152,7 @@ async function doCompare() {
     console.error(`\n${failed} figure(s) disagree with the workbook.`);
     process.exit(1);
   }
-  console.log('\nAll figures agree with the workbook’s own formulas.');
+  console.log('\nAll shared figures agree with the workbook’s own formulas. (Finance timing figures are model-v2 territory — validated in tests/model2.test.ts instead; see AUDIT.md.)');
 }
 
 const cmd = process.argv[2];

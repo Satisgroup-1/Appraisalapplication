@@ -213,12 +213,73 @@ export interface PricingSpec {
   devCosts: DevCostLine[];
 }
 
+/** VAT on the purchase when the seller has opted the property to tax. */
+export interface VatInputs {
+  optedToTax: boolean;
+  ratePct: number; // 0.20
+  /** Months between completion and the reclaim landing (typically 2). */
+  reclaimLagMonths: number;
+  /** 'equity': paid from cash and recovered at reclaim. 'vatLoan': a short
+   *  VAT facility funds it; only its fee + interest are a real cost. */
+  fundedBy: 'equity' | 'vatLoan';
+  vatLoan: { ratePa: number; arrangementFee: number };
+}
+
+/** Contractor retention held against the main contract (D01). */
+export interface RetentionInputs {
+  /** Withheld from each certificate during the works (e.g. 3%). */
+  pctDuringWorks: number;
+  /** Portion still held after PC for the defects period (e.g. 1.5%);
+   *  the difference is released at PC. */
+  pctAfterPc: number;
+  /** Defects period length; the final release lands this many months after PC. */
+  releaseMonthsAfterPc: number;
+}
+
+/** Forward house price inflation applied to sale prices by sale month. */
+export interface HpiInputs {
+  enabled: boolean;
+  /** Annual rates for years 1..N from purchase (decimals); the last rate
+   *  persists beyond the array. */
+  annualPct: number[];
+  region?: string;
+  rationale?: string;
+  sources?: string[];
+  projectedAt?: string; // ISO date the projection was produced
+}
+
+/** How stamp duty (dev cost line B04) is derived. */
+export interface SdltInputs {
+  /** 'nonResidential': commercial/mixed-use bands (the usual purchase here).
+   *  'residentialCompany': residential main rates + company surcharge.
+   *  'manual': keep the typed B04 figure (solicitor's number). */
+  regime: 'nonResidential' | 'residentialCompany' | 'manual';
+}
+
+/** How profit is shared between investor and developer. */
+export interface WaterfallInputs {
+  /** 'simple': profit x investorShare (current 50/50 deals).
+   *  'waterfall': capital back, then preferred return, then residual split. */
+  mode: 'simple' | 'waterfall';
+  /** Preferred return on drawn investor capital, compounded monthly. */
+  prefRatePa: number;
+  /** Investor share of profit above the pref. */
+  residualInvestorPct: number;
+}
+
 export interface FinanceInputs {
   purchasePrice: number;
   purchaseDate: string; // ISO yyyy-mm
   giaSqft: number; // gross internal area of whole building
   legalMonths: number; // '2. Inputs' E10
   preConMonths: number; // E11
+  vat: VatInputs;
+  sdlt: SdltInputs;
+  retention: RetentionInputs;
+  /** Interest earned on cash held (retention pot, sale surpluses). */
+  depositRatePa: number;
+  hpi: HpiInputs;
+  waterfall: WaterfallInputs;
   bridge: {
     ltv: number; // E17
     ratePa: number; // E18
@@ -302,6 +363,20 @@ export interface MonthRow {
   devInterest: number;
   devBalance: number;
   fundingGap: boolean;
+  /** VAT paid on the purchase this month (month 1 when opted to tax). */
+  vatPaid: number;
+  /** VAT reclaim landing this month. */
+  vatReclaimed: number;
+  /** VAT facility balance (vatLoan funding only). */
+  vatLoanBalance: number;
+  /** Retention withheld from this month's certificate (reduces cash out). */
+  retentionWithheld: number;
+  /** Retention released to the contractor this month (PC and PC+defects). */
+  retentionReleased: number;
+  /** Retention pot balance held in the bank at month end. */
+  retentionBalance: number;
+  /** Deposit interest earned on the retention pot this month. */
+  depositInterest: number;
 }
 
 export interface FinanceSummary {
@@ -319,14 +394,43 @@ export interface FinanceSummary {
   peakDevBalance: number;
   ltgdvAtPeak: number;
   ltgdvOk: boolean;
+  /** VAT paid on the purchase (0 unless opted to tax). Nets to zero at reclaim. */
+  vatOnPurchase: number;
+  vatLoanFee: number;
+  vatLoanInterest: number;
+  /** Peak retention pot held in the bank. */
+  retentionHeldPeak: number;
+  /** Deposit interest earned on the retention pot (credited against costs). */
+  depositInterestRetention: number;
   totalFinanceCosts: number;
   totalCostsAfterFinance: number;
   equityUsed: number;
 }
 
+/** Profit distribution for one exit scenario. */
+export interface WaterfallResult {
+  mode: 'simple' | 'waterfall';
+  exitMonth: number;
+  /** Peak investor capital drawn (pref accrues on the drawn balance). */
+  investorCapital: number;
+  developerCapital: number;
+  prefAccrued: number;
+  prefPaid: number;
+  /** Pref not covered by profit (profit below the hurdle). */
+  prefShortfall: number;
+  residualProfit: number;
+  investorProfit: number;
+  developerProfit: number;
+  investorRoi: number;
+  investorRoiPa: number;
+}
+
 export interface ScenarioResults {
   s1: {
+    /** GDV indexed to PC by HPI (1.0 index when HPI is off). */
     gdvAdjusted: number;
+    /** Cumulative HPI index at PC applied to today's GDV. */
+    hpiIndexAtPc: number;
     netProfit: number;
     profitOnCost: number;
     profitOnGdv: number;
@@ -335,15 +439,21 @@ export interface ScenarioResults {
     investorRoi: number;
     durationMonths: number;
     investorRoiPa: number;
+    waterfall: WaterfallResult;
   };
   s2: {
     monthsToSellOut: number;
     monthsToRepay: number | '36+';
     extraInterest: number;
+    /** Extra value from HPI between PC and each unit's sale month. */
+    hpiUplift: number;
+    /** Deposit interest earned on sale surpluses after the loan is repaid. */
+    depositInterestOnSurplus: number;
     netProfit: number;
     investorProfit: number;
     investorRoi: number;
     totalDurationMonths: number;
+    waterfall: WaterfallResult;
   };
   s3: {
     mortgageAdvance: number;
@@ -363,10 +473,13 @@ export interface ScenarioResults {
     refiPrincipal: number;
     arrangementFee: number;
     extraInterest: number;
+    hpiUplift: number;
+    depositInterestOnSurplus: number;
     netProfit: number;
     benefitVsS2: number;
     investorProfit: number;
     investorRoi: number;
+    waterfall: WaterfallResult;
   };
 }
 
@@ -410,6 +523,102 @@ export interface AppraisalResult {
 }
 
 // ---------------------------------------------------------------------------
+// Pricing estimates — AI-researched suggestions stored with their evidence.
+// Estimates never overwrite an input: the UI shows them beside each field and
+// the user applies them individually or per group.
+// ---------------------------------------------------------------------------
+
+/** One estimated figure with its uncertainty and provenance. */
+export interface EstimateValue {
+  low: number;
+  /** The value an Apply click inserts. */
+  likely: number;
+  high: number;
+  confidence: 'high' | 'medium' | 'low';
+  /** How the figure was reached: evidence counts, radius used, adjustments. */
+  rationale: string;
+  /** Named, dated sources. */
+  sources: string[];
+}
+
+export type RateCategory = 'commercial' | 'studio' | 'bed1' | 'bed2' | 'bed3' | 'house';
+
+/** Sales & rents research output. Values are TODAY'S prices: the model's HPI
+ *  setting carries them forward to completion / sale month, so growth is
+ *  never counted twice. */
+export interface SalesEstimates {
+  ranAt: string; // ISO date
+  address: string;
+  rates: Partial<Record<RateCategory, { salePsf: EstimateValue; rentPsf: EstimateValue }>>;
+  /** 5-year HPI projection from the same research, to fill finance.hpi. */
+  hpiAnnualPct: number[];
+  hpiRationale: string;
+  hpiSources: string[];
+}
+
+/** Build cost research output: one blended all-in contract £/sqft that the
+ *  room-rate table is scaled to (ratios preserved). */
+export interface BuildEstimates {
+  ranAt: string;
+  region: string;
+  blendedPsf: EstimateValue;
+}
+
+/** Finance rate research output, shaped to the deal's LTV/size/asset type. */
+export interface FinanceEstimates {
+  ranAt: string;
+  bridgeRatePa: EstimateValue;
+  bridgeArrangementFee: EstimateValue;
+  devLoanRatePa: EstimateValue;
+  devLoanArrangementFee: EstimateValue;
+  vatLoanRatePa: EstimateValue;
+  refinanceRatePa: EstimateValue;
+  /** Instant-access deposit rate pegged to SONIA minus a researched spread. */
+  depositRatePa: EstimateValue;
+  /** The SONIA rate found during research (decimal), for the rationale. */
+  soniaRatePa: number | null;
+}
+
+export interface EstimateSet {
+  sales?: SalesEstimates;
+  build?: BuildEstimates;
+  finance?: FinanceEstimates;
+}
+
+// ---------------------------------------------------------------------------
+// Calibration records — the user's own evidence, kept in app settings and
+// shared across projects: what contractors actually tendered and what lenders
+// actually quoted. Passed to the research agents to anchor estimates.
+// ---------------------------------------------------------------------------
+
+export interface TenderRecord {
+  id: string;
+  projectName: string;
+  date: string; // yyyy-mm
+  region: string;
+  /** All-in contract £/sqft actually tendered. */
+  psf: number;
+  notes: string;
+}
+
+export interface TermSheetRecord {
+  id: string;
+  lender: string;
+  date: string; // yyyy-mm
+  product: 'bridge' | 'devLoan' | 'vatLoan' | 'refinance';
+  ratePa: number; // decimal
+  arrangementFee: number; // decimal
+  ltv: number; // decimal
+  loanSize: number; // £
+  notes: string;
+}
+
+export interface CalibrationRecords {
+  tenders: TenderRecord[];
+  termSheets: TermSheetRecord[];
+}
+
+// ---------------------------------------------------------------------------
 // Project file
 // ---------------------------------------------------------------------------
 
@@ -424,6 +633,8 @@ export interface Project {
   listedOrConservation: boolean;
   floors: Envelope[];
   pricing: PricingSpec;
+  /** AI-researched pricing estimates with their evidence (never auto-applied). */
+  estimates?: EstimateSet;
   /** id of option adopted for export, if any */
   adoptedOptionId?: string;
 }

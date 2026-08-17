@@ -4,7 +4,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { AuthStatus } from '../../electron/preload';
 import { useStore } from '../state/store';
-import type { UnitTypeKey } from '../core/types';
+import type { CalibrationRecords, TenderRecord, TermSheetRecord, UnitTypeKey } from '../core/types';
 import { DEFAULT_RULES } from '../core/rules';
 
 /** One line describing the credential a request would actually use. */
@@ -43,7 +43,11 @@ export default function SettingsView() {
 
   async function signIn() {
     setMsg(null);
-    setBusy('Waiting for you to finish signing in in your browser…');
+    setBusy(
+      auth?.cli.available
+        ? 'Waiting for you to finish signing in in your browser…'
+        : 'Fetching the sign-in tool, then opening your browser… the download runs once and takes a moment.',
+    );
     const res = await window.satis.authSignIn();
     setBusy(null);
     setMsg({ ok: res.ok, text: res.message });
@@ -113,8 +117,9 @@ export default function SettingsView() {
       <h4 className="subsection">Sign in with your Claude account</h4>
       <p className="note">
         Opens your browser to sign in, then hands the app a token it refreshes on its own. No key to copy, and nothing
-        to re-enter later. This uses the Anthropic command-line tool, which manages the sign-in for every Anthropic app
-        on this machine, so it needs to be installed once.
+        to re-enter later. The sign-in itself is handled by the Anthropic command-line tool; if it is not already on
+        this machine the app downloads it automatically the first time you sign in, verifying it against a published
+        checksum. There is nothing to install by hand.
       </p>
       <div style={{ marginBottom: 14 }}>
         <button className="btn" onClick={signIn} disabled={!!busy}>
@@ -127,8 +132,8 @@ export default function SettingsView() {
       {auth && !auth.cli.available && (
         <p className="note">
           {auth.cli.conflict
-            ? `${auth.cli.conflict} Install the Anthropic CLI to sign in from here, or paste an API key below.`
-            : 'The Anthropic CLI was not found on this machine, so signing in from here is not available yet. Install it using the link above, or paste an API key below.'}
+            ? `${auth.cli.conflict} Signing in from here still works: the app fetches its own copy of the Anthropic CLI when you press the button.`
+            : 'The Anthropic sign-in tool is not on this machine yet. It will be downloaded automatically when you press Sign in with Claude; installing it yourself (link above) also works, as does pasting an API key below.'}
         </p>
       )}
       {auth?.login && (
@@ -257,6 +262,8 @@ export default function SettingsView() {
         Reset ruleset to NDSS defaults
       </button>
 
+      <CalibrationSection />
+
       <h3 className="section">About</h3>
       <p className="note">
         Satis Appraisal generates residential conversion options from building floorplans, validates them against the
@@ -265,5 +272,180 @@ export default function SettingsView() {
         estimates, not architecture or advice.
       </p>
     </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Calibration records: the developer's own tender results and lender term
+// sheets. Kept in app settings (shared across every project) and fed to the
+// pricing estimate agents as the strongest available anchor.
+// ---------------------------------------------------------------------------
+
+const newId = () => `cal-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+
+const numOr = (v: string, fallback = 0) => (Number.isFinite(parseFloat(v)) ? parseFloat(v) : fallback);
+
+function CalibrationSection() {
+  const [cal, setCal] = useState<CalibrationRecords | null>(null);
+
+  useEffect(() => {
+    void (async () => {
+      const loaded = (await window.satis.calibrationLoad()) as CalibrationRecords;
+      setCal({ tenders: loaded?.tenders ?? [], termSheets: loaded?.termSheets ?? [] });
+    })();
+  }, []);
+
+  function save(next: CalibrationRecords) {
+    setCal(next);
+    void window.satis.calibrationSave(JSON.stringify(next));
+  }
+
+  if (!cal) return null;
+
+  return (
+    <>
+      <h3 className="section">Pricing estimate calibration</h3>
+      <p className="note">
+        Your own market evidence, shared across every project. The pricing estimate agents anchor to these: tender
+        results calibrate the build cost £/sqft, and lender term sheets calibrate the finance rates to what lenders
+        actually quote you. Records stay on this machine and are only ever sent to Claude as part of an estimate run
+        you start.
+      </p>
+
+      <h4 className="subsection">Tender results (build cost £/sqft, all-in contract)</h4>
+      <table className="data" style={{ maxWidth: 820 }}>
+        <thead>
+          <tr>
+            <th>Project</th>
+            <th>Date</th>
+            <th>Region</th>
+            <th className="num">£/sqft</th>
+            <th>Notes</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {cal.tenders.map((t) => (
+            <tr key={t.id}>
+              <td>
+                <input value={t.projectName} onChange={(e) => save({ ...cal, tenders: cal.tenders.map((x) => (x.id === t.id ? { ...x, projectName: e.target.value } : x)) })} />
+              </td>
+              <td style={{ width: 120 }}>
+                <input type="month" value={t.date} onChange={(e) => save({ ...cal, tenders: cal.tenders.map((x) => (x.id === t.id ? { ...x, date: e.target.value } : x)) })} />
+              </td>
+              <td>
+                <input value={t.region} onChange={(e) => save({ ...cal, tenders: cal.tenders.map((x) => (x.id === t.id ? { ...x, region: e.target.value } : x)) })} />
+              </td>
+              <td className="num" style={{ width: 90 }}>
+                <input type="number" value={t.psf} onChange={(e) => save({ ...cal, tenders: cal.tenders.map((x) => (x.id === t.id ? { ...x, psf: numOr(e.target.value) } : x)) })} />
+              </td>
+              <td>
+                <input value={t.notes} onChange={(e) => save({ ...cal, tenders: cal.tenders.map((x) => (x.id === t.id ? { ...x, notes: e.target.value } : x)) })} />
+              </td>
+              <td style={{ width: 70 }}>
+                <button className="btn ghost mini" onClick={() => save({ ...cal, tenders: cal.tenders.filter((x) => x.id !== t.id) })}>
+                  Remove
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <button
+        className="btn ghost"
+        onClick={() =>
+          save({
+            ...cal,
+            tenders: [
+              ...cal.tenders,
+              { id: newId(), projectName: '', date: new Date().toISOString().slice(0, 7), region: '', psf: 0, notes: '' } satisfies TenderRecord,
+            ],
+          })
+        }
+      >
+        Add tender result
+      </button>
+
+      <h4 className="subsection">Lender term sheets</h4>
+      <table className="data" style={{ maxWidth: 960 }}>
+        <thead>
+          <tr>
+            <th>Lender</th>
+            <th>Date</th>
+            <th>Product</th>
+            <th className="num">Rate % pa</th>
+            <th className="num">Fee %</th>
+            <th className="num">LTV %</th>
+            <th className="num">Loan £</th>
+            <th>Notes</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {cal.termSheets.map((t) => (
+            <tr key={t.id}>
+              <td>
+                <input value={t.lender} onChange={(e) => save({ ...cal, termSheets: cal.termSheets.map((x) => (x.id === t.id ? { ...x, lender: e.target.value } : x)) })} />
+              </td>
+              <td style={{ width: 120 }}>
+                <input type="month" value={t.date} onChange={(e) => save({ ...cal, termSheets: cal.termSheets.map((x) => (x.id === t.id ? { ...x, date: e.target.value } : x)) })} />
+              </td>
+              <td style={{ width: 120 }}>
+                <select value={t.product} onChange={(e) => save({ ...cal, termSheets: cal.termSheets.map((x) => (x.id === t.id ? { ...x, product: e.target.value as TermSheetRecord['product'] } : x)) })}>
+                  <option value="bridge">Bridge</option>
+                  <option value="devLoan">Dev loan</option>
+                  <option value="vatLoan">VAT loan</option>
+                  <option value="refinance">Refinance</option>
+                </select>
+              </td>
+              <td className="num" style={{ width: 80 }}>
+                <input type="number" step="0.05" value={Math.round(t.ratePa * 10000) / 100} onChange={(e) => save({ ...cal, termSheets: cal.termSheets.map((x) => (x.id === t.id ? { ...x, ratePa: numOr(e.target.value) / 100 } : x)) })} />
+              </td>
+              <td className="num" style={{ width: 70 }}>
+                <input type="number" step="0.05" value={Math.round(t.arrangementFee * 10000) / 100} onChange={(e) => save({ ...cal, termSheets: cal.termSheets.map((x) => (x.id === t.id ? { ...x, arrangementFee: numOr(e.target.value) / 100 } : x)) })} />
+              </td>
+              <td className="num" style={{ width: 70 }}>
+                <input type="number" step="1" value={Math.round(t.ltv * 100)} onChange={(e) => save({ ...cal, termSheets: cal.termSheets.map((x) => (x.id === t.id ? { ...x, ltv: numOr(e.target.value) / 100 } : x)) })} />
+              </td>
+              <td className="num" style={{ width: 110 }}>
+                <input type="number" value={t.loanSize} onChange={(e) => save({ ...cal, termSheets: cal.termSheets.map((x) => (x.id === t.id ? { ...x, loanSize: numOr(e.target.value) } : x)) })} />
+              </td>
+              <td>
+                <input value={t.notes} onChange={(e) => save({ ...cal, termSheets: cal.termSheets.map((x) => (x.id === t.id ? { ...x, notes: e.target.value } : x)) })} />
+              </td>
+              <td style={{ width: 70 }}>
+                <button className="btn ghost mini" onClick={() => save({ ...cal, termSheets: cal.termSheets.filter((x) => x.id !== t.id) })}>
+                  Remove
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <button
+        className="btn ghost"
+        onClick={() =>
+          save({
+            ...cal,
+            termSheets: [
+              ...cal.termSheets,
+              {
+                id: newId(),
+                lender: '',
+                date: new Date().toISOString().slice(0, 7),
+                product: 'bridge',
+                ratePa: 0.1,
+                arrangementFee: 0.02,
+                ltv: 0.65,
+                loanSize: 0,
+                notes: '',
+              } satisfies TermSheetRecord,
+            ],
+          })
+        }
+      >
+        Add term sheet
+      </button>
+    </>
   );
 }

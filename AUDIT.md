@@ -101,9 +101,105 @@ completely, the total equals Σ area × rate, percentage-of-build lines (conting
 follow the computed cost, and hand-entered schedules fall back to the fixed D01 amount — which
 keeps the golden tests exact.
 
-## 5. Re-running the audit
+## 5. Model v2 — deliberate deviations from the workbook
+
+The engine started as a cell-by-cell port of the workbook. Model v2 corrects the workbook's
+timing simplifications, following answers to the audit's open questions. **The workbook is no
+longer the source of truth for finance timing** — only for the unit schedule, the cost
+schedule amounts, the bridge, and facility sizing. Every change below shifts *when* money
+moves, not *how much* a cost line is (cost totals still reconcile to the penny).
+
+| Change | Workbook behaviour | Model v2 behaviour (confirmed practice) |
+|---|---|---|
+| SDLT | Spread over the legal period | Paid on completion of the purchase (month 1) |
+| SDLT amount | Hand-typed on B04 | Computed exactly from HMRC bands (`src/core/sdlt.ts`) under a per-project regime: non-residential/mixed (default — reproduces the workbook's £87,000 on the £1.95m demo to the penny), residential company rates (main rates + 5% surcharge), or manual (typed figure kept; pre-existing project files load as manual). Charged on the VAT-inclusive price when opted to tax. Band maths hand-verified in `tests/sdlt.test.ts`; the in-app auditor recomputes B04 from the bands, proven by a seeded-corruption test |
+| Bridge scope | (Same formula, now stated) | Advances against the purchase price only; SDLT, legals, valuation and design fees are equity |
+| Main contract drawdown | Straight-line over construction | Standard S-curve (smoothstep), standing in for a QS drawdown schedule; contingency follows the curve |
+| Architect & QS fees | Architect in pre-con, QS over construction | Both straight-lined from month 1 to PC (they run through design and build) |
+| Post-construction costs | Lump at PC | Straight-lined over the expected sell period |
+| Retention | None | 3% withheld from certificates; 1.5% released at PC, 1.5% held 12 months (defects), all editable |
+| VAT on purchase | None | If seller opted to tax: paid at completion, reclaimed ~2 months later; funded from equity or a VAT loan (fee + interest are the only real cost). SDLT-on-VAT warning surfaced |
+| Deposit interest | None | Earned on the retention pot and on sale surpluses after loan repayment; credited against costs |
+| GDV over time | Static | Optional HPI indexing: sale prices to each unit's sale month, refinance value to PC; rates from the projection agent (regional, sourced) or manual |
+| Profit split | Flat investor share | Same by default; optional waterfall (capital → pref compounded monthly on drawn capital → residual split) |
+| PG cost | Based on a provisional facility estimate | **Not modelled yet** — deliberately skipped until the facility term sheet (3-5 St John Street example) is provided; will be computed on the actual facility by iteration, not the estimate |
+
+**Pricing estimates are not engine paths.** The research agents (`electron/estimate.ts`) and
+suggestion helpers (`src/core/estimates.ts`) only ever produce *suggestions* stored on the
+project with their range, rationale and sources; a figure enters the model exclusively through
+the user clicking Apply, after passing hard sanitisers (finite, ordered low ≤ likely ≤ high,
+clamped to per-quantity bands — sale £50-3,000/sqft, build £50-1,000/sqft, rates 0-35%, fees
+0-10%). Sales suggestions are *today's* values by design: the HPI setting performs the
+today-to-completion projection, so growth cannot be double-counted. Room-rate scaling
+(`scaleRoomRates`) preserves the user's ratios and reproduces the researched blend to within
+£1 (whole-pound rounding), verified in `tests/estimates.test.ts`.
+
+Verification of v2 (`tests/model2.test.ts`): S-curve slices hand-checked and summing to 1;
+retention conservation and release months exact; SDLT/architect/QS/holding-cost timing asserted
+month by month on a hand-computable scheme; VAT flows net to zero with the loan's fee+interest
+matching a 3-line hand calculation; the HPI index reproduces closed-form compounding; waterfall
+pref equals 100k×(1.01¹²−1) on the canonical example, with hurdle-shortfall and loss cases;
+plus standing identities (Σ monthly costs = pre-finance total; investor + developer = net
+profit in every scenario and mode). Demo outputs are regression-pinned in `tests/dcf.test.ts`.
+
+`scripts/crosscheck.sh` now checks the figures the two models still define identically (unit
+schedule, pre-finance totals, bridge, facility sizing) against a LibreOffice recalculation of
+the exported workbook. The export writes the app's v2 results to a `7. App Model v2` sheet so
+workbook readers see both models side by side.
+
+## 6. Second financial audit (of model v2 itself)
+
+A full adversarial pass over the v2 engine, hunting defects in the new mechanics. Five
+findings, each demonstrated numerically before fixing and pinned by a test afterwards
+(`tests/model2.test.ts` → "financial audit fixes"):
+
+| # | Severity | Defect | Fix |
+|---|---|---|---|
+| 1 | HIGH | %-of-GDV sales costs (agent fees) were priced on **raw GDV** while the scenarios sell at HPI-indexed, price-levered GDV — fees understated by £5.9k on the demo under 5% HPI, and S1 disagreed with its own sensitivity grid by £4.7k at a +5% lever. | Sales-cost lines price on `GDV × hpiIndex(PC) × (1 + lever)`; the grids re-based on the same figure, so **grid 1's 0% row now equals S1 exactly** under any lever/HPI combination (asserted to 1e-6). |
+| 2 | MEDIUM | HPI uplift on delayed sales was credited to profit **gross of agent fees**, overstating S2/S4 by the fee on the growth (~£1.4k on the demo). | Uplift credited net: `uplift × (1 − agentFee)`. |
+| 3 | MEDIUM | A VAT reclaim landing **after construction start** with equity fully deployed simply vanished — it neither returned equity nor paid down the loan, overstating funding (£390k refund ignored in the probe case). | Negative funding need pays the dev loan down (drawdown may be negative), floored at the balance so it can never go below zero. |
+| 4 | LOW | Deposit interest could accrue on a **negative** cash balance in the sell-down (only reachable with absurd selling costs), charging phantom negative interest. | Interest accrues on `max(0, cash)`. |
+| 5 | MEDIUM | The waterfall's exit month used sell-out only, so on stressed deals where the loan outlives the sales the **pref stopped accruing before capital was actually distributable**, understating the investor's pref. | Exit = PC + max(sell-out, loan repayment months); a '36+' repayment tail accrues the full 36 months. |
+
+The same pass produced two standing defences:
+
+- **An automatic in-app audit** (`src/core/audit.ts`) that runs on every appraisal: it
+  re-derives every cost line from its driver, every unit cell (sqft = sqm × 10.7639,
+  GDV = sqft × £psf), every conservation identity (costs, retention, VAT, dev loan,
+  deposit interest), every scenario linkage (S1 = GDV − costs, S2 = S1 + uplift + deposit
+  − interest, grid 0-rows = scenarios) and every distribution (investor + developer = net
+  profit, pref ≤ accrued), 44 checks on the demo — displayed above the KPIs. Recoverable
+  input messes (non-finite numbers, impossible percentages, malformed HPI arrays, schedule
+  cells disagreeing with area × rate) are repaired before computing, and **every repair is
+  reported** — nothing is corrected silently. `tests/appaudit.test.ts` proves the auditor
+  passes clean runs and catches ten classes of seeded corruption.
+- **A Claude Code audit-agent team** for future changes: `.claude/agents/dcf-financial-auditor.md`
+  (adversarial mechanics review with numeric probes) and `.claude/agents/dcf-numeric-verifier.md`
+  (verification battery + independent recomputation), orchestrated by the `/audit-dcf` skill.
+
+### 6.1 Audit of the SDLT / pricing-estimates change (2026-08-17)
+
+The `/audit-dcf` team ran over the change that introduced band-computed SDLT and the
+pricing-estimate helpers. The independent verifier recomputed the SDLT closed forms, the
+demo's 48-month cost stream, bridge and dev-loan roll-ups, the S1/grid identities, the
+canonical waterfall, and seven stressed configurations (VAT on under both funding routes and
+both regimes, crash lever, zero/max velocity) — all exact. One finding:
+
+| # | Severity | Defect | Fix |
+|---|---|---|---|
+| 6 | HIGH | The xlsx export still wrote the **typed** B04 into '3. Dev Costs'!F14 while the engine priced the line from HMRC bands — on the crosscheck scheme the workbook carried £61,000 against the engine's £62,000, breaking the export/engine penny-agreement (pre-finance off by £1,000, dev arrangement fee by £20). | `exportWorkbook` computes the band SDLT itself (VAT-inclusive when opted to tax) whenever the regime is automatic and writes that figure; `./scripts/crosscheck.sh` — which recalculates the exported workbook with LibreOffice — is the regression net that caught it and now agrees to the penny again. |
+| 7 | MEDIUM | Every fixed line matching /sdlt\|stamp duty/i received the FULL computed SDLT, so a preset importing two matching lines (e.g. B04 plus an "SDLT top-up") **doubled stamp duty** — £39,500 of phantom cost on the probe scheme — invisibly, because the auditor recomputed each line the same way and the doubling is conservation-consistent. | Only the FIRST matching fixed line (shared `sdltLineCodeOf` rule) carries the band figure; further matches keep their typed values, `runAppraisal` warns about them, and the auditor, UI "auto" badge and workbook export all resolve the line through the same exported predicate. Pinned by a two-line test in `tests/model2.test.ts`. |
+| 8 | LOW | `normalizePricing` gated the manual-mode default on the truthiness of the `sdlt` block, so a hand-edited/corrupted file containing `sdlt: {}` silently loaded as **automatic**, flipping a typed B04 to the computed figure with zero repairs reported. | Gate on `sdlt.regime` instead of the block; `sdlt: {}` now loads as manual. Pinned in `tests/sdlt.test.ts`. |
+
+One out-of-diff observation was recorded, not fixed: `grid1`'s 0% row assumes the G03/G04
+selling-cost lines exist in the spec (they always do in the shipped defaults and the UI, which
+cannot delete lines); a hand-built spec omitting them makes grid1(0%) diverge from S1 by
+exactly the selling costs. Pre-existing behaviour, untouched by this change, exposure limited
+to test scaffolding.
+
+## 7. Re-running the audit
 
 ```bash
-npm test                 # golden + identity + regulation tests (50 tests)
-./scripts/crosscheck.sh  # engine vs LibreOffice-recalculated workbook (needs libreoffice-calc)
+npm test                 # golden + parity + v2 mechanics + identity + regulation tests
+./scripts/crosscheck.sh  # shared figures vs LibreOffice-recalculated workbook (needs libreoffice-calc)
 ```
