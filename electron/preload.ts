@@ -47,6 +47,15 @@ const api = {
   }): Promise<unknown> => ipcRenderer.invoke('ai:estimateFinance', payload),
   calibrationLoad: (): Promise<unknown> => ipcRenderer.invoke('calibration:load'),
   calibrationSave: (json: string): Promise<boolean> => ipcRenderer.invoke('calibration:save', json),
+  onEstimateProgress: (
+    cb: (p: { kind: 'sales' | 'build' | 'finance'; stage: string; searches: number }) => void,
+  ): (() => void) => {
+    const listener = (_e: unknown, p: { kind: 'sales' | 'build' | 'finance'; stage: string; searches: number }) => cb(p);
+    ipcRenderer.on('ai:estimateProgress', listener);
+    return () => {
+      ipcRenderer.removeListener('ai:estimateProgress', listener);
+    };
+  },
   exportXlsx: (
     scheduleJson: string,
     inputsJson: string,
