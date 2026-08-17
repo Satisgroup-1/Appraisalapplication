@@ -69,19 +69,39 @@ export function sanitizeEstimate(raw: unknown, band: Band): EstimateValue | null
 
 const RATE_CATEGORIES: RateCategory[] = ['commercial', 'studio', 'bed1', 'bed2', 'bed3', 'house'];
 
-/** Cleans a raw sales research payload; unit types with no usable figures are
- *  simply absent, never zeroed. */
+/**
+ * Cleans a raw sales research payload; unit types with no usable figures are
+ * simply absent, never zeroed.
+ *
+ * The wire format is deliberately FLAT — an array of per-unit-type entries
+ * with plain number fields (salePsfLow/Likely/High, rentPsfLow/Likely/High)
+ * and one shared rationale/sources — because the API compiles structured
+ * output schemas to a grammar with a size cap, and the earlier shape (six
+ * unit types × two nested estimate objects) exceeded it in production
+ * ("The compiled grammar is too large").
+ */
 export function sanitizeSalesEstimates(raw: unknown, address: string, ranAt: string): SalesEstimates {
   const r = (raw ?? {}) as Record<string, unknown>;
   const rates: SalesEstimates['rates'] = {};
-  const rawRates = (r.rates ?? {}) as Record<string, unknown>;
-  for (const cat of RATE_CATEGORIES) {
-    const entry = rawRates[cat] as Record<string, unknown> | undefined;
-    if (!entry) continue;
-    const salePsf = sanitizeEstimate(entry.salePsf, BANDS.salePsf);
-    const rentPsf = sanitizeEstimate(entry.rentPsf, BANDS.rentPsf);
-    if (salePsf && rentPsf) rates[cat] = { salePsf, rentPsf };
-    else if (salePsf) rates[cat] = { salePsf, rentPsf: { ...salePsf, low: 0.3, likely: 0.3, high: 0.3, confidence: 'low', rationale: 'No rental evidence found.', sources: [] } };
+  const entries = Array.isArray(r.rates) ? (r.rates as Record<string, unknown>[]) : [];
+  for (const entry of entries) {
+    const cat = String(entry?.type ?? '') as RateCategory;
+    if (!RATE_CATEGORIES.includes(cat) || rates[cat]) continue;
+    const shared = { confidence: entry.confidence, rationale: entry.rationale, sources: entry.sources };
+    const salePsf = sanitizeEstimate(
+      { low: entry.salePsfLow, likely: entry.salePsfLikely, high: entry.salePsfHigh, ...shared },
+      BANDS.salePsf,
+    );
+    if (!salePsf) continue;
+    const rentPsf = sanitizeEstimate(
+      { low: entry.rentPsfLow, likely: entry.rentPsfLikely, high: entry.rentPsfHigh, ...shared },
+      BANDS.rentPsf,
+    );
+    rates[cat] = {
+      salePsf,
+      rentPsf:
+        rentPsf ?? { low: 0.3, likely: 0.3, high: 0.3, confidence: 'low', rationale: 'No rental evidence found.', sources: [] },
+    };
   }
   // The HPI projection travels with the sales run so the model does the
   // today-to-completion growth exactly once. Same guard as the HPI agent.
@@ -105,9 +125,27 @@ export function sanitizeBuildEstimates(raw: unknown, region: string, ranAt: stri
   return { ranAt, region, blendedPsf };
 }
 
+/** Which band each finance figure is judged against. */
+const FINANCE_KEYS: Record<string, Band> = {
+  bridgeRatePa: BANDS.ratePa,
+  bridgeArrangementFee: BANDS.feePct,
+  devLoanRatePa: BANDS.ratePa,
+  devLoanArrangementFee: BANDS.feePct,
+  vatLoanRatePa: BANDS.ratePa,
+  refinanceRatePa: BANDS.ratePa,
+  depositRatePa: BANDS.ratePa,
+};
+
+/** Same flat wire format as sales (see sanitizeSalesEstimates): an array of
+ *  keyed entries, kept small so the schema grammar always compiles. */
 export function sanitizeFinanceEstimates(raw: unknown, ranAt: string): FinanceEstimates | null {
   const r = (raw ?? {}) as Record<string, unknown>;
-  const need = (key: string, band: Band) => sanitizeEstimate(r[key], band);
+  const byKey: Record<string, unknown> = {};
+  for (const entry of Array.isArray(r.rates) ? (r.rates as Record<string, unknown>[]) : []) {
+    const key = String(entry?.key ?? '');
+    if (key in FINANCE_KEYS && !(key in byKey)) byKey[key] = entry;
+  }
+  const need = (key: string, band: Band) => sanitizeEstimate(byKey[key], band);
   const bridgeRatePa = need('bridgeRatePa', BANDS.ratePa);
   const devLoanRatePa = need('devLoanRatePa', BANDS.ratePa);
   if (!bridgeRatePa || !devLoanRatePa) return null;

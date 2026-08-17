@@ -43,6 +43,12 @@ const EST_PROPS = {
   sources: { type: 'array', items: { type: 'string' }, description: 'Named, dated sources.' },
 } as const;
 
+// NOTE on schema size: structured outputs compile the schema to a grammar
+// with a hard size cap, and the API rejects large ones ("The compiled grammar
+// is too large" — hit in production by the earlier sales schema, which nested
+// this estimate object twelve times). The sales and finance schemas are
+// therefore FLAT arrays of one small item schema; only the build schema,
+// with a single figure, nests it.
 const ESTIMATE_SCHEMA = {
   type: 'object',
   properties: EST_PROPS,
@@ -50,32 +56,92 @@ const ESTIMATE_SCHEMA = {
   additionalProperties: false,
 } as const;
 
-async function researchThenExtract(researchPrompt: string, extractPrompt: string, schema: Record<string, unknown>): Promise<unknown> {
-  const client = await buildClient();
-  const research = client.messages.stream({
-    model: MODEL,
-    max_tokens: 20000,
-    tools: [{ type: 'web_search_20260209', name: 'web_search', max_uses: 10 } as never],
-    messages: [{ role: 'user', content: researchPrompt }],
-  });
-  const researchMsg = await research.finalMessage();
-  if (researchMsg.stop_reason === 'refusal') throw new Error('The model declined the research request.');
-  const researchText = researchMsg.content
-    .filter((b) => b.type === 'text')
-    .map((b) => (b as { text: string }).text)
-    .join('\n');
-  if (!researchText.trim()) throw new Error('The research step returned nothing.');
+/** Live progress reported to the UI while a run is under way. */
+export interface EstimateProgressEvent {
+  stage: 'research' | 'searching' | 'reading' | 'extracting';
+  searches: number;
+}
+export type ProgressFn = (p: EstimateProgressEvent) => void;
 
-  const extract = await client.messages.create({
-    model: MODEL,
-    max_tokens: 8000,
-    output_config: { format: { type: 'json_schema', schema } },
-    messages: [{ role: 'user', content: `${extractPrompt}\n\n${researchText}` }],
-  });
-  if (extract.stop_reason === 'refusal') throw new Error('Extraction was declined.');
-  const block = extract.content.find((b) => b.type === 'text');
-  if (!block || block.type !== 'text') throw new Error('No structured output returned.');
-  return JSON.parse(block.text);
+/** Raw API errors mean nothing to a surveyor; translate the ones users hit. */
+function explainEstimateError(e: unknown): Error {
+  const msg = e instanceof Error ? e.message : String(e);
+  if (/credit balance is too low/i.test(msg)) {
+    return new Error(
+      'The connected Anthropic account has no API credit. Top up under Plans & Billing at platform.claude.com (or switch account in Settings), then run the estimate again.',
+    );
+  }
+  if (/rate.?limit/i.test(msg) || /\b429\b/.test(msg)) {
+    return new Error('The API rate limit was hit. Wait a minute, then run the estimate again.');
+  }
+  if (/overloaded/i.test(msg) || /\b529\b/.test(msg)) {
+    return new Error('The Anthropic API is briefly overloaded. Try again in a moment.');
+  }
+  if (/compiled grammar is too large/i.test(msg)) {
+    return new Error('The API rejected the extraction schema (grammar too large). This is an app bug worth reporting.');
+  }
+  return e instanceof Error ? e : new Error(msg);
+}
+
+async function researchThenExtract(
+  researchPrompt: string,
+  extractPrompt: string,
+  schema: Record<string, unknown>,
+  onProgress?: ProgressFn,
+): Promise<unknown> {
+  try {
+    const client = await buildClient();
+    let searches = 0;
+    let lastStage = '';
+    const emit = (stage: EstimateProgressEvent['stage']) => {
+      const tag = `${stage}:${searches}`;
+      if (tag === lastStage) return;
+      lastStage = tag;
+      onProgress?.({ stage, searches });
+    };
+    emit('research');
+
+    const research = client.messages.stream({
+      model: MODEL,
+      max_tokens: 20000,
+      tools: [{ type: 'web_search_20260209', name: 'web_search', max_uses: 10 } as never],
+      messages: [{ role: 'user', content: researchPrompt }],
+    });
+    // Each server_tool_use block is one web search being issued; text after
+    // searches means the model is writing up what it read. Real signal, not
+    // a spinner.
+    research.on('streamEvent', (event) => {
+      if (event.type !== 'content_block_start') return;
+      const blockType = (event as { content_block?: { type?: string } }).content_block?.type;
+      if (blockType === 'server_tool_use') {
+        searches += 1;
+        emit('searching');
+      } else if (blockType === 'text' && searches > 0) {
+        emit('reading');
+      }
+    });
+    const researchMsg = await research.finalMessage();
+    if (researchMsg.stop_reason === 'refusal') throw new Error('The model declined the research request.');
+    const researchText = researchMsg.content
+      .filter((b) => b.type === 'text')
+      .map((b) => (b as { text: string }).text)
+      .join('\n');
+    if (!researchText.trim()) throw new Error('The research step returned nothing.');
+
+    emit('extracting');
+    const extract = await client.messages.create({
+      model: MODEL,
+      max_tokens: 8000,
+      output_config: { format: { type: 'json_schema', schema } },
+      messages: [{ role: 'user', content: `${extractPrompt}\n\n${researchText}` }],
+    });
+    if (extract.stop_reason === 'refusal') throw new Error('Extraction was declined.');
+    const block = extract.content.find((b) => b.type === 'text');
+    if (!block || block.type !== 'text') throw new Error('No structured output returned.');
+    return JSON.parse(block.text);
+  } catch (e) {
+    throw explainEstimateError(e);
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -86,20 +152,25 @@ const SALES_SCHEMA = {
   type: 'object',
   properties: {
     rates: {
-      type: 'object',
+      type: 'array',
       description: 'One entry per unit type with usable evidence. Omit a type entirely rather than guessing.',
-      properties: Object.fromEntries(
-        ['commercial', 'studio', 'bed1', 'bed2', 'bed3', 'house'].map((k) => [
-          k,
-          {
-            type: 'object',
-            properties: { salePsf: ESTIMATE_SCHEMA, rentPsf: ESTIMATE_SCHEMA },
-            required: ['salePsf'],
-            additionalProperties: false,
-          },
-        ]),
-      ),
-      additionalProperties: false,
+      items: {
+        type: 'object',
+        properties: {
+          type: { type: 'string', enum: ['commercial', 'studio', 'bed1', 'bed2', 'bed3', 'house'] },
+          salePsfLow: { type: 'number' },
+          salePsfLikely: { type: 'number', description: "TODAY'S sale £ per sqft, not projected forward." },
+          salePsfHigh: { type: 'number' },
+          rentPsfLow: { type: 'number' },
+          rentPsfLikely: { type: 'number', description: 'Monthly rent £ per sqft.' },
+          rentPsfHigh: { type: 'number' },
+          confidence: { type: 'string', enum: ['high', 'medium', 'low'] },
+          rationale: { type: 'string', description: 'Evidence counts, radius used, adjustments made.' },
+          sources: { type: 'array', items: { type: 'string' } },
+        },
+        required: ['type', 'salePsfLow', 'salePsfLikely', 'salePsfHigh', 'confidence', 'rationale', 'sources'],
+        additionalProperties: false,
+      },
     },
     hpiAnnualPct: {
       type: 'array',
@@ -113,7 +184,10 @@ const SALES_SCHEMA = {
   additionalProperties: false,
 } as const;
 
-export async function estimateSales(payload: { address: string; unitTypes: string[] }): Promise<SalesEstimates> {
+export async function estimateSales(
+  payload: { address: string; unitTypes: string[] },
+  onProgress?: ProgressFn,
+): Promise<SalesEstimates> {
   const address = payload.address.trim();
   if (!address) throw new Error('The project needs an address before sales evidence can be researched.');
   const types = payload.unitTypes.length ? payload.unitTypes.join(', ') : 'studio, 1 bed, 2 bed, 3 bed flats';
@@ -134,8 +208,9 @@ Work strictly by this method (search for real figures; never answer from memory)
 CRITICAL: the sale £/psf you conclude must be TODAY'S value. Do NOT project it to the scheme's completion date — the appraisal model applies the HPI projection itself, and projecting twice double-counts growth.
 
 Conclude with, per unit type: low / likely / high sale £ per sqft TODAY, low / likely / high monthly rent £ per sqft, the evidence counts and radius used, and named dated sources. Then the 5-year HPI projection with sources.`,
-    `Extract the pricing conclusions into the schema. £/psf as plain numbers; rents as £ per sqft per MONTH; HPI rates as decimals (3% -> 0.03), exactly 5 entries, year 1 first. Omit any unit type the analysis found no usable evidence for. Put the radius used and evidence counts in each rationale.`,
+    `Extract the pricing conclusions into the schema: one rates[] entry per unit type with usable evidence (type is one of commercial/studio/bed1/bed2/bed3/house). Sale £/psf as plain numbers (low/likely/high); rents as £ per sqft per MONTH (omit the rent fields if no rental evidence); HPI rates as decimals (3% -> 0.03), exactly 5 entries, year 1 first. Omit any unit type the analysis found no usable evidence for. Put the radius used and evidence counts in each rationale.`,
     SALES_SCHEMA as unknown as Record<string, unknown>,
+    onProgress,
   );
   const clean = sanitizeSalesEstimates(raw, address, new Date().toISOString());
   if (Object.keys(clean.rates).length === 0) {
@@ -155,11 +230,14 @@ const BUILD_SCHEMA = {
   additionalProperties: false,
 } as const;
 
-export async function estimateBuild(payload: {
-  region: string;
-  giaSqft: number;
-  tenders: TenderRecord[];
-}): Promise<BuildEstimates> {
+export async function estimateBuild(
+  payload: {
+    region: string;
+    giaSqft: number;
+    tenders: TenderRecord[];
+  },
+  onProgress?: ProgressFn,
+): Promise<BuildEstimates> {
   const region = payload.region.trim() || 'the UK';
   const tenderLines = payload.tenders
     .slice(0, 20)
@@ -180,6 +258,7 @@ ${tenderLines ? `\nThe developer's own recent tender results — real prices fro
 Conclude with a low / likely / high all-in £ per sqft for this scheme today, the reasoning, and named dated sources.`,
     `Extract the build cost conclusion into the schema: all-in contract £ per sqft (low/likely/high), with the location factor and evidence in the rationale.`,
     BUILD_SCHEMA as unknown as Record<string, unknown>,
+    onProgress,
   );
   const clean = sanitizeBuildEstimates(raw, region, new Date().toISOString());
   if (!clean) throw new Error('No usable build cost figure came back. Enter rates manually.');
@@ -193,16 +272,33 @@ Conclude with a low / likely / high all-in £ per sqft for this scheme today, th
 const FINANCE_SCHEMA = {
   type: 'object',
   properties: {
-    bridgeRatePa: ESTIMATE_SCHEMA,
-    bridgeArrangementFee: ESTIMATE_SCHEMA,
-    devLoanRatePa: ESTIMATE_SCHEMA,
-    devLoanArrangementFee: ESTIMATE_SCHEMA,
-    vatLoanRatePa: ESTIMATE_SCHEMA,
-    refinanceRatePa: ESTIMATE_SCHEMA,
-    depositRatePa: ESTIMATE_SCHEMA,
+    rates: {
+      type: 'array',
+      description: 'One entry per figure the analysis reached a conclusion on.',
+      items: {
+        type: 'object',
+        properties: {
+          key: {
+            type: 'string',
+            enum: [
+              'bridgeRatePa',
+              'bridgeArrangementFee',
+              'devLoanRatePa',
+              'devLoanArrangementFee',
+              'vatLoanRatePa',
+              'refinanceRatePa',
+              'depositRatePa',
+            ],
+          },
+          ...EST_PROPS,
+        },
+        required: ['key', 'low', 'likely', 'high', 'confidence', 'rationale', 'sources'],
+        additionalProperties: false,
+      },
+    },
     soniaRatePa: { type: 'number', description: 'The current SONIA rate found, as a decimal.' },
   },
-  required: ['bridgeRatePa', 'devLoanRatePa', 'depositRatePa'],
+  required: ['rates'],
   additionalProperties: false,
 } as const;
 
@@ -214,10 +310,13 @@ export interface FinanceDealShape {
   assetType: string; // e.g. 'commercial building converted to flats'
 }
 
-export async function estimateFinance(payload: {
-  deal: FinanceDealShape;
-  termSheets: TermSheetRecord[];
-}): Promise<FinanceEstimates> {
+export async function estimateFinance(
+  payload: {
+    deal: FinanceDealShape;
+    termSheets: TermSheetRecord[];
+  },
+  onProgress?: ProgressFn,
+): Promise<FinanceEstimates> {
   const d = payload.deal;
   const gbp = (v: number) => `£${Math.round(v).toLocaleString('en-GB')}`;
   const sheets = payload.termSheets
@@ -246,8 +345,9 @@ Research CURRENT figures (search, do not answer from memory):
 5. The CURRENT SONIA rate (Bank of England), and typical instant-access business deposit rates relative to it — express the deposit estimate as SONIA minus the researched spread.
 ${sheets ? `\nTerms this developer has actually been quoted — the strongest anchor for what lenders offer THEM. Weigh these heavily, adjusted for market movement since each date:\n${sheets}\n` : ''}
 Conclude with low / likely / high for: bridge rate pa and arrangement fee, dev loan rate pa and arrangement fee, VAT loan rate pa, refinance rate pa, deposit rate pa (and the SONIA rate used). All rates ANNUAL. Named dated sources for each.`,
-    `Extract the finance pricing conclusions into the schema. All rates and fees as DECIMALS per annum (10.5% -> 0.105). Include soniaRatePa if the analysis found it.`,
+    `Extract the finance pricing conclusions into the schema: one rates[] entry per figure (key names which figure it is). All rates and fees as DECIMALS per annum (10.5% -> 0.105). Include soniaRatePa if the analysis found it.`,
     FINANCE_SCHEMA as unknown as Record<string, unknown>,
+    onProgress,
   );
   const clean = sanitizeFinanceEstimates(raw, new Date().toISOString());
   if (!clean) throw new Error('No usable finance rates came back. Enter rates manually.');

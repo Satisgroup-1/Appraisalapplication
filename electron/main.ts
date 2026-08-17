@@ -6,7 +6,13 @@ import path from 'node:path';
 import fs from 'node:fs';
 import { exportWorkbook } from './xlsxExport';
 import { extractEnvelopes, MODEL, projectHpi } from './ai';
-import { estimateBuild, estimateFinance, estimateSales, type FinanceDealShape } from './estimate';
+import {
+  estimateBuild,
+  estimateFinance,
+  estimateSales,
+  type EstimateProgressEvent,
+  type FinanceDealShape,
+} from './estimate';
 import { authStatus, initAuth, setStoredKey, signInWithClaude, testConnection } from './auth';
 import type { CalibrationRecords, TenderRecord, TermSheetRecord } from '../src/core/types';
 
@@ -194,32 +200,53 @@ ipcMain.handle('ai:projectHpi', (_e, region: string) => projectHpi(String(region
 // the renderer is not trusted to shape what goes into a prompt.
 // ---------------------------------------------------------------------------
 
-ipcMain.handle('ai:estimateSales', (_e, payload: { address: string; unitTypes: string[] }) =>
-  estimateSales({
-    address: String(payload?.address ?? '').slice(0, 300),
-    unitTypes: Array.isArray(payload?.unitTypes) ? payload.unitTypes.map((t) => String(t).slice(0, 40)).slice(0, 10) : [],
-  }),
-);
+/** Streams stage/search-count progress to the window that asked for the run,
+ *  so the renderer can show a real progress bar rather than a spinner. */
+function progressTo(e: Electron.IpcMainInvokeEvent, kind: 'sales' | 'build' | 'finance') {
+  return (p: EstimateProgressEvent) => {
+    try {
+      if (!e.sender.isDestroyed()) e.sender.send('ai:estimateProgress', { kind, ...p });
+    } catch {
+      /* window closed mid-run: the run itself still completes */
+    }
+  };
+}
 
-ipcMain.handle('ai:estimateBuild', (_e, payload: { region: string; giaSqft: number }) =>
-  estimateBuild({
-    region: String(payload?.region ?? '').slice(0, 300),
-    giaSqft: Number(payload?.giaSqft) || 0,
-    tenders: loadCalibration().tenders,
-  }),
-);
-
-ipcMain.handle('ai:estimateFinance', (_e, payload: { deal: FinanceDealShape }) =>
-  estimateFinance({
-    deal: {
-      purchasePrice: Number(payload?.deal?.purchasePrice) || 0,
-      bridgeLtv: Number(payload?.deal?.bridgeLtv) || 0,
-      devFacilityEstimate: Number(payload?.deal?.devFacilityEstimate) || 0,
-      gdv: Number(payload?.deal?.gdv) || 0,
-      assetType: String(payload?.deal?.assetType ?? '').slice(0, 120),
+ipcMain.handle('ai:estimateSales', (e, payload: { address: string; unitTypes: string[] }) =>
+  estimateSales(
+    {
+      address: String(payload?.address ?? '').slice(0, 300),
+      unitTypes: Array.isArray(payload?.unitTypes) ? payload.unitTypes.map((t) => String(t).slice(0, 40)).slice(0, 10) : [],
     },
-    termSheets: loadCalibration().termSheets,
-  }),
+    progressTo(e, 'sales'),
+  ),
+);
+
+ipcMain.handle('ai:estimateBuild', (e, payload: { region: string; giaSqft: number }) =>
+  estimateBuild(
+    {
+      region: String(payload?.region ?? '').slice(0, 300),
+      giaSqft: Number(payload?.giaSqft) || 0,
+      tenders: loadCalibration().tenders,
+    },
+    progressTo(e, 'build'),
+  ),
+);
+
+ipcMain.handle('ai:estimateFinance', (e, payload: { deal: FinanceDealShape }) =>
+  estimateFinance(
+    {
+      deal: {
+        purchasePrice: Number(payload?.deal?.purchasePrice) || 0,
+        bridgeLtv: Number(payload?.deal?.bridgeLtv) || 0,
+        devFacilityEstimate: Number(payload?.deal?.devFacilityEstimate) || 0,
+        gdv: Number(payload?.deal?.gdv) || 0,
+        assetType: String(payload?.deal?.assetType ?? '').slice(0, 120),
+      },
+      termSheets: loadCalibration().termSheets,
+    },
+    progressTo(e, 'finance'),
+  ),
 );
 
 // ---------------------------------------------------------------------------

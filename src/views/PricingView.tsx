@@ -1,7 +1,7 @@
 // Step 2 — Pricing: sale/rent rates, build programme, finance parameters and
 // development cost lines, with save/load of named presets.
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type {
   BuildEstimates,
   DevCostLine,
@@ -28,8 +28,26 @@ export default function PricingView() {
   const [msg, setMsg] = useState<string | null>(null);
   const [hpiBusy, setHpiBusy] = useState(false);
   const [hpiMsg, setHpiMsg] = useState<string | null>(null);
-  const [estBusy, setEstBusy] = useState<string | null>(null);
+  const [estJobs, setEstJobs] = useState<EstJob[] | null>(null);
   const [estMsg, setEstMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const estRunning = !!estJobs?.some((j) => j.status === 'queued' || j.status === 'running');
+
+  // Live stage/search-count events from the main process drive the progress
+  // bar; only the currently running job is updated, so a stray late event
+  // from a finished run cannot move a completed row.
+  useEffect(
+    () =>
+      window.satis.onEstimateProgress((p) =>
+        setEstJobs((jobs) =>
+          jobs
+            ? jobs.map((j) =>
+                j.kind === p.kind && j.status === 'running' ? { ...j, stage: p.stage, searches: p.searches } : j,
+              )
+            : jobs,
+        ),
+      ),
+    [],
+  );
 
   if (!project) return null;
   const spec = project.pricing;
@@ -128,31 +146,30 @@ export default function PricingView() {
   async function runEstimates(which: 'sales' | 'build' | 'finance' | 'all') {
     setEstMsg(null);
     if (!(await claudeReady())) return;
-    const jobs: [string, () => Promise<void>][] =
-      which === 'all'
-        ? [
-            ['sales & rents', runSalesEstimate],
-            ['build cost', runBuildEstimate],
-            ['finance rates', runFinanceEstimate],
-          ]
-        : which === 'sales'
-          ? [['sales & rents', runSalesEstimate]]
-          : which === 'build'
-            ? [['build cost', runBuildEstimate]]
-            : [['finance rates', runFinanceEstimate]];
+    const all: { kind: EstJob['kind']; label: string; run: () => Promise<void> }[] = [
+      { kind: 'sales', label: 'Sales & rents', run: runSalesEstimate },
+      { kind: 'build', label: 'Build cost', run: runBuildEstimate },
+      { kind: 'finance', label: 'Finance rates', run: runFinanceEstimate },
+    ];
+    const jobs = which === 'all' ? all : all.filter((j) => j.kind === which);
+    setEstJobs(jobs.map((j) => ({ kind: j.kind, label: j.label, status: 'queued', searches: 0 })));
+
     const failures: string[] = [];
-    for (const [name, job] of jobs) {
-      setEstBusy(`Researching ${name}… (searches the web, takes a minute)`);
+    const mark = (kind: EstJob['kind'], patch: Partial<EstJob>) =>
+      setEstJobs((js) => js?.map((j) => (j.kind === kind ? { ...j, ...patch } : j)) ?? js);
+    for (const job of jobs) {
+      mark(job.kind, { status: 'running', stage: 'research', searches: 0 });
       try {
-        await job();
+        await job.run();
+        mark(job.kind, { status: 'done' });
       } catch (e) {
-        failures.push(`${name}: ${(e as Error).message}`);
+        mark(job.kind, { status: 'failed', detail: (e as Error).message });
+        failures.push(`${job.label}: ${(e as Error).message}`);
       }
     }
-    setEstBusy(null);
     setEstMsg(
       failures.length
-        ? { ok: false, text: `Some research did not complete. ${failures.join(' ')}` }
+        ? { ok: false, text: `Some research did not complete — details on the failed row above.` }
         : { ok: true, text: 'Estimates updated. Suggestions appear beside each covered field; nothing is applied until you choose.' },
     );
   }
@@ -211,21 +228,21 @@ export default function PricingView() {
         Settings.
       </p>
       <div style={{ marginBottom: 10 }}>
-        <button className="btn" onClick={() => runEstimates('all')} disabled={!!estBusy}>
+        <button className="btn" onClick={() => runEstimates('all')} disabled={estRunning}>
           Estimate everything
         </button>
-        <button className="btn ghost" onClick={() => runEstimates('sales')} disabled={!!estBusy}>
+        <button className="btn ghost" onClick={() => runEstimates('sales')} disabled={estRunning}>
           Sales &amp; rents{staleTag(est.sales?.ranAt)}
         </button>
-        <button className="btn ghost" onClick={() => runEstimates('build')} disabled={!!estBusy}>
+        <button className="btn ghost" onClick={() => runEstimates('build')} disabled={estRunning}>
           Build cost{staleTag(est.build?.ranAt)}
         </button>
-        <button className="btn ghost" onClick={() => runEstimates('finance')} disabled={!!estBusy}>
+        <button className="btn ghost" onClick={() => runEstimates('finance')} disabled={estRunning}>
           Finance rates{staleTag(est.finance?.ranAt)}
         </button>
       </div>
-      {estBusy && <div className="ok-box">{estBusy}</div>}
-      {estMsg && <div className={estMsg.ok ? 'ok-box' : 'warn-box'}>{estMsg.text}</div>}
+      {estJobs && <EstimateProgress jobs={estJobs} />}
+      {!estRunning && estMsg && <div className={estMsg.ok ? 'ok-box' : 'warn-box'}>{estMsg.text}</div>}
 
       <h3 className="section">Sale &amp; rental rates</h3>
       <table className="data" style={{ maxWidth: 640 }}>
@@ -769,6 +786,70 @@ export default function PricingView() {
       <button className="btn" onClick={() => setView('options')}>
         Continue to options →
       </button>
+    </div>
+  );
+}
+
+interface EstJob {
+  kind: 'sales' | 'build' | 'finance';
+  label: string;
+  status: 'queued' | 'running' | 'done' | 'failed';
+  /** Current stage from the main process: research/searching/reading/extracting. */
+  stage?: string;
+  searches: number;
+  /** Failure message, shown on the row. */
+  detail?: string;
+}
+
+/** How far through its run a job is. Stages map to fractions; each web
+ *  search advances the bar, capped so the bar never reaches full before the
+ *  run actually finishes. */
+function jobFraction(j: EstJob): number {
+  if (j.status === 'done' || j.status === 'failed') return 1;
+  if (j.status === 'queued') return 0;
+  switch (j.stage) {
+    case 'searching':
+      return Math.min(0.55, 0.1 + 0.05 * j.searches);
+    case 'reading':
+      return 0.62;
+    case 'extracting':
+      return 0.85;
+    default:
+      return 0.06; // research call issued, first search not yet started
+  }
+}
+
+function stageText(j: EstJob): string {
+  if (j.status === 'queued') return 'waiting';
+  if (j.status === 'done') return 'done';
+  if (j.status === 'failed') return j.detail || 'failed';
+  switch (j.stage) {
+    case 'searching':
+      return `web search ${j.searches}`;
+    case 'reading':
+      return `reading the evidence (${j.searches} searches)`;
+    case 'extracting':
+      return 'extracting the figures';
+    default:
+      return 'asking Claude';
+  }
+}
+
+function EstimateProgress({ jobs }: { jobs: EstJob[] }) {
+  const overall = jobs.reduce((s, j) => s + jobFraction(j), 0) / jobs.length;
+  const running = jobs.some((j) => j.status === 'queued' || j.status === 'running');
+  return (
+    <div className="est-progress" role="status" aria-live="polite">
+      <div className="est-bar">
+        <div className={`est-bar-fill${running ? '' : ' settled'}`} style={{ width: `${Math.round(overall * 100)}%` }} />
+      </div>
+      {jobs.map((j) => (
+        <div key={j.kind} className="est-job">
+          <span className={`est-dot ${j.status}`} aria-hidden="true" />
+          <span className="est-job-label">{j.label}</span>
+          <span className={`est-job-stage${j.status === 'failed' ? ' failed' : ''}`}>{stageText(j)}</span>
+        </div>
+      ))}
     </div>
   );
 }

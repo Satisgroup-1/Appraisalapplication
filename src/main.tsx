@@ -78,6 +78,7 @@ if (!window.satis) {
     },
     calibrationLoad: async () => ({ tenders: [], termSheets: [] }),
     calibrationSave: async () => true,
+    onEstimateProgress: () => () => {},
     exportXlsx: async () => null,
     exportSvg: async () => null,
     showItemInFolder: async () => {},
