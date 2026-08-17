@@ -1,0 +1,32 @@
+# Rewrites a published release's notes from the version-controlled file
+# .github/release-notes/<tag>.md. The build workflow's auto-generated notes
+# only list merged PR titles, which mislabel releases cut by workflow
+# dispatch; this keeps the real notes in the repo, reviewable like any other
+# change, and applies them on demand.
+name: Update release notes
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing release tag whose notes to update (e.g. v0.2.2)"
+        required: true
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply notes file to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag }}
+        run: |
+          file=".github/release-notes/${TAG}.md"
+          if [ ! -f "$file" ]; then
+            echo "No notes file at $file - add one and re-run." >&2
+            exit 1
+          fi
+          gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --notes-file "$file"
