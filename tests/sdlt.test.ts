@@ -4,8 +4,8 @@
 
 import { describe, expect, it } from 'vitest';
 import { computeSdlt, sdltChargeable, sdltForFinance } from '../src/core/sdlt';
-import { DEFAULT_FINANCE } from '../src/core/pricing';
-import type { FinanceInputs } from '../src/core/types';
+import { DEFAULT_FINANCE, normalizePricing } from '../src/core/pricing';
+import type { FinanceInputs, PricingSpec } from '../src/core/types';
 
 const fin = (over: Partial<FinanceInputs> = {}): FinanceInputs =>
   JSON.parse(JSON.stringify({ ...DEFAULT_FINANCE, ...over }));
@@ -59,5 +59,25 @@ describe('VAT interaction and regime plumbing', () => {
   it('never charges tax on a negative consideration', () => {
     expect(computeSdlt(-5, 'nonResidential')).toBe(0);
     expect(computeSdlt(-5, 'residentialCompany')).toBe(0);
+  });
+});
+
+describe('loading older files', () => {
+  it('a file with no sdlt block loads as manual, so its typed B04 never changes', () => {
+    const p = normalizePricing({ finance: {} as PricingSpec['finance'] });
+    expect(p.finance.sdlt.regime).toBe('manual');
+  });
+
+  it('a truthy-but-empty sdlt block also loads as manual, not silently automatic', () => {
+    // Audit finding: `sdlt: {}` in a hand-edited/corrupted file used to spread
+    // into the DEFAULT (automatic) regime, flipping a typed B04 to computed
+    // with zero repairs reported.
+    const p = normalizePricing({ finance: { sdlt: {} } as unknown as PricingSpec['finance'] });
+    expect(p.finance.sdlt.regime).toBe('manual');
+  });
+
+  it('an explicit regime in the file is kept', () => {
+    const p = normalizePricing({ finance: { sdlt: { regime: 'residentialCompany' } } as PricingSpec['finance'] });
+    expect(p.finance.sdlt.regime).toBe('residentialCompany');
   });
 });

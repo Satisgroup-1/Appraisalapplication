@@ -105,7 +105,11 @@ async function doExport() {
     {
       address: 'Cross-check scheme',
       ...s.finance,
-      devCostLines: s.devCosts.map((l) => ({ code: l.code, kind: l.kind, value: l.value })),
+      // Labels included so the export resolves the SDLT line by the same
+      // code-or-label rule the engine uses (the typed B04 is dormant here:
+      // the spec inherits the automatic non-residential regime, so both the
+      // engine and the export price it from the bands).
+      devCostLines: s.devCosts.map((l) => ({ code: l.code, kind: l.kind, value: l.value, label: l.label })),
       buildCostOverride: null,
     },
   );

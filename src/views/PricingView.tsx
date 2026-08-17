@@ -13,7 +13,7 @@ import type {
   SalesEstimates,
 } from '../core/types';
 import { normalizePricing } from '../core/pricing';
-import { runAppraisal } from '../core/dcf';
+import { runAppraisal, sdltLineCodeOf } from '../core/dcf';
 import { sdltForFinance } from '../core/sdlt';
 import { blendedRoomRate, isStale, scaleRoomRates } from '../core/estimates';
 import { fmtGBP, useStore } from '../state/store';
@@ -759,7 +759,12 @@ export default function PricingView() {
         Percentage lines follow the driver shown; sales agent fees and sales legals are computed from the sales
         assumptions above. Amounts marked % of build reference line D01.
       </p>
-      <DevCostTable lines={spec.devCosts} autoSdlt={sdltForFinance(fin)} onChange={(devCosts) => patch({ devCosts })} />
+      <DevCostTable
+        lines={spec.devCosts}
+        autoSdlt={sdltForFinance(fin)}
+        autoSdltCode={sdltForFinance(fin) !== null ? sdltLineCodeOf(spec.devCosts) : null}
+        onChange={(devCosts) => patch({ devCosts })}
+      />
 
       <button className="btn" onClick={() => setView('options')}>
         Continue to options →
@@ -868,11 +873,14 @@ function DevCostTable({
   lines,
   onChange,
   autoSdlt,
+  autoSdltCode,
 }: {
   lines: DevCostLine[];
   onChange: (l: DevCostLine[]) => void;
   /** Computed SDLT when the regime is automatic; null in manual mode. */
   autoSdlt: number | null;
+  /** The one line the automatic figure applies to (engine's first-match rule). */
+  autoSdltCode: string | null;
 }) {
   const groups: { key: DevCostLine['group']; title: string }[] = [
     { key: 'legals', title: '(B) Legals & acquisition' },
@@ -903,7 +911,7 @@ function DevCostTable({
                     <td>{l.label}</td>
                     <td style={{ width: 130, color: 'var(--grey-text)', fontSize: 11 }}>{KIND_LABEL[l.kind]}</td>
                     <td className="num" style={{ width: 120 }}>
-                      {autoSdlt !== null && (l.code === 'B04' || /sdlt|stamp\s*duty/i.test(l.label)) ? (
+                      {autoSdlt !== null && l.code === autoSdltCode ? (
                         <span style={{ color: 'var(--grey-mid)' }} title="Computed from HMRC bands; switch the stamp duty selector to Manual to type a figure.">
                           auto: {fmtGBP(autoSdlt)}
                         </span>

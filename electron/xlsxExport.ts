@@ -6,6 +6,7 @@
 
 import ExcelJS from 'exceljs';
 import { computeSdlt } from '../src/core/sdlt';
+import { isSdltLine } from '../src/core/dcf';
 
 interface ScheduleRowIn {
   no: number;
@@ -23,6 +24,9 @@ interface DevCostLineIn {
   code: string;
   kind: string;
   value: number;
+  /** Present in newer payloads so the SDLT line is found by the same
+   *  code-or-label rule the engine uses; absent falls back to code B04. */
+  label?: string;
 }
 
 interface InputsIn {
@@ -220,12 +224,18 @@ export async function exportWorkbook(
             regime,
           )
         : null;
+    // The engine prices only the FIRST line matching isSdltLine from the
+    // bands; the export must write the same figure to the same line.
+    const sdltLine =
+      autoSdlt !== null
+        ? inputs.devCostLines.find((l) => l.kind === 'fixed' && isSdltLine(l.code, l.label ?? '')) ?? null
+        : null;
     for (const line of inputs.devCostLines) {
       const target = DEV_COST_CELLS[line.code];
       if (!target) continue;
       if (line.code === 'D01' && inputs.buildCostOverride != null) {
         dc.getCell(target.cell).value = Math.round(inputs.buildCostOverride);
-      } else if (line.code === 'B04' && autoSdlt !== null && target.writes === 'amount') {
+      } else if (line === sdltLine && autoSdlt !== null && target.writes === 'amount') {
         dc.getCell(target.cell).value = autoSdlt;
       } else if (line.kind === 'fixed' && target.writes === 'amount') {
         dc.getCell(target.cell).value = line.value;

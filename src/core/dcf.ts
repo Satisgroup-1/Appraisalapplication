@@ -63,8 +63,16 @@ export function hpiIndexAt(hpi: HpiInputs, month: number): number {
 }
 
 /** Match cost lines that get special timing, by code with a label fallback
- *  so renamed/custom lines still behave. */
-const isSdltLine = (code: string, label: string) => code === 'B04' || /sdlt|stamp\s*duty/i.test(label);
+ *  so renamed/custom lines still behave. Exported so the auditor, the UI and
+ *  the workbook export share ONE definition of "the SDLT line". */
+export const isSdltLine = (code: string, label: string) => code === 'B04' || /sdlt|stamp\s*duty/i.test(label);
+
+/** The single line an automatic SDLT regime prices from the bands: the FIRST
+ *  fixed line matching isSdltLine. Applying the computed amount to every
+ *  match would double stamp duty on a spec with two matching lines. */
+export function sdltLineCodeOf(lines: PricingSpec['devCosts']): string | null {
+  return lines.find((l) => l.kind === 'fixed' && isSdltLine(l.code, l.label))?.code ?? null;
+}
 const isArchitectLine = (code: string, label: string) => code === 'C01' || /architect/i.test(label);
 const isQsLine = (code: string, label: string) => code === 'D05' || /quantity\s*surveyor/i.test(label);
 const isBuildLine = (code: string) => code === 'D01';
@@ -149,18 +157,16 @@ export function computeDevCosts(
 
   // Stamp duty computed from HMRC bands (on the VAT-inclusive price when
   // opted to tax) unless the regime is manual, which keeps the typed figure.
+  // Only the FIRST matching line gets the computed amount; any further
+  // SDLT-looking lines keep their typed values (and runAppraisal warns).
   const computedSdlt = sdltForFinance(f);
+  const sdltCode = computedSdlt !== null ? sdltLineCodeOf(spec.devCosts) : null;
 
   for (const line of spec.devCosts) {
     let amount = 0;
     switch (line.kind) {
       case 'fixed':
-        amount =
-          line.code === 'D01'
-            ? buildCost
-            : computedSdlt !== null && isSdltLine(line.code, line.label)
-              ? computedSdlt
-              : line.value;
+        amount = line.code === 'D01' ? buildCost : line.code === sdltCode ? computedSdlt! : line.value;
         break;
       case 'pctPurchase': // e.g. B05 = D15 * '2. Inputs'!E5
         amount = line.value * f.purchasePrice;
@@ -795,6 +801,14 @@ export function runAppraisal(schedule: ScheduleRow[], spec: PricingSpec, roomAre
         ? 'Property is opted to tax: check the SDLT line, since stamp duty is charged on the VAT-inclusive price.'
         : 'Property is opted to tax: SDLT has been computed on the VAT-inclusive purchase price.',
     );
+  }
+  if (f.sdlt.regime !== 'manual') {
+    const sdltMatches = spec.devCosts.filter((l) => l.kind === 'fixed' && isSdltLine(l.code, l.label));
+    if (sdltMatches.length > 1) {
+      warnings.push(
+        `Several cost lines look like stamp duty (${sdltMatches.map((l) => l.code).join(', ')}). Only the first (${sdltMatches[0].code}) is computed from HMRC bands; the others keep their typed values — check they are not duplicates.`,
+      );
+    }
   }
   if (prog.pcMonth + f.retention.releaseMonthsAfterPc > MONTHS) {
     warnings.push(

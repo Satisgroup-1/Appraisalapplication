@@ -19,7 +19,7 @@ import type {
   ScheduleRow,
   WaterfallResult,
 } from './types';
-import { hpiIndexAt, MONTHS } from './dcf';
+import { hpiIndexAt, MONTHS, sdltLineCodeOf } from './dcf';
 import { DEFAULT_PRICING } from './pricing';
 import { SQM_TO_SQFT } from './rules';
 import { sdltForFinance } from './sdlt';
@@ -255,6 +255,10 @@ export function auditAppraisal(r: AppraisalResult, spec: PricingSpec, schedule: 
   const idx = hpiIndexAt(f.hpi, pc);
   const salesFactor = idx * (1 + f.sales.priceAdjust);
   const buildCost = r.devCosts.buildCost;
+  // Automatic SDLT: only the FIRST matching line carries the band figure —
+  // the same rule the engine applies, so a doubled SDLT line cannot hide.
+  const autoSdlt = sdltForFinance(f);
+  const auditSdltCode = autoSdlt !== null ? sdltLineCodeOf(spec.devCosts) : null;
   let linesOk = true;
   let lineDetail = '';
   const allLines = (Object.keys(r.devCosts.groups) as DevCostGroup[]).flatMap((g) => r.devCosts.groups[g].lines);
@@ -266,15 +270,9 @@ export function auditAppraisal(r: AppraisalResult, spec: PricingSpec, schedule: 
       break;
     }
     let expected: number;
-    const autoSdlt = sdltForFinance(f);
     switch (specLine.kind) {
       case 'fixed':
-        expected =
-          specLine.code === 'D01'
-            ? buildCost
-            : autoSdlt !== null && (specLine.code === 'B04' || /sdlt|stamp\s*duty/i.test(specLine.label))
-              ? autoSdlt
-              : specLine.value;
+        expected = specLine.code === 'D01' ? buildCost : specLine.code === auditSdltCode ? autoSdlt! : specLine.value;
         break;
       case 'pctPurchase':
         expected = specLine.value * f.purchasePrice;

@@ -122,6 +122,22 @@ describe('automatic SDLT', () => {
     expect(r.warnings.some((w) => /SDLT has been computed on the VAT-inclusive/i.test(w))).toBe(true);
   });
 
+  it('applies the band figure to only the FIRST matching line, and warns about the rest', () => {
+    // Audit finding #7: a preset with two lines matching /sdlt|stamp duty/i
+    // (importable via preset JSON) used to get the FULL computed SDLT on each,
+    // doubling stamp duty invisibly to the conservation identities.
+    const spec = tinySpec([
+      { code: 'B04', group: 'legals', label: 'Stamp Duty (SDLT)', kind: 'fixed', value: 999 },
+      { code: 'B09', group: 'legals', label: 'SDLT top-up (solicitor adjustment)', kind: 'fixed', value: 500 },
+    ]);
+    spec.finance.sdlt = { regime: 'nonResidential' };
+    const r = runAppraisal(tinySchedule(), spec);
+    const legals = r.devCosts.groups.legals.lines;
+    close(legals.find((l) => l.code === 'B04')!.amount, 39500); // computed
+    close(legals.find((l) => l.code === 'B09')!.amount, 500); // typed value kept
+    expect(r.warnings.some((w) => /look like stamp duty/i.test(w))).toBe(true);
+  });
+
   it('manual regime keeps the typed figure untouched', () => {
     const spec = tinySpec([{ code: 'B04', group: 'legals', label: 'Stamp Duty (SDLT)', kind: 'fixed', value: 50000 }]);
     const r = runAppraisal(tinySchedule(), spec);

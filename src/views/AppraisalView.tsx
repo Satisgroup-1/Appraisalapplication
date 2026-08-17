@@ -56,7 +56,7 @@ export default function AppraisalView() {
     const inputs = {
       address: project.address || project.name,
       ...fin,
-      devCostLines: project.pricing.devCosts.map((l) => ({ code: l.code, kind: l.kind, value: l.value })),
+      devCostLines: project.pricing.devCosts.map((l) => ({ code: l.code, kind: l.kind, value: l.value, label: l.label })),
       buildCostOverride: result?.devCosts.buildCostSource === 'roomRates' ? result.devCosts.buildCost : null,
     };
     // The '7. App Model v2' sheet mirrors exactly what this screen shows.

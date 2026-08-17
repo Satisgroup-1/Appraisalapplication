@@ -188,6 +188,14 @@ both regimes, crash lever, zero/max velocity) — all exact. One finding:
 | # | Severity | Defect | Fix |
 |---|---|---|---|
 | 6 | HIGH | The xlsx export still wrote the **typed** B04 into '3. Dev Costs'!F14 while the engine priced the line from HMRC bands — on the crosscheck scheme the workbook carried £61,000 against the engine's £62,000, breaking the export/engine penny-agreement (pre-finance off by £1,000, dev arrangement fee by £20). | `exportWorkbook` computes the band SDLT itself (VAT-inclusive when opted to tax) whenever the regime is automatic and writes that figure; `./scripts/crosscheck.sh` — which recalculates the exported workbook with LibreOffice — is the regression net that caught it and now agrees to the penny again. |
+| 7 | MEDIUM | Every fixed line matching /sdlt\|stamp duty/i received the FULL computed SDLT, so a preset importing two matching lines (e.g. B04 plus an "SDLT top-up") **doubled stamp duty** — £39,500 of phantom cost on the probe scheme — invisibly, because the auditor recomputed each line the same way and the doubling is conservation-consistent. | Only the FIRST matching fixed line (shared `sdltLineCodeOf` rule) carries the band figure; further matches keep their typed values, `runAppraisal` warns about them, and the auditor, UI "auto" badge and workbook export all resolve the line through the same exported predicate. Pinned by a two-line test in `tests/model2.test.ts`. |
+| 8 | LOW | `normalizePricing` gated the manual-mode default on the truthiness of the `sdlt` block, so a hand-edited/corrupted file containing `sdlt: {}` silently loaded as **automatic**, flipping a typed B04 to the computed figure with zero repairs reported. | Gate on `sdlt.regime` instead of the block; `sdlt: {}` now loads as manual. Pinned in `tests/sdlt.test.ts`. |
+
+One out-of-diff observation was recorded, not fixed: `grid1`'s 0% row assumes the G03/G04
+selling-cost lines exist in the spec (they always do in the shipped defaults and the UI, which
+cannot delete lines); a hand-built spec omitting them makes grid1(0%) diverge from S1 by
+exactly the selling costs. Pre-existing behaviour, untouched by this change, exposure limited
+to test scaffolding.
 
 ## 7. Re-running the audit
 

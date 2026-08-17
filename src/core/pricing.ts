@@ -163,8 +163,10 @@ export function normalizePricing(p: Partial<PricingSpec>): PricingSpec {
       ...fin,
       vat: { ...base.finance.vat, ...(fin.vat ?? {}), vatLoan: { ...base.finance.vat.vatLoan, ...(fin.vat?.vatLoan ?? {}) } },
       // Files saved before the SDLT selector existed carry a hand-typed B04
-      // that must not silently change — they load in manual mode.
-      sdlt: fin.sdlt ? { ...base.finance.sdlt, ...fin.sdlt } : { regime: 'manual' },
+      // that must not silently change — they load in manual mode. Gate on the
+      // regime, not the block: a truthy-but-empty `sdlt: {}` must not spread
+      // into the automatic default and silently flip a typed figure.
+      sdlt: fin.sdlt?.regime ? { ...base.finance.sdlt, ...fin.sdlt } : { regime: 'manual' },
       retention: { ...base.finance.retention, ...(fin.retention ?? {}) },
       hpi: { ...base.finance.hpi, ...(fin.hpi ?? {}) },
       waterfall: { ...base.finance.waterfall, ...(fin.waterfall ?? {}) },
