@@ -5,6 +5,7 @@
 // '2. Inputs'. The workbook's own formulas recalculate on open in Excel.
 
 import ExcelJS from 'exceljs';
+import { computeSdlt } from '../src/core/sdlt';
 
 interface ScheduleRowIn {
   no: number;
@@ -40,6 +41,10 @@ interface InputsIn {
   devCostLines?: DevCostLineIn[];
   /** Computed build cost (room-rate mode) to write into D01/F37. */
   buildCostOverride?: number | null;
+  /** Present when the caller spreads FinanceInputs: lets the export write the
+   *  band-computed SDLT the engine actually used, not the dormant typed B04. */
+  sdlt?: { regime?: 'nonResidential' | 'residentialCompany' | 'manual' };
+  vat?: { optedToTax?: boolean; ratePct?: number };
 }
 
 const BLUE = 'FF0000FF';
@@ -203,11 +208,25 @@ export async function exportWorkbook(
   // build cost when one was computed.
   const dc = wb.getWorksheet('3. Dev Costs');
   if (dc && inputs.devCostLines) {
+    // Under an automatic SDLT regime the typed B04 value is dormant: the
+    // engine prices the line from HMRC bands (on the VAT-inclusive price when
+    // opted to tax), so the export must write the same computed figure or the
+    // workbook and the app disagree by exactly the drift in the typed value.
+    const regime = inputs.sdlt?.regime;
+    const autoSdlt =
+      regime && regime !== 'manual'
+        ? computeSdlt(
+            inputs.purchasePrice * (inputs.vat?.optedToTax ? 1 + (inputs.vat.ratePct ?? 0.2) : 1),
+            regime,
+          )
+        : null;
     for (const line of inputs.devCostLines) {
       const target = DEV_COST_CELLS[line.code];
       if (!target) continue;
       if (line.code === 'D01' && inputs.buildCostOverride != null) {
         dc.getCell(target.cell).value = Math.round(inputs.buildCostOverride);
+      } else if (line.code === 'B04' && autoSdlt !== null && target.writes === 'amount') {
+        dc.getCell(target.cell).value = autoSdlt;
       } else if (line.kind === 'fixed' && target.writes === 'amount') {
         dc.getCell(target.cell).value = line.value;
       } else if (target.writes === 'rate' && line.kind !== 'fixed') {

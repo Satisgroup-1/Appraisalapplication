@@ -177,6 +177,18 @@ The same pass produced two standing defences:
   (adversarial mechanics review with numeric probes) and `.claude/agents/dcf-numeric-verifier.md`
   (verification battery + independent recomputation), orchestrated by the `/audit-dcf` skill.
 
+### 6.1 Audit of the SDLT / pricing-estimates change (2026-08-17)
+
+The `/audit-dcf` team ran over the change that introduced band-computed SDLT and the
+pricing-estimate helpers. The independent verifier recomputed the SDLT closed forms, the
+demo's 48-month cost stream, bridge and dev-loan roll-ups, the S1/grid identities, the
+canonical waterfall, and seven stressed configurations (VAT on under both funding routes and
+both regimes, crash lever, zero/max velocity) — all exact. One finding:
+
+| # | Severity | Defect | Fix |
+|---|---|---|---|
+| 6 | HIGH | The xlsx export still wrote the **typed** B04 into '3. Dev Costs'!F14 while the engine priced the line from HMRC bands — on the crosscheck scheme the workbook carried £61,000 against the engine's £62,000, breaking the export/engine penny-agreement (pre-finance off by £1,000, dev arrangement fee by £20). | `exportWorkbook` computes the band SDLT itself (VAT-inclusive when opted to tax) whenever the regime is automatic and writes that figure; `./scripts/crosscheck.sh` — which recalculates the exported workbook with LibreOffice — is the regression net that caught it and now agrees to the penny again. |
+
 ## 7. Re-running the audit
 
 ```bash
