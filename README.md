@@ -33,6 +33,24 @@ to enter its workspace:
    forecasts with sources, or enter rates manually), the profit structure (simple split or a
    preferred-return waterfall) and the full development-cost schedule. Save/load named presets
    as JSON files.
+
+   **Pricing estimates** research real-world figures for the project and show a suggestion —
+   likely value, low-high range, confidence, rationale and dated sources — beside each covered
+   field; nothing is applied without a click (per field or per group). Sales £/psf and rents
+   come from sold prices within half a mile of the address (up to 18 months old, indexed to
+   today on recorded local UK HPI with a regional/national blend bridging unpublished months)
+   reconciled against current listings, with a measured new-conversion uplift and a widen-and-
+   flag rule when evidence is thin; the same run fills the HPI projection so growth to
+   completion is only ever counted once. Build cost is one researched all-in conversion £/sqft
+   (prelims and OH&P in; contingency and demolition out) scaled onto the room-rate table,
+   ratios preserved, anchored by tender results recorded in Settings. Finance rates (bridge,
+   dev loan, VAT loan, refinance) are shaped to the deal's LTV, size and asset type and
+   anchored by term sheets recorded in Settings; the deposit rate pegs to SONIA minus a
+   researched spread. Estimates are stored in the project with their evidence and flag
+   themselves stale after 30 days. **Stamp duty needs no estimate**: line B04 computes exactly
+   from HMRC bands via a per-project selector (commercial/mixed-use, residential company
+   rates, or manual for the solicitor's figure), charged on the VAT-inclusive price when the
+   property is opted to tax.
 3. **Options** — one click enumerates conversion options: all-residential at three unit-mix
    strategies (max units / balanced / family), ground-commercial + residential uppers,
    floor-through lateral flats, and a whole-building merge. Every unit is validated against

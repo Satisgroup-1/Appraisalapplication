@@ -21,6 +21,7 @@ import type {
   WaterfallResult,
 } from './types';
 import { SQM_TO_SQFT } from './rules';
+import { sdltForFinance } from './sdlt';
 
 export const MONTHS = 48; // '4. Cashflow' columns E..AZ
 export const SELLDOWN_MONTHS = 36; // '5. Scenarios' columns E..AN
@@ -146,11 +147,20 @@ export function computeDevCosts(
     other: { lines: [], total: 0 },
   };
 
+  // Stamp duty computed from HMRC bands (on the VAT-inclusive price when
+  // opted to tax) unless the regime is manual, which keeps the typed figure.
+  const computedSdlt = sdltForFinance(f);
+
   for (const line of spec.devCosts) {
     let amount = 0;
     switch (line.kind) {
       case 'fixed':
-        amount = line.code === 'D01' ? buildCost : line.value;
+        amount =
+          line.code === 'D01'
+            ? buildCost
+            : computedSdlt !== null && isSdltLine(line.code, line.label)
+              ? computedSdlt
+              : line.value;
         break;
       case 'pctPurchase': // e.g. B05 = D15 * '2. Inputs'!E5
         amount = line.value * f.purchasePrice;
@@ -781,7 +791,9 @@ export function runAppraisal(schedule: ScheduleRow[], spec: PricingSpec, roomAre
   const warnings: string[] = [];
   if (f.vat.optedToTax) {
     warnings.push(
-      'Property is opted to tax: check the SDLT line, since stamp duty is charged on the VAT-inclusive price.',
+      f.sdlt.regime === 'manual'
+        ? 'Property is opted to tax: check the SDLT line, since stamp duty is charged on the VAT-inclusive price.'
+        : 'Property is opted to tax: SDLT has been computed on the VAT-inclusive purchase price.',
     );
   }
   if (prog.pcMonth + f.retention.releaseMonthsAfterPc > MONTHS) {

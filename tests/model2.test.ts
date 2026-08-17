@@ -48,6 +48,8 @@ function tinySpec(devCosts: PricingSpec['devCosts']): PricingSpec {
   s.finance.sales.velocityPerMonth = 1; // 2 units -> 2-month sell period
   s.finance.depositRatePa = 0;
   s.finance.hpi.enabled = false;
+  // These schemes hand-set their SDLT amounts; manual keeps them authoritative.
+  s.finance.sdlt = { regime: 'manual' };
   return s;
 }
 
@@ -95,6 +97,35 @@ describe('S-curve', () => {
     close(r.cashflow[3].costs, 343750);
     close(r.cashflow[4].costs, 343750);
     close(r.cashflow[5].costs, 156250);
+  });
+});
+
+describe('automatic SDLT', () => {
+  it('prices B04 from the non-residential bands, ignoring the typed value', () => {
+    const spec = tinySpec([{ code: 'B04', group: 'legals', label: 'Stamp Duty (SDLT)', kind: 'fixed', value: 999 }]);
+    spec.finance.sdlt = { regime: 'nonResidential' };
+    const r = runAppraisal(tinySchedule(), spec);
+    // £1,000,000 non-residential: 2% × 100k + 5% × 750k = £39,500
+    const b04 = r.devCosts.groups.legals.lines.find((l) => l.code === 'B04')!;
+    close(b04.amount, 39500);
+    close(r.cashflow[0].costs, 1000000 + 39500); // still paid on completion
+  });
+
+  it('charges on the VAT-inclusive price when the property is opted to tax', () => {
+    const spec = tinySpec([{ code: 'B04', group: 'legals', label: 'Stamp Duty (SDLT)', kind: 'fixed', value: 999 }]);
+    spec.finance.sdlt = { regime: 'nonResidential' };
+    spec.finance.vat.optedToTax = true; // chargeable £1,200,000
+    const r = runAppraisal(tinySchedule(), spec);
+    // 2% × 100k + 5% × 950k = £49,500
+    const b04 = r.devCosts.groups.legals.lines.find((l) => l.code === 'B04')!;
+    close(b04.amount, 49500);
+    expect(r.warnings.some((w) => /SDLT has been computed on the VAT-inclusive/i.test(w))).toBe(true);
+  });
+
+  it('manual regime keeps the typed figure untouched', () => {
+    const spec = tinySpec([{ code: 'B04', group: 'legals', label: 'Stamp Duty (SDLT)', kind: 'fixed', value: 50000 }]);
+    const r = runAppraisal(tinySchedule(), spec);
+    close(r.devCosts.groups.legals.lines.find((l) => l.code === 'B04')!.amount, 50000);
   });
 });
 

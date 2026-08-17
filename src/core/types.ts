@@ -248,6 +248,14 @@ export interface HpiInputs {
   projectedAt?: string; // ISO date the projection was produced
 }
 
+/** How stamp duty (dev cost line B04) is derived. */
+export interface SdltInputs {
+  /** 'nonResidential': commercial/mixed-use bands (the usual purchase here).
+   *  'residentialCompany': residential main rates + company surcharge.
+   *  'manual': keep the typed B04 figure (solicitor's number). */
+  regime: 'nonResidential' | 'residentialCompany' | 'manual';
+}
+
 /** How profit is shared between investor and developer. */
 export interface WaterfallInputs {
   /** 'simple': profit x investorShare (current 50/50 deals).
@@ -266,6 +274,7 @@ export interface FinanceInputs {
   legalMonths: number; // '2. Inputs' E10
   preConMonths: number; // E11
   vat: VatInputs;
+  sdlt: SdltInputs;
   retention: RetentionInputs;
   /** Interest earned on cash held (retention pot, sale surpluses). */
   depositRatePa: number;
@@ -514,6 +523,102 @@ export interface AppraisalResult {
 }
 
 // ---------------------------------------------------------------------------
+// Pricing estimates — AI-researched suggestions stored with their evidence.
+// Estimates never overwrite an input: the UI shows them beside each field and
+// the user applies them individually or per group.
+// ---------------------------------------------------------------------------
+
+/** One estimated figure with its uncertainty and provenance. */
+export interface EstimateValue {
+  low: number;
+  /** The value an Apply click inserts. */
+  likely: number;
+  high: number;
+  confidence: 'high' | 'medium' | 'low';
+  /** How the figure was reached: evidence counts, radius used, adjustments. */
+  rationale: string;
+  /** Named, dated sources. */
+  sources: string[];
+}
+
+export type RateCategory = 'commercial' | 'studio' | 'bed1' | 'bed2' | 'bed3' | 'house';
+
+/** Sales & rents research output. Values are TODAY'S prices: the model's HPI
+ *  setting carries them forward to completion / sale month, so growth is
+ *  never counted twice. */
+export interface SalesEstimates {
+  ranAt: string; // ISO date
+  address: string;
+  rates: Partial<Record<RateCategory, { salePsf: EstimateValue; rentPsf: EstimateValue }>>;
+  /** 5-year HPI projection from the same research, to fill finance.hpi. */
+  hpiAnnualPct: number[];
+  hpiRationale: string;
+  hpiSources: string[];
+}
+
+/** Build cost research output: one blended all-in contract £/sqft that the
+ *  room-rate table is scaled to (ratios preserved). */
+export interface BuildEstimates {
+  ranAt: string;
+  region: string;
+  blendedPsf: EstimateValue;
+}
+
+/** Finance rate research output, shaped to the deal's LTV/size/asset type. */
+export interface FinanceEstimates {
+  ranAt: string;
+  bridgeRatePa: EstimateValue;
+  bridgeArrangementFee: EstimateValue;
+  devLoanRatePa: EstimateValue;
+  devLoanArrangementFee: EstimateValue;
+  vatLoanRatePa: EstimateValue;
+  refinanceRatePa: EstimateValue;
+  /** Instant-access deposit rate pegged to SONIA minus a researched spread. */
+  depositRatePa: EstimateValue;
+  /** The SONIA rate found during research (decimal), for the rationale. */
+  soniaRatePa: number | null;
+}
+
+export interface EstimateSet {
+  sales?: SalesEstimates;
+  build?: BuildEstimates;
+  finance?: FinanceEstimates;
+}
+
+// ---------------------------------------------------------------------------
+// Calibration records — the user's own evidence, kept in app settings and
+// shared across projects: what contractors actually tendered and what lenders
+// actually quoted. Passed to the research agents to anchor estimates.
+// ---------------------------------------------------------------------------
+
+export interface TenderRecord {
+  id: string;
+  projectName: string;
+  date: string; // yyyy-mm
+  region: string;
+  /** All-in contract £/sqft actually tendered. */
+  psf: number;
+  notes: string;
+}
+
+export interface TermSheetRecord {
+  id: string;
+  lender: string;
+  date: string; // yyyy-mm
+  product: 'bridge' | 'devLoan' | 'vatLoan' | 'refinance';
+  ratePa: number; // decimal
+  arrangementFee: number; // decimal
+  ltv: number; // decimal
+  loanSize: number; // £
+  notes: string;
+}
+
+export interface CalibrationRecords {
+  tenders: TenderRecord[];
+  termSheets: TermSheetRecord[];
+}
+
+// ---------------------------------------------------------------------------
 // Project file
 // ---------------------------------------------------------------------------
 
@@ -528,6 +633,8 @@ export interface Project {
   listedOrConservation: boolean;
   floors: Envelope[];
   pricing: PricingSpec;
+  /** AI-researched pricing estimates with their evidence (never auto-applied). */
+  estimates?: EstimateSet;
   /** id of option adopted for export, if any */
   adoptedOptionId?: string;
 }

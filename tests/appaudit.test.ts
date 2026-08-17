@@ -54,6 +54,10 @@ describe('audit catches seeded corruption', () => {
   it('a nudged scenario-1 profit', () => seedAndExpect('s1-profit', (r) => (r.scenarios.s1.netProfit += 1)));
   it('a cost line drifting from its driver', () =>
     seedAndExpect('costs-lines', (r) => (r.devCosts.groups.construction.lines.find((l) => l.code === 'D08')!.amount += 500)));
+  it('an SDLT line drifting from the HMRC band computation', () =>
+    // The demo runs the automatic non-residential regime, so the auditor must
+    // recompute B04 from the bands, not accept whatever amount is present.
+    seedAndExpect('costs-lines', (r) => (r.devCosts.groups.legals.lines.find((l) => l.code === 'B04')!.amount += 500)));
   it('a group total that stops matching its lines', () =>
     seedAndExpect('costs-group-legals', (r) => (r.devCosts.groups.legals.total += 1000)));
   it('a month of costs going missing', () => seedAndExpect('cf-conservation', (r) => (r.cashflow[5].costs -= 500)));
@@ -115,6 +119,14 @@ describe('input repair (never silent)', () => {
     spec.buildCostMode = 'fixed';
     const r = runAppraisal(schedule, spec);
     expect(auditAppraisal(r, spec, schedule).failCount).toBe(0);
+  });
+
+  it('repairs an unknown SDLT regime to manual, keeping the typed figure', () => {
+    const spec = clonePricing(DEFAULT_PRICING);
+    (spec.finance.sdlt as { regime: string }).regime = 'freeport-special';
+    const { spec: cleaned, repairs } = sanitizeSpec(spec);
+    expect(cleaned.finance.sdlt.regime).toBe('manual');
+    expect(repairs.some((r) => r.field === 'SDLT regime')).toBe(true);
   });
 
   it('a clean spec and schedule need zero repairs', () => {

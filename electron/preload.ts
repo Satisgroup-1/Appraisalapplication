@@ -38,6 +38,15 @@ const api = {
     region: string,
   ): Promise<{ annualPct: number[]; region: string; rationale: string; sources: string[]; projectedAt: string }> =>
     ipcRenderer.invoke('ai:projectHpi', region),
+  aiEstimateSales: (payload: { address: string; unitTypes: string[] }): Promise<unknown> =>
+    ipcRenderer.invoke('ai:estimateSales', payload),
+  aiEstimateBuild: (payload: { region: string; giaSqft: number }): Promise<unknown> =>
+    ipcRenderer.invoke('ai:estimateBuild', payload),
+  aiEstimateFinance: (payload: {
+    deal: { purchasePrice: number; bridgeLtv: number; devFacilityEstimate: number; gdv: number; assetType: string };
+  }): Promise<unknown> => ipcRenderer.invoke('ai:estimateFinance', payload),
+  calibrationLoad: (): Promise<unknown> => ipcRenderer.invoke('calibration:load'),
+  calibrationSave: (json: string): Promise<boolean> => ipcRenderer.invoke('calibration:save', json),
   exportXlsx: (
     scheduleJson: string,
     inputsJson: string,

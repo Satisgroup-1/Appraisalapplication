@@ -22,6 +22,7 @@ import type {
 import { hpiIndexAt, MONTHS } from './dcf';
 import { DEFAULT_PRICING } from './pricing';
 import { SQM_TO_SQFT } from './rules';
+import { sdltForFinance } from './sdlt';
 
 export interface AuditCheck {
   id: string;
@@ -111,6 +112,16 @@ export function sanitizeSpec(spec: PricingSpec): { spec: PricingSpec; repairs: A
   f.refinance.arrangementFee = fix(repairs, 'refinance fee', f.refinance.arrangementFee, d.refinance.arrangementFee, 0, 0.1, 'must be 0-10%');
   f.refinance.voidPct = fix(repairs, 'void allowance', f.refinance.voidPct, d.refinance.voidPct, 0, 1, 'must be 0-100%');
   f.refinance.mgmtPct = fix(repairs, 'management & opex', f.refinance.mgmtPct, d.refinance.mgmtPct, 0, 1, 'must be 0-100%');
+
+  if (!f.sdlt || !['nonResidential', 'residentialCompany', 'manual'].includes(f.sdlt.regime)) {
+    repairs.push({
+      field: 'SDLT regime',
+      from: String(f.sdlt?.regime),
+      to: 'manual',
+      reason: 'unknown SDLT regime; keeping the typed B04 figure',
+    });
+    f.sdlt = { regime: 'manual' };
+  }
 
   f.vat.ratePct = fix(repairs, 'VAT rate', f.vat.ratePct, d.vat.ratePct, 0, 1, 'must be 0-100%');
   f.vat.reclaimLagMonths = Math.round(fix(repairs, 'VAT reclaim lag', f.vat.reclaimLagMonths, d.vat.reclaimLagMonths, 0, 24, 'must be 0-24 months'));
@@ -255,9 +266,15 @@ export function auditAppraisal(r: AppraisalResult, spec: PricingSpec, schedule: 
       break;
     }
     let expected: number;
+    const autoSdlt = sdltForFinance(f);
     switch (specLine.kind) {
       case 'fixed':
-        expected = specLine.code === 'D01' ? buildCost : specLine.value;
+        expected =
+          specLine.code === 'D01'
+            ? buildCost
+            : autoSdlt !== null && (specLine.code === 'B04' || /sdlt|stamp\s*duty/i.test(specLine.label))
+              ? autoSdlt
+              : specLine.value;
         break;
       case 'pctPurchase':
         expected = specLine.value * f.purchasePrice;

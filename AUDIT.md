@@ -112,6 +112,7 @@ moves, not *how much* a cost line is (cost totals still reconcile to the penny).
 | Change | Workbook behaviour | Model v2 behaviour (confirmed practice) |
 |---|---|---|
 | SDLT | Spread over the legal period | Paid on completion of the purchase (month 1) |
+| SDLT amount | Hand-typed on B04 | Computed exactly from HMRC bands (`src/core/sdlt.ts`) under a per-project regime: non-residential/mixed (default — reproduces the workbook's £87,000 on the £1.95m demo to the penny), residential company rates (main rates + 5% surcharge), or manual (typed figure kept; pre-existing project files load as manual). Charged on the VAT-inclusive price when opted to tax. Band maths hand-verified in `tests/sdlt.test.ts`; the in-app auditor recomputes B04 from the bands, proven by a seeded-corruption test |
 | Bridge scope | (Same formula, now stated) | Advances against the purchase price only; SDLT, legals, valuation and design fees are equity |
 | Main contract drawdown | Straight-line over construction | Standard S-curve (smoothstep), standing in for a QS drawdown schedule; contingency follows the curve |
 | Architect & QS fees | Architect in pre-con, QS over construction | Both straight-lined from month 1 to PC (they run through design and build) |
@@ -122,6 +123,16 @@ moves, not *how much* a cost line is (cost totals still reconcile to the penny).
 | GDV over time | Static | Optional HPI indexing: sale prices to each unit's sale month, refinance value to PC; rates from the projection agent (regional, sourced) or manual |
 | Profit split | Flat investor share | Same by default; optional waterfall (capital → pref compounded monthly on drawn capital → residual split) |
 | PG cost | Based on a provisional facility estimate | **Not modelled yet** — deliberately skipped until the facility term sheet (3-5 St John Street example) is provided; will be computed on the actual facility by iteration, not the estimate |
+
+**Pricing estimates are not engine paths.** The research agents (`electron/estimate.ts`) and
+suggestion helpers (`src/core/estimates.ts`) only ever produce *suggestions* stored on the
+project with their range, rationale and sources; a figure enters the model exclusively through
+the user clicking Apply, after passing hard sanitisers (finite, ordered low ≤ likely ≤ high,
+clamped to per-quantity bands — sale £50-3,000/sqft, build £50-1,000/sqft, rates 0-35%, fees
+0-10%). Sales suggestions are *today's* values by design: the HPI setting performs the
+today-to-completion projection, so growth cannot be double-counted. Room-rate scaling
+(`scaleRoomRates`) preserves the user's ratios and reproduces the researched blend to within
+£1 (whole-pound rounding), verified in `tests/estimates.test.ts`.
 
 Verification of v2 (`tests/model2.test.ts`): S-curve slices hand-checked and summing to 1;
 retention conservation and release months exact; SDLT/architect/QS/holding-cost timing asserted

@@ -56,7 +56,16 @@ export default function AppraisalView() {
     const inputs = {
       address: project.address || project.name,
       ...fin,
-      devCostLines: project.pricing.devCosts.map((l) => ({ code: l.code, kind: l.kind, value: l.value })),
+      // In an automatic SDLT regime the typed B04 value is dormant — the
+      // export must carry the computed figure the appraisal actually used.
+      devCostLines: project.pricing.devCosts.map((l) => ({
+        code: l.code,
+        kind: l.kind,
+        value:
+          l.code === 'B04' && fin.sdlt.regime !== 'manual'
+            ? (result?.devCosts.groups.legals.lines.find((x) => x.code === 'B04')?.amount ?? l.value)
+            : l.value,
+      })),
       buildCostOverride: result?.devCosts.buildCostSource === 'roomRates' ? result.devCosts.buildCost : null,
     };
     // The '7. App Model v2' sheet mirrors exactly what this screen shows.

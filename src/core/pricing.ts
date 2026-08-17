@@ -85,6 +85,10 @@ export const DEFAULT_FINANCE: FinanceInputs = {
     fundedBy: 'equity',
     vatLoan: { ratePa: 0.1, arrangementFee: 0.015 },
   },
+  // Commercial/mixed-use bands are the default because that is what gets
+  // bought here; on the demo's £1,950,000 they give exactly the workbook's
+  // hand-typed £87,000, so parity is preserved.
+  sdlt: { regime: 'nonResidential' },
   // 3% withheld from contractor certificates; half released at PC, half held
   // 12 months for the defects period.
   retention: { pctDuringWorks: 0.03, pctAfterPc: 0.015, releaseMonthsAfterPc: 12 },
@@ -158,6 +162,9 @@ export function normalizePricing(p: Partial<PricingSpec>): PricingSpec {
       ...base.finance,
       ...fin,
       vat: { ...base.finance.vat, ...(fin.vat ?? {}), vatLoan: { ...base.finance.vat.vatLoan, ...(fin.vat?.vatLoan ?? {}) } },
+      // Files saved before the SDLT selector existed carry a hand-typed B04
+      // that must not silently change — they load in manual mode.
+      sdlt: fin.sdlt ? { ...base.finance.sdlt, ...fin.sdlt } : { regime: 'manual' },
       retention: { ...base.finance.retention, ...(fin.retention ?? {}) },
       hpi: { ...base.finance.hpi, ...(fin.hpi ?? {}) },
       waterfall: { ...base.finance.waterfall, ...(fin.waterfall ?? {}) },
