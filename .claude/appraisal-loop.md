@@ -17,6 +17,12 @@ When something is genuinely not covered, the planner records the question in
   well-evidenced as it can be made — better prompts, better anchoring on the
   user's own tender/term-sheet records, narrower honest ranges, and refusal to
   guess where evidence is thin.
+  **First target, chosen by the client 2026-08-24: holding and site-running
+  costs — the `(E)` during-construction and `(F)` post-completion groups.**
+  These are now per-month figures, so estimator precision here scales with the
+  hold period and matters most on exactly the slow-sales case the model exists
+  to stress. Professional fees, acquisition costs and sales & marketing are
+  candidates for later, not now.
 
 ## Operating rules
 
@@ -53,12 +59,12 @@ When something is genuinely not covered, the planner records the question in
 |---|---|
 | Build cost inflation | Own researched input (`buildInflation`), **independent** of HPI. Done, AUDIT.md §6.4. |
 | Exit cost attribution | Per-line `whenIncurred` flag plus an `(I)` letting group. Done, §6.5. |
-| Discounting | **Add equity IRR and NPV at a hurdle rate**, headlined beside profit-on-cost. IRR from the monthly equity cashflow, not an annualised ROI. **Blocked: the hurdle rate is still unknown — ask, do not invent one.** |
+| Discounting (B1) | **UNBLOCKED 2026-08-24.** Compute and headline **equity IRR by default, with NO hurdle rate** — so no discount-rate assumption enters the model uninvited. Add an **optional hurdle-rate input in the UI**; when the user sets one, show NPV at that rate and mark the IRR as clearing or missing it. Empty hurdle is the default and must stay valid: IRR only, no NPV, no pass/fail. IRR from the monthly equity cashflow (bisection on the actual flows), never an annualised ROI. Guard the no-sign-change case rather than returning a fake number. |
 | ROI denominator | Report **both** committed and drawn capital, in every profit mode. Not yet built (A5). |
-| Tax | Undecided. Do not add corporation tax or VAT-on-costs without asking. |
+| Tax | **DECIDED 2026-08-24: keep the model PRE-TAX.** No corporation tax on SPV profit, no VAT on works. Investors model their own tax. Do not add either. The README and the exported assumptions must SAY the figures are pre-tax rather than leaving it to be inferred. |
 | Planning obligations | Undecided. Do not add CIL/S106 lines without asking. |
 | Leasehold structure | Undecided. Do not add ground rent or reversion value without asking. |
-| Refinance ICR covenant | Wanted (A7), but the covenant level and stress rate are unknown. Ask. |
+| Refinance ICR (A7) | **DECIDED 2026-08-24: warn below 100% only.** No covenant modelling, no stress rate, no capping of the advance. Simply flag when net rent does not cover mortgage interest at all — the demo's ICR of 0.87 must produce a visible warning. Do not invent a 125%/145% test. |
 
 ## Known weak seams
 
