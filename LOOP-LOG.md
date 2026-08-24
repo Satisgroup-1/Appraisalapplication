@@ -14,6 +14,7 @@ Columns: when (UTC) · outcome · item · title · rework rounds · what happene
 | 2026-08-24 04:33 | LANDED | C3 | Zero-dwelling conversion options must not report as NDSS-compliant | 0 | 251→253 tests. allCompliant was `compliance.every(allPass)`, vacuously true over the empty units array of an unplannable envelope, so a £0-GDV option that builds nothing showed a green "NDSS compliant" badge. Now `residentialUnits > 0 && every(allPass)`; zero-dwelling options carry a warning and read "Not viable - no dwellings". Confirmed failing-first on a 3m-deep shallow floor. No-op on the demo: all 8 options keep bit-identical flags. No golden pin moved. |
 | 2026-08-24 06:30 | ABANDONED | D3 | Validate cost-line discriminants in sanitizeSpec, and stop swallowing engine failures on the Appraisal page | 3 | Reviewer withheld approval after 3 rounds: runAppraisalForView drops the repairs it had already collected when a later stage throws, sanitizeSpec still throws outright on a non-array devCosts, the new test carries a false comment about H01's position, and the incidence rule's forward-compatibility hazard was left undocumented. Working tree reverted to 41d6e58; nothing committed. |
 | 2026-08-24 07:35 | LANDED | D11 | Reject duplicate cost-line codes in the sanitiser and add an auditor tripwire that catches them | 0 | sanitizeSpec now de-dups devCosts by code (keeps the FIRST occurrence, reports each dropped copy as a repair) and a new costs-duplicate-codes tripwire fails on any spec still carrying a repeated code. A duplicated D01 previously swung S1 net profit from +779,614.9968750654 to -1,671,760.18 (-£2,451,375) silently against a green audit. Clean baseline 61→62 checks; 5 D11 tests confirmed failing-first. No golden pin moved. |
+| 2026-08-24 08:51 | LANDED | A5 | Report investor ROI on both committed and drawn capital, in every profit mode | 0 | `investorCapital` was `mode === 'waterfall' ? drawnPeak : committed`, so an economically identical deal (no pref, 50/50 residual, equity 5,000,000 at investorShare 0.5) reported the same S1 investorProfit of 468,825.94 as 18.753% in simple mode and 24.672% in waterfall - 5.92 points apart on a presentation switch - while the investor's drawn peak and the developer's committed summed to 4,400,218.69, which is neither the 5,000,000 committed nor the 3,800,437.38 drawn. `WaterfallResult` now carries investorCommitted / investorDrawnPeak / developerCommitted / developerDrawnPeak and four ROI figures (on committed, on drawn, and their pa pair), each null on a zero base per the A9 precedent; both parties' peaks come from one traversal of the same `equityMonth` series. Additive, so stored projects load unchanged (demo S1 still 700,000 capital, ROI 0.556867854910761, profit 389,807.4984375327). Audit checks 62 -> 65: +3, one capital-basis reconciliation per profit scenario (wf-s1/s2/s4-capital); failCount unchanged at 0. 258->265 tests; tests/roi.test.ts 7 tests, all 7 confirmed failing at 0b2a57e. No golden pin in tests/dcf.test.ts moved. |
 
 ## Abandoned: D3
 
@@ -202,6 +203,55 @@ commercial conventions the loop refuses to invent:**
   needs the client's word on how their lenders actually charge it.
 
 The loop will add new entries here if a cycle hits something it refuses to decide alone.
+
+**From the A5 cycle (2026-08-24 08:51), recorded by the reviewer and not acted
+on in that change:**
+
+- **The audit failure `detail` for the two ROI limbs names the BASE, not the
+  failing product.** It reads `ROI on committed x £2,500,000 vs investor
+  profit £468,825.94`, but the two figures actually compared are `roi * base`
+  and `investorProfit`, so a reader of a genuine failure sees an operand where
+  they expect the mismatching total. The committed/drawn/within limbs do print
+  both compared figures correctly. Cheap fix: print `gbp(roi * base)` instead
+  of `gbp(base)`.
+- **S3's cash-on-cash now sits under a header reading `Investor ROI
+  (committed)`** (`AppraisalView.tsx:284`), and the new comment calls it "a
+  committed-capital measure". It is neither investor-level nor committed:
+  `cashOnCash = netAnnualCashflow / equityRemaining` where `equityRemaining =
+  f.equity.total - surplusReleased` is the WHOLE equity left in the deal after
+  refinance, not `x investorShare`. The mislabel is pre-existing (the column was
+  already headed 'Investor ROI'), the specification directed exactly this
+  placement, and no number moved - but the sharper header makes the wrong basis
+  more explicit. Either scale S3 by `investorShare` or give the S3 cell its own
+  labelled measure.
+- **The new `wf-<s>-capital` check fires on inputs the sanitiser would have
+  repaired but PricingView bypasses.** `investorShare = 1.5` on £5m equity gives
+  `investorCommitted` 7,500,000 and `developerCommitted` -2,500,000, and all
+  three limbs fail with `drawn £5,700,656.07 vs peak equity drawn
+  £3,800,437.38`; `equity.total = -100` fails with `investor drawn £0 exceeds
+  committed £-50`. Arguably correct - nonsense input is now flagged rather than
+  silently modelled - but the detail blames the capital stack rather than the
+  input. It reinforces the standing 'Awaiting the client' item that
+  OptionsView/PricingView bypass `sanitizeSpec`; nothing to do in A5 itself.
+- **The scenario-comparison table has no on-screen note explaining the two
+  bases** (the existing `<p className="note">` covers only S3). A one-line note -
+  'ROI shown on capital committed and on peak capital drawn; the two coincide
+  when the equity is fully called down' - would make the new column
+  self-explanatory per goal A. Nice-to-have, not required.
+- **Residual recorded and accepted:** the legacy `investorCapital` /
+  `investorRoi` / `investorRoiPa` still return a mode-dependent denominator
+  (2,500,000 in simple vs 1,900,218.69 in waterfall on the probe). Nothing in
+  `src/` or `electron/` reads them any more (grep confirms only
+  `AppraisalView`, which now reads the explicit pair) and no ROI reaches the
+  workbook, so the exposure is a future consumer only. Retiring them is a
+  separate change.
+- **Discharged at the landing step, not left open.** The reviewer noted that
+  AUDIT.md §6.8 said "6 tests, all 6 failing" while the shipped
+  `tests/roi.test.ts` contains 7, and that `.claude/appraisal-loop.md:65` still
+  read "Not yet built (A5)". Both were corrected in the landing commit: the
+  7-failing claim was re-verified in a worktree at `0b2a57e` (`Tests 7 failed
+  (7)`, the seventh failing on `expected undefined to be 700000`) before the
+  wording was tightened.
 
 **Raised 2026-08-24 by the D11 reviewer (duplicate cost codes). Not acted on.**
 
