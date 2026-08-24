@@ -292,14 +292,16 @@ ipcMain.handle(
     });
     if (canceled || !filePath) return null;
     const template = path.join(resourcesDir(), 'appraisal_template.xlsx');
-    await exportWorkbook(
+    const outcome = await exportWorkbook(
       template,
       filePath,
       JSON.parse(payload.scheduleJson),
       JSON.parse(payload.inputsJson),
       payload.modelV2Json ? JSON.parse(payload.modelV2Json) : null,
     );
-    return filePath;
+    // The outcome travels with the path so the renderer can report a schedule
+    // that did not fit sheets 1-6 instead of leaving the omission silent.
+    return { path: filePath, ...outcome };
   },
 );
 

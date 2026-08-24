@@ -47,18 +47,23 @@ export const DEFAULT_DEV_COSTS: DevCostLine[] = [
   { code: 'E04', group: 'duringConstruction', label: 'Internet', kind: 'fixed', value: 400 },
   { code: 'E05', group: 'duringConstruction', label: 'Building insurance during works', kind: 'fixed', value: 15000 },
   { code: 'E06', group: 'duringConstruction', label: 'Other', kind: 'fixed', value: 5000 },
-  // (F) POST CONSTRUCTION (holding costs at PC)
-  { code: 'F01', group: 'postConstruction', label: 'Council tax', kind: 'fixed', value: 3300 },
-  { code: 'F02', group: 'postConstruction', label: 'Utilities post-completion', kind: 'fixed', value: 2750 },
-  { code: 'F03', group: 'postConstruction', label: 'Buildings insurance', kind: 'fixed', value: 2500 },
-  { code: 'F04', group: 'postConstruction', label: 'Other', kind: 'fixed', value: 5000 },
+  // (F) POST CONSTRUCTION — holding costs on unsold stock. Priced PER MONTH
+  // HELD, not as a lump: these run for as long as the stock is unsold, so a
+  // 24-month sell-down must cost four times a 6-month one. (A lump made them
+  // identical — AUDIT.md §6.5.) Rates are per month of the hold period.
+  { code: 'F01', group: 'postConstruction', label: 'Council tax (per unit / month held)', kind: 'perUnitPerMonthHeld', value: 46 },
+  { code: 'F02', group: 'postConstruction', label: 'Utilities post-completion (per month held)', kind: 'perMonthHeld', value: 460 },
+  { code: 'F03', group: 'postConstruction', label: 'Buildings insurance (per month held)', kind: 'perMonthHeld', value: 420 },
+  { code: 'F04', group: 'postConstruction', label: 'Other holding costs (per month held)', kind: 'perMonthHeld', value: 830 },
   // (G) SALES & MARKETING
-  { code: 'G01', group: 'salesMarketing', label: 'Show apartment', kind: 'fixed', value: 20000 },
-  { code: 'G02', group: 'salesMarketing', label: 'Marketing materials & brochure', kind: 'fixed', value: 10000 },
-  { code: 'G03', group: 'salesMarketing', label: 'Sales agent fees (% of GDV)', kind: 'pctGDV', value: 0 }, // rate taken from finance.sales.agentFeePct
-  { code: 'G04', group: 'salesMarketing', label: 'Sales legals (per unit)', kind: 'salesLegalPerUnit', value: 0 },
-  { code: 'G05', group: 'salesMarketing', label: 'Photography & video', kind: 'fixed', value: 6000 },
-  { code: 'G06', group: 'salesMarketing', label: 'Other', kind: 'fixed', value: 5000 },
+  // Every (G) line is incurred ONLY on a sale: the refinance-and-hold scenario
+  // does not pay agent fees, sales legals or fit out a show flat.
+  { code: 'G01', group: 'salesMarketing', label: 'Show apartment', kind: 'fixed', value: 20000, whenIncurred: 'onSale' },
+  { code: 'G02', group: 'salesMarketing', label: 'Marketing materials & brochure', kind: 'fixed', value: 10000, whenIncurred: 'onSale' },
+  { code: 'G03', group: 'salesMarketing', label: 'Sales agent fees (% of GDV)', kind: 'pctGDV', value: 0, whenIncurred: 'onSale' }, // rate taken from finance.sales.agentFeePct
+  { code: 'G04', group: 'salesMarketing', label: 'Sales legals (per unit)', kind: 'salesLegalPerUnit', value: 0, whenIncurred: 'onSale' },
+  { code: 'G05', group: 'salesMarketing', label: 'Photography & video', kind: 'fixed', value: 6000, whenIncurred: 'onSale' },
+  { code: 'G06', group: 'salesMarketing', label: 'Other', kind: 'fixed', value: 5000, whenIncurred: 'onSale' },
   // (H) OTHER / SPV RUNNING COSTS
   { code: 'H01', group: 'other', label: 'Admin fee', kind: 'fixed', value: 7500 },
   { code: 'H02', group: 'other', label: 'Company set-up & SPV shareholder legals', kind: 'fixed', value: 2100 },
@@ -68,6 +73,16 @@ export const DEFAULT_DEV_COSTS: DevCostLine[] = [
   { code: 'H06', group: 'other', label: 'Accountancy fees', kind: 'fixed', value: 600 },
   { code: 'H07', group: 'other', label: 'CIS submissions', kind: 'fixed', value: 1200 },
   { code: 'H08', group: 'other', label: 'Contingency', kind: 'fixed', value: 5000 },
+  // (I) LETTING — incurred ONLY if the scheme is let rather than sold, i.e. the
+  // refinance-and-hold scenario. Deliberately the ONE-OFF cost of getting the
+  // building let: ongoing management and voids are already deducted from rent
+  // by finance.refinance.mgmtPct and voidPct, so charging a management fee here
+  // too would double-count it.
+  { code: 'I01', group: 'letting', label: 'Tenant-find / first-let fees (% of annual rent)', kind: 'pctAnnualRent', value: 0.08, whenIncurred: 'onLet' },
+  { code: 'I02', group: 'letting', label: 'EPCs (per unit)', kind: 'perUnit', value: 75, whenIncurred: 'onLet' },
+  { code: 'I03', group: 'letting', label: 'Inventory & light furnishing (per unit)', kind: 'perUnit', value: 1200, whenIncurred: 'onLet' },
+  { code: 'I04', group: 'letting', label: 'Landlord / HMO licensing (per unit)', kind: 'perUnit', value: 0, whenIncurred: 'onLet' },
+  { code: 'I05', group: 'letting', label: 'Other letting set-up', kind: 'fixed', value: 0, whenIncurred: 'onLet' },
 ];
 
 export const DEFAULT_FINANCE: FinanceInputs = {
@@ -94,6 +109,12 @@ export const DEFAULT_FINANCE: FinanceInputs = {
   retention: { pctDuringWorks: 0.03, pctAfterPc: 0.015, releaseMonthsAfterPc: 12 },
   depositRatePa: 0.035,
   hpi: { enabled: false, annualPct: [0.03, 0.03, 0.03, 0.03, 0.03] },
+  // Tender-price inflation on the main contract. Ships DISABLED so that
+  // existing projects and the workbook golden tests are untouched, but with a
+  // usable rate loaded — turning it on is one click, and runAppraisal warns
+  // whenever HPI is indexing revenue while this is left off, which was the
+  // asymmetry that manufactured profit from a longer programme.
+  buildInflation: { enabled: false, annualPct: 0.04 },
   // Current deals are a straight 50/50 with no pref; the waterfall option is
   // ready for deals with a preferred return.
   waterfall: { mode: 'simple', prefRatePa: 0.08, residualInvestorPct: 0.5 },
@@ -169,6 +190,16 @@ export function normalizePricing(p: Partial<PricingSpec>): PricingSpec {
       sdlt: fin.sdlt?.regime ? { ...base.finance.sdlt, ...fin.sdlt } : { regime: 'manual' },
       retention: { ...base.finance.retention, ...(fin.retention ?? {}) },
       hpi: { ...base.finance.hpi, ...(fin.hpi ?? {}) },
+      // Files saved before build inflation existed priced the contract in
+      // today's money, so they must load with it OFF — enabling it silently
+      // would change a stored appraisal's profit. Gate on the flag being
+      // present, not on the block, so a truthy-but-empty `buildInflation: {}`
+      // cannot inherit the default and flip the model (the same trap
+      // AUDIT.md §6.1 finding 8 found in the SDLT block).
+      buildInflation:
+        typeof fin.buildInflation?.enabled === 'boolean'
+          ? { ...base.finance.buildInflation, ...fin.buildInflation }
+          : { ...base.finance.buildInflation, ...(fin.buildInflation ?? {}), enabled: false },
       waterfall: { ...base.finance.waterfall, ...(fin.waterfall ?? {}) },
       bridge: { ...base.finance.bridge, ...(fin.bridge ?? {}) },
       devLoan: { ...base.finance.devLoan, ...(fin.devLoan ?? {}) },

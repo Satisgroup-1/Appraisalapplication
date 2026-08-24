@@ -46,8 +46,16 @@ export interface Room {
   name: string;
   x: number;
   w: number;
+  /** Low-y edge. Habitable rooms take the window wall, bathroom and hall the
+   *  strip against the corridor; recorded rather than re-derived downstream. */
+  y: number;
   d: number;
+  /** Floor area INSIDE the envelope: the drawn rectangle clipped to the
+   *  building, so a room overhanging a notch is measured at its real size. */
   area: number;
+  /** Clipped footprint, present only where the drawn rectangle is not wholly
+   *  inside the envelope. Absent on the common rectangular floor. */
+  outline?: [number, number][];
   window: boolean;
 }
 
@@ -63,7 +71,14 @@ export interface PlannedUnit {
   x1: number;
   y0: number;
   y1: number;
+  /** GIA INSIDE the envelope. The layout engine proposes axis-aligned
+   *  rectangles on the bounding box; this is that rectangle clipped to the
+   *  building, so a non-rectangular floor cannot report more net area than it
+   *  physically has. */
   giaSqm: number;
+  /** Clipped footprint, present only where the unit rectangle overhangs the
+   *  envelope. Absent on the common rectangular floor. */
+  outline?: [number, number][];
   windows: number[];
   rooms: Room[];
 }
@@ -248,6 +263,30 @@ export interface HpiInputs {
   projectedAt?: string; // ISO date the projection was produced
 }
 
+/**
+ * Forward tender-price inflation applied to the main contract (line D01).
+ *
+ * The build cost the user enters — a fixed D01 or the room-rate table — is
+ * TODAY'S money, exactly as sale £psf are today's values. HPI carries revenue
+ * forward to completion; without this, cost stayed frozen at today's prices and
+ * simply lengthening the programme manufactured profit (AUDIT.md §6.4).
+ *
+ * Deliberately INDEPENDENT of `HpiInputs`: tender prices and house prices are
+ * driven by different things (labour and materials vs. mortgage rates and
+ * supply) and routinely move in opposite directions, so one rate cannot serve
+ * both.
+ */
+export interface BuildInflationInputs {
+  enabled: boolean;
+  /** Annual tender-price inflation as a decimal, compounded monthly from the
+   *  purchase to each certificate's month. */
+  annualPct: number;
+  region?: string;
+  rationale?: string;
+  sources?: string[];
+  projectedAt?: string; // ISO date the projection was produced
+}
+
 /** How stamp duty (dev cost line B04) is derived. */
 export interface SdltInputs {
   /** 'nonResidential': commercial/mixed-use bands (the usual purchase here).
@@ -279,6 +318,8 @@ export interface FinanceInputs {
   /** Interest earned on cash held (retention pot, sale surpluses). */
   depositRatePa: number;
   hpi: HpiInputs;
+  /** Tender-price inflation on the main contract. Set independently of hpi. */
+  buildInflation: BuildInflationInputs;
   waterfall: WaterfallInputs;
   bridge: {
     ltv: number; // E17
@@ -317,7 +358,14 @@ export type DevCostKind =
   | 'pctBuild' // value = rate x build cost (line D01)
   | 'perUnit' // value = £ x unit count
   | 'pctGDV' // value = rate x GDV
-  | 'salesLegalPerUnit'; // value ignored; uses finance.sales.legalPerUnit x units
+  | 'salesLegalPerUnit' // value ignored; uses finance.sales.legalPerUnit x units
+  // Time-based holding costs. A lump sum cannot represent council tax,
+  // insurance or standing charges on unsold stock: those run for as long as the
+  // stock is held, and a lump made a 24-month sell-down cost the same as a
+  // 3-month one (AUDIT.md §6.5).
+  | 'perMonthHeld' // value = £ per month x months held after PC
+  | 'perUnitPerMonthHeld' // value = £ per unit per month x units x months held
+  | 'pctAnnualRent'; // value = rate x gross annual rent (letting fees)
 
 export type DevCostGroup =
   | 'legals' // (B)
@@ -326,7 +374,22 @@ export type DevCostGroup =
   | 'duringConstruction' // (E)
   | 'postConstruction' // (F)
   | 'salesMarketing' // (G)
-  | 'other'; // (H)
+  | 'other' // (H)
+  | 'letting'; // (I) incurred only when the scheme is let rather than sold
+
+/**
+ * Which exits a cost line is incurred in.
+ *
+ * Without this every scenario paid every cost: the refinance-and-hold case was
+ * charged the full sales & marketing group — £143,723 on the demo, £93,723 of it
+ * agent fees on a sale that never happens — while carrying no letting costs at
+ * all (AUDIT.md §6.5). Defaults to 'always' when absent, so a spec or project
+ * file written before this existed behaves exactly as it did.
+ */
+export type CostIncidence =
+  | 'always' // incurred whatever happens to the scheme
+  | 'onSale' // only if the units are sold (agent fees, sales legals, show flat)
+  | 'onLet'; // only if the units are let (letting fees, EPCs, furnishing)
 
 export interface DevCostLine {
   code: string;
@@ -334,6 +397,8 @@ export interface DevCostLine {
   label: string;
   kind: DevCostKind;
   value: number;
+  /** Defaults to 'always' when absent. */
+  whenIncurred?: CostIncidence;
 }
 
 // ---------------------------------------------------------------------------
@@ -341,12 +406,29 @@ export interface DevCostLine {
 // ---------------------------------------------------------------------------
 
 export interface DevCostsComputed {
+  /** Which exit this cost build-up prices: 'onSale' includes the onSale lines
+   *  and excludes the onLet ones, and vice versa. 'always' lines are in both. */
+  basis: Exclude<CostIncidence, 'always'>;
+  /** Months of holding after PC that the time-based lines were charged for. */
+  holdMonths: number;
+  /** Total of the lines EXCLUDED by this basis, i.e. the other exit's costs.
+   *  On the 'onLet' basis this is the selling costs a hold avoids. */
+  excludedTotal: number;
   purchase: number; // (A)
   groups: Record<DevCostGroup, { lines: { code: string; label: string; amount: number }[]; total: number }>;
   totalPreFinance: number; // '3. Dev Costs' F87
-  buildCost: number; // line D01 amount (for psf metric)
+  /** Line D01 as the model uses it: today's cost x the inflation factor. */
+  buildCost: number;
+  /** The same contract in TODAY'S money, before tender-price inflation. Equal
+   *  to buildCost when inflation is off. */
+  buildCostToday: number;
+  /** S-curve-weighted tender-price index over the construction period: the
+   *  factor between buildCostToday and buildCost. 1 when inflation is off. */
+  buildInflationFactor: number;
   buildCostSource: 'fixed' | 'roomRates';
-  /** Per-room-type build cost breakdown when buildCostSource = 'roomRates'. */
+  /** Per-room-type build cost breakdown when buildCostSource = 'roomRates'.
+   *  Amounts are at TODAY'S rates, so rate x area still reconciles; the
+   *  inflation step is shown separately via buildInflationFactor. */
   buildBreakdown: { label: string; sqm: number; sqft: number; ratePsf: number; amount: number }[] | null;
 }
 
@@ -362,7 +444,12 @@ export interface MonthRow {
   devDrawdown: number;
   devInterest: number;
   devBalance: number;
+  /** True when this month's cumulative spend exceeds bridge + equity and no
+   *  dev loan draws yet: the spend has no funding source. */
   fundingGap: boolean;
+  /** The amount `fundingGap` is short by, so the gap can be reported rather
+   *  than merely flagged. Zero whenever `fundingGap` is false. */
+  fundingShortfall: number;
   /** VAT paid on the purchase this month (month 1 when opted to tax). */
   vatPaid: number;
   /** VAT reclaim landing this month. */
@@ -385,15 +472,25 @@ export interface FinanceSummary {
   bridgeInterestTotal: number;
   bridgeExitFee: number;
   bridgeRedemptionTotal: number;
+  /** Estimated facility at signing (E29), floored at zero: a cash-rich scheme
+   *  needs no facility, and a negative estimate used to price the arrangement
+   *  fee as finance income. */
   devFacilityEstimate: number;
+  /** True when no facility is estimated. The cashflow may still draw the loan
+   *  to redeem the bridge, in which case `runAppraisal` warns. */
+  devFacilityNil: boolean;
   devArrangementFee: number;
   devInterestTotal: number;
   devBalanceAtPC: number;
   devExitFee: number;
   devPayoffAtPC: number;
   peakDevBalance: number;
-  ltgdvAtPeak: number;
-  ltgdvOk: boolean;
+  /** Peak dev balance / GDV. `null` when there is no GDV to divide by — a
+   *  not-applicable state, never a passing zero. */
+  ltgdvAtPeak: number | null;
+  /** Covenant verdict. `null` when the ratio is not applicable (no GDV) or no
+   *  facility is estimated, so a degenerate scheme cannot read as compliant. */
+  ltgdvOk: boolean | null;
   /** VAT paid on the purchase (0 unless opted to tax). Nets to zero at reclaim. */
   vatOnPurchase: number;
   vatLoanFee: number;
@@ -432,8 +529,10 @@ export interface ScenarioResults {
     /** Cumulative HPI index at PC applied to today's GDV. */
     hpiIndexAtPc: number;
     netProfit: number;
-    profitOnCost: number;
-    profitOnGdv: number;
+    /** `null` when there are no costs to divide by. */
+    profitOnCost: number | null;
+    /** `null` when there is no GDV to divide by. */
+    profitOnGdv: number | null;
     investorProfit: number;
     developerProfit: number;
     investorRoi: number;
@@ -442,7 +541,9 @@ export interface ScenarioResults {
     waterfall: WaterfallResult;
   };
   s2: {
-    monthsToSellOut: number;
+    /** `null` when sales velocity is zero: no sales are modelled, so there is
+     *  no sell-out month. Never 0, which read as "sold out at completion". */
+    monthsToSellOut: number | null;
     monthsToRepay: number | '36+';
     extraInterest: number;
     /** Extra value from HPI between PC and each unit's sale month. */
@@ -452,10 +553,18 @@ export interface ScenarioResults {
     netProfit: number;
     investorProfit: number;
     investorRoi: number;
-    totalDurationMonths: number;
+    /** PC month + sell-out. `null` when no sales are modelled. */
+    totalDurationMonths: number | null;
     waterfall: WaterfallResult;
   };
   s3: {
+    /** Selling costs NOT incurred because the scheme is held, not sold. */
+    sellingCostsAvoided: number;
+    /** Letting costs incurred instead (the (I) group). */
+    lettingCosts: number;
+    /** All-in costs on the LET basis: the sale basis less selling costs, plus
+     *  letting costs, with this scenario's own finance costs. */
+    costsIfLet: number;
     mortgageAdvance: number;
     arrangementFee: number;
     devPayoff: number;
@@ -464,9 +573,11 @@ export interface ScenarioResults {
     netAnnualRent: number;
     annualInterest: number;
     netAnnualCashflow: number;
-    interestCover: number;
+    /** Net rent / mortgage interest. `null` when nothing is borrowed. */
+    interestCover: number | null;
     equityRemaining: number;
-    cashOnCash: number;
+    /** Net cashflow / equity left in. `null` when no equity remains. */
+    cashOnCash: number | null;
     unrealisedProfit: number;
   };
   s4: {
@@ -486,7 +597,7 @@ export interface ScenarioResults {
 export interface SensitivityResults {
   fixedCostBase: number;
   /** Grid 1: price movement -> S1 net profit & profit on GDV. */
-  grid1: { priceMove: number; netProfit: number; profitOnGdv: number }[];
+  grid1: { priceMove: number; netProfit: number; profitOnGdv: number | null }[];
   /** Grid 2: price movement x sales velocity -> approx S2 net profit. */
   grid2: { priceMove: number; profits: { velocity: number; netProfit: number }[] }[];
   grid2Velocities: number[];
@@ -514,6 +625,8 @@ export interface AppraisalResult {
     conMonths: number;
     conStartMonth: number;
     pcMonth: number;
+    /** Expected months held after PC; time-based holding costs run this long. */
+    holdMonths: number;
   };
   devCosts: DevCostsComputed;
   cashflow: MonthRow[];
@@ -557,11 +670,16 @@ export interface SalesEstimates {
 }
 
 /** Build cost research output: one blended all-in contract £/sqft that the
- *  room-rate table is scaled to (ratios preserved). */
+ *  room-rate table is scaled to (ratios preserved), plus the forward
+ *  tender-price inflation that carries it to the construction months. */
 export interface BuildEstimates {
   ranAt: string;
   region: string;
   blendedPsf: EstimateValue;
+  /** Forecast annual tender-price inflation (decimal). Absent when the
+   *  research found nothing usable — never defaulted to zero, which the model
+   *  would read as "tender prices are flat" rather than "not known". */
+  tenderInflationPa?: EstimateValue;
 }
 
 /** Finance rate research output, shaped to the deal's LTV/size/asset type. */

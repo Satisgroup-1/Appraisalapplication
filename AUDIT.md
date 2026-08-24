@@ -197,6 +197,139 @@ cannot delete lines); a hand-built spec omitting them makes grid1(0%) diverge fr
 exactly the selling costs. Pre-existing behaviour, untouched by this change, exposure limited
 to test scaffolding.
 
+### 6.2 Audit of the application layer (2026-08-24)
+
+A full read-through of the app around the engine — renderer, store, Electron main, export
+path — recorded in IMPROVEMENTS.md as 28 findings. The two that break the export contract
+were fixed first, since both silently contradict figures the user has already been shown.
+
+| # | Severity | Defect | Fix |
+|---|---|---|---|
+| 9 | HIGH | The workbook export built its payload from the **raw** project spec while the appraisal screen priced the **sanitized** one, so any repair the audit strip reported was contradicted by the exported workbook. Probe: a spec with a 450% bridge rate and a 90% agent fee showed 50% / 20% on screen (both reported as repairs) and wrote **4.5 and 0.9** into `'2. Inputs'`!E18/E40. `devCostLines` came from the raw spec too, and every `'7. App Model v2'` assumption line described the unrepaired inputs. | Payload construction moved out of the view into `src/core/exportPayload.ts` (`buildExportInputs`, `buildModelV2`), both taking the spec as a parameter so there is **no code path to the unrepaired one**. `AppraisalView` now carries the sanitized spec out of the same memo that computes the result. `tests/export.test.ts` pins the repaired figures in the written file — and pins the pre-fix behaviour too, so the sanitize step cannot be dropped again. |
+| 10 | HIGH | A schedule longer than `'1. Unit Import'` (rows 7-36) was **silently truncated** by a hardcoded `slice(0, 30)`. Probe: a 42-unit scheme exported a workbook whose sheets 1-6 carried £14,994,974 of GDV against the engine's £20,992,963 — **£5,997,990 missing**, with no warning anywhere. The `>30 units` note that does exist lives on `ConversionOption.warnings`, so it never reaches a demo or hand-entered schedule, and never reaches the export path at all. | The limit is now the shared `MAX_UNITS`, and `exportWorkbook` returns an `ExportOutcome` (units total / written / dropped, and the GDV dropped) that travels back over IPC. `runAppraisal` warns above `MAX_UNITS` naming the omitted GDV; the export confirmation renders as a warning, not a success, and states the figures; the `'7. App Model v2'` sheet carries a `CAPACITY WARNING` row so a workbook reader sees the discrepancy next to the full-schedule numbers. |
+
+Both were reachable because **the export path had no unit test at all** — only
+`scripts/crosscheck.sh`, which needs LibreOffice and so runs by hand. `tests/export.test.ts`
+(13 tests) now exercises it against the real template and reads the bytes back; four of those
+tests were confirmed to fail against the pre-fix engine and exporter before the fix landed.
+`scripts/` is also now inside `tsconfig.json`'s `include`, so the crosscheck script is
+typechecked against the signatures it calls.
+
+Extraction of the model-v2 payload was verified output-identical to the original inline code
+across four spec variants (default, VAT-loan, waterfall, HPI), so the exported sheet is
+unchanged.
+
+### 6.3 Non-rectangular envelopes (2026-08-24)
+
+| # | Severity | Defect | Fix |
+|---|---|---|---|
+| 11 | HIGH | The layout engine packs units on the envelope's **bounding box** and then measured those rectangles as if they were inside the building. On any non-rectangular floor that counted floor area the building does not have. Probe: an L-shaped floor (26x6 base plus a 13x7 leg, true area 247 sqm inside a 338 sqm bounding box) reported **NIA 306.8 sqm — 124% net-to-gross**, overstating GDV by ~24%, and the compliance report passed units sitting in thin air. Not an edge case: the AI extractor is asked for `4-10 vertices` and DXF import takes whatever closed polyline it finds. | Every rectangle the engine proposes — each unit and each of its rooms — is clipped to the envelope polygon (`src/core/geom.ts`, Sutherland-Hodgman) before its area counts, and re-typed on the clipped area. A unit whose clipped area no longer supports any type in the strategy is **dropped rather than shrunk**, so such floors come out deliberately under-packed: conservative, and visible in the net-to-gross figure. The L-shaped probe now reports 83% net-to-gross; a U-shaped one 86%. Clipped units and rooms carry an `outline` and the schematic renders them as polygons, so the plan shows the footprint the areas were measured on. |
+
+Two things were needed to make this safe to land:
+
+- **Bit-exactness on rectangles.** Clipping a rectangle wholly inside its envelope must return the rectangle's own `w x d`, not the shoelace sum of the clipped ring: the ring's vertices come from interpolation, so the shoelace differs in the last floating-point digit — enough to flip a 1dp rounding and move a unit by 0.1 sqm. The first cut of the fix silently shifted the demo floor's NIA from 289.2 to 289.0. `rectClip` now returns the exact product when the rectangle is contained, and the demo building's unit areas, room areas and all eight option GDVs were diffed against git HEAD and are **identical**.
+- **A standing tripwire.** `makeOption` warns when any floor's NIA exceeds its GIA. Unreachable now, kept because while it *was* reachable the only symptom was a quietly inflated GDV.
+
+Coverage: `tests/geom.test.ts` (7 tests) checks the clipping against hand calculations, including a U-shaped floor where a horizontal band splits into two disconnected pieces — the case naive clipping gets wrong — plus a 400-rectangle sweep asserting the clipped area never exceeds either input, and the partition-conservation property the room tiling depends on. `tests/layout.test.ts` grew to 19 tests covering L/U shapes, the partial-clip cases real buildings have (chamfered corner, shallow notch, angled rear wall — these clip a unit without killing it, so they exercise the outline path), SVG rendering staying inside the envelope, and the pre-clipping demo figures pinned as regression values. Six of them were confirmed to fail against the unclipped engine.
+
+Still open, and deliberately not addressed here: the packer itself remains bounding-box based, so a notched floor is under-packed rather than optimally laid out (IMPROVEMENTS.md C1 notes this as the residual). A polygon-aware packer is a much larger change; measuring honestly came first.
+
+### 6.4 Tender-price inflation on the main contract (2026-08-24)
+
+| # | Severity | Defect | Fix |
+|---|---|---|---|
+| 12 | HIGH | HPI indexed **revenue** forward to completion while the build cost stayed frozen at today's money. On the demo at 5% pa HPI over a 15-month programme, GDV rose £6,248,229 → £6,641,154 and the contract stayed at £2,305,099: **+£386,876 of profit created purely by the passage of time**. The model therefore rewarded a *longer* programme, inverting the real risk, and turning HPI on — which the sales research run does automatically, since it fills the HPI array — was not the conservative act it appeared to be. | A `buildInflation` block on `FinanceInputs` (enabled flag + one annual rate, independent of HPI because tender prices and house prices diverge). The typed D01 / room-rate table is treated as **today's** money and indexed to the months the contract is actually certified; percentage-of-build lines (contingency, demolition) follow automatically. `buildCostSchedule` returns both the S-curve-weighted index and the per-month certificate weights, so each certificate carries its OWN index while `Σ weights = 1` and `todayCost × factor = D01` hold exactly — every conservation identity survives. |
+
+Design notes worth keeping:
+
+- **Independent of HPI, on purpose.** Tender prices are driven by labour, materials and contractor workload; house prices by mortgage rates and supply. They routinely move in opposite directions, so one rate cannot serve both.
+- **The uplift tracks the S-curve's centre, not the end date.** Twelve extra months of programme moves the midpoint by six, so a 24-month build at 4% pa carries 5.2% rather than ~8%. Pinned in the tests to stop anyone "correcting" it.
+- **Ships DISABLED**, with a usable 4% rate loaded, so no stored project's profit moves on load — and `normalizePricing` gates on the flag being present, not on the block, so a truthy-but-empty `buildInflation: {}` cannot inherit the default and silently flip the model (the trap §6.1 finding 8 found in the SDLT block).
+- **The asymmetry is never silent again.** `runAppraisal` warns whenever HPI is indexing revenue while tender inflation is off, saying explicitly that a longer programme will wrongly look more profitable; the Pricing page shows the same warning inline. When inflation IS on, the applied factor is reported.
+- **Other cost lines stay in today's money** — professional fees, utilities, holding costs. Stated in the warning and in the Pricing note rather than left to be discovered.
+- **Researched, not guessed.** The build-cost estimate agent now also forecasts annual tender-price inflation from the BCIS Tender Price Index and cost-consultant forecasts, sanitised into a -15%..+30% band. A missing forecast stays **absent** rather than becoming 0%, which the model would read as "tender prices are flat" instead of "not known".
+- Costs tab shows today's sub-total, the inflation step and the indexed contract as three lines, in both build-cost modes, so the room-rate breakdown still reconciles to `rate × area`.
+
+One defect was introduced and caught during this change, of exactly the class §6.2 finding 9 fixed: `buildCostOverride` gated the exported D01 on room-rate mode, so `fixed` mode with inflation on wrote the **typed** figure into the workbook while the model used the indexed one — £72,788 apart on the demo at 4% pa. It now always exports the contract sum the engine used, whatever made it differ from the typed line, and `tests/export.test.ts` asserts that across both build modes with inflation on and off.
+
+Coverage: `tests/buildinflation.test.ts` (25 tests) — the index and weights from first principles, the factor equal to a hand-summed indexed S-curve, conservation through the cashflow, deflation, both build-cost modes, the legacy-file and empty-block migrations, sanitiser clamping, the asymmetry warning firing and *not* crying wolf on an all-zero HPI array, and two seeded-corruption cases proving the auditor catches a wrong factor — which matters because a wrong factor is conservation-consistent, so nothing else in the audit would notice. Six of these were confirmed to fail against the frozen-cost engine. The audit grew from 44 to 48 checks.
+
+### 6.5 Per-exit cost attribution and time-based holding costs (2026-08-24)
+
+| # | Severity | Defect | Fix |
+|---|---|---|---|
+| 13 | HIGH | Every scenario paid every cost. The refinance-and-hold case (S3) was charged the whole `(G) Sales & marketing` group — **£143,723 on the demo, £93,723 of it agent fees on a sale that never happens** — and its `unrealisedProfit` was literally `netProfit1`, the sale case's profit. It also carried **no letting costs at all**, so the hold was overcharged for selling and undercharged for letting at the same time. | `DevCostLine` gains `whenIncurred: 'always' \| 'onSale' \| 'onLet'` (absent = `always`, so stored files are unaffected), plus a new `(I) Letting` group for the one-off cost of getting the building let. `computeDevCosts` takes a basis and excludes the other exit's lines, recording their total as `excludedTotal`. S3 is priced on its own let-basis build-up **and its own cashflow**, so its dev loan at PC reflects not spending £143,723 of sales cost — the refinance now releases a £144,899 surplus where it previously showed a £2,049 gap, and unrealised profit is £892,064 rather than the sale case's £779,615. |
+| 14 | MEDIUM/HIGH | `(F)` holding costs were lump sums spread over the sell period, so the **total never changed with the hold**: £13,550 whether sell-out took 3 months or 24, while interest correctly scaled 6x. The slow-sales case — the one the scenario exists to test — was the one it understated. | Two new cost kinds, `perMonthHeld` and `perUnitPerMonthHeld`, and the four `(F)` defaults converted to them. `Programme` gains `holdMonths`, which is the single figure both the cost lines and the cashflow spread use, so they cannot drift. On the demo the group now runs £6,786 at 4 units/month to £54,288 at 0.5 — exactly 8x for 8x the hold. Sensitivity grid 2 re-prices holding as it sweeps velocity, or it would have reproduced this very defect inside the grid. |
+
+Notes:
+
+- **No double counting with the rent deductions.** `(I)` is deliberately the *one-off* cost of letting — tenant-find fees, EPCs, inventory, licensing. Ongoing management and voids are already deducted from rent by `refinance.mgmtPct` and `voidPct`, so a management fee here would be charged twice.
+- **Backward compatibility is exact.** A stored project's `devCosts` array carries no `whenIncurred` and no `(I)` lines, so nothing is excluded, the let basis equals the sale basis, and S3 reproduces its old figures to the penny — asserted directly. Legacy `fixed` `(F)` lines keep lump behaviour.
+- **The demo was re-pinned by £22**, being the difference between the old `(F)` lumps and honest round monthly rates. Storing back-derived values like `458.3333333333333` would have protected the goldens at the cost of fake precision in a user-facing default. Every changed pin in `tests/dcf.test.ts` traces to that £22 and says so; S3's larger movement is the fix itself, not a side effect.
+
+A third instance of the §6.2 finding 9 export class was caught here: the workbook has no cell shape for "per month held", so `(F)`'s F61-F64 would have silently kept the *template's* figures while the app computed different ones. Each line's computed amount now travels in the export payload and is written for any amount-cell whose kind the workbook cannot express. **This mapping has now produced the same class of defect three times** (typed vs. banded SDLT, room-rate vs. inflated D01, and now the time-based lines) — it is the weakest seam in the codebase and worth a structural fix rather than a fourth patch.
+
+Coverage: `tests/costincidence.test.ts` (21 tests) — linear scaling with the hold, cost lines and cashflow sharing one hold period, per-unit-per-month scaling, horizon clamping, zero velocity, the grid-2 term recomputed cell by cell, legacy lump behaviour, the incidence split on both bases, S3's reconciliation, the untagged-spec compatibility guarantee, and three seeded-corruption cases. Nine were confirmed to fail against the pre-fix engine. The audit grew from 48 to 53 checks.
+
+### 6.6 Guard rails on degenerate inputs, and plausibility checks (2026-08-24)
+
+Four defects with one shape: a degenerate input produced a confident-looking
+number instead of an explicit "not applicable", and nothing on screen said so.
+The auditor could not catch any of them, because every one was arithmetically
+self-consistent — the same blind spot that let the SDLT-doubling bug through.
+
+| # | Severity | Defect | Fix |
+|---|---|---|---|
+| 15 | MEDIUM | The E29 facility estimate (`totalPreFinance - equity - bridgeAdvance + estRedemption`) was unfloored. With £6m of equity against ~£5.1m of cost it read **-£812,718**, and the arrangement fee at 1.5% became **-£12,191 of phantom finance *income*** netted off total costs. No warning fired: a cash-rich deal was paid to arrange a facility. | The estimate is floored at zero and the fee priced off the floored figure, so finance can never be income. The E29 basis is unchanged — it is faithful to how facilities are priced at signing. `FinanceSummary.devFacilityNil` carries the state onward. |
+| 16 | MEDIUM | `velocityPerMonth = 0` returned `monthsToSellOut = 0`, so S2 reported `totalDurationMonths` **15 — "sold out at completion"** — beside `monthsToRepay '36+'` and **£1,164,090** of extra interest. The duration headline and the interest bill described different universes, and the sell-out warning was gated on `velocity > 0` so it could never reach this case. | `monthsToSellOut` and `totalDurationMonths` are `number \| null`; zero velocity is `null` — no sales modelled — and warns, naming the interest figure and pointing at S3. The pref horizon falls back to the sell-down window, which is what it already resolved to. |
+| 17 | MEDIUM | `fundingGap` was computed for every month and surfaced **nowhere** — no warning, no UI element, no audit check. Pre-construction spend above bridge + equity is simply unfunded: money out with no source and no interest charged. | `MonthRow.fundingShortfall` quantifies each gap, `runAppraisal` warns with the months and the peak amount, and `plaus-funded` fails the audit. On a zero-equity demo probe the peak shortfall is **£940,782** across months 1-3. |
+| 18 | LOW | `ltgdvAtPeak` guarded division by returning 0, and `ltgdvOk` then read `0 <= maxLtgdv` — **`true`**. A schedule with no sale prices *passed the LTGDV covenant*. Same shape for `profitOnCost`, `profitOnGdv`, `interestCover` and `cashOnCash`. | Those five are `number \| null` and the covenant verdict is `boolean \| null`: not applicable when the ratio is, or when no facility is estimated. The UI renders `n/a`, and "not assessed" rather than "(ok)" on the covenant. A real breach stays `false` — pinned by a test, because the not-applicable path is exactly where a breach could get swallowed. |
+
+Notes:
+
+- **A4's written fix was to "skip the facility entirely when the estimate is
+  nil". The probe showed that would be wrong.** With £6m of equity the cashflow
+  still draws up to **£1,446,776**, because equity is capped at
+  `cumNeed - bridgeAdvance` and the bridge must still be redeemed at
+  construction start. So a real facility exists while the estimate reads nil.
+  Flooring removes the phantom income; it leaves that draw priced at a £0
+  arrangement fee, which is an understatement. Rather than paper over it, the
+  divergence warns explicitly. **Residual:** the estimate basis and the actual
+  draw can disagree, and only the warning connects them. Sizing the facility
+  from the cashflow instead of from E29 is the real fix and is a schema-level
+  change to how the fee is charged.
+- **The ICR check is not a check on the deal.** A7's decision is to warn below
+  100% cover only. The demo's ICR of 0.87 is a *true statement* about the
+  scheme, not a model defect, so `plaus-icr` does not fail on it — it fails
+  only when cover is below 1 and **no warning says so**. A first pass had it
+  failing on the ratio itself, which broke five existing "the audit is clean on
+  a healthy appraisal" tests and, correctly read, showed the check was
+  conflating "the model is wrong" with "the deal is weak".
+- **No demo figure moved and no golden pin was touched.** Every fix is gated on
+  a degenerate state the demo is not in: the demo's facility estimate stays
+  £3,787,281.62, its fee £56,809.22, its sell-out 6 months and its LTGDV
+  0.63745. The one visible change on the demo is the new ICR warning, which is
+  the A7 decision being honoured.
+- **NIA ≤ GIA is already covered** by §6.3's `makeOption` tripwire, and the
+  data lives on the option rather than the appraisal, so it is not duplicated
+  in `auditAppraisal`.
+
+The seven new plausibility checks (`plaus-facility`, `plaus-finance-cost`,
+`plaus-funded`, `plaus-gap-amount`, `plaus-icr`, `plaus-ratios`,
+`plaus-duration`) are the E3 answer: they ask whether an answer *could be true
+of a real scheme*, where every other check asks only whether the model agrees
+with itself. `plaus-ratios` also caught a defect in its own first draft —
+`a !== true === b` parses as `(a !== true) === b`, which would have failed a
+genuine covenant breach. That is now pinned.
+
+Coverage: `tests/guardrails.test.ts` (23 tests) — the over-equitised probe, the
+nil-estimate-with-a-real-draw divergence, zero velocity, quantified funding
+gaps and the peak figure in the warning, every not-applicable ratio, the ICR
+warning and its silence once cover clears, a real covenant breach staying a
+breach, and each new audit check in both its passing and failing state.
+Eighteen were confirmed to fail against the pre-fix engine. The audit grew from
+53 to 61 checks; the suite from 228 to 251 tests.
+
 ## 7. Re-running the audit
 
 ```bash

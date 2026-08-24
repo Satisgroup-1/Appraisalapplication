@@ -77,26 +77,46 @@ export function planToSvg(plan: FloorPlanResult, env: Envelope, opts?: { title?:
     );
   }
 
-  // units + rooms
+  // units + rooms. Both carry an `outline` when the drawn rectangle overhangs a
+  // non-rectangular envelope, so the plan shows the clipped footprint the areas
+  // were actually measured on rather than a rectangle floating outside a wall.
+  const shape = (
+    outline: [number, number][] | undefined,
+    rx0: number,
+    ry0: number,
+    rx1: number,
+    ry1: number,
+    attrs: string,
+  ) =>
+    outline
+      ? `<polygon points="${outline.map((p) => `${X(p[0])},${Y(p[1])}`).join(' ')}" ${attrs}/>`
+      : `<rect x="${X(rx0)}" y="${Y(ry0)}" width="${px(rx1 - rx0)}" height="${px(ry1 - ry0)}" ${attrs}/>`;
+
   for (const u of plan.units) {
     const fill = TYPE_FILL[u.label] ?? '#f3eee4';
-    s.push(
-      `<rect x="${X(u.x0)}" y="${Y(u.y0)}" width="${px(u.x1 - u.x0)}" height="${px(u.y1 - u.y0)}" fill="${fill}" stroke="${INK}" stroke-width="1.75"/>`,
-    );
+    s.push(shape(u.outline, u.x0, u.y0, u.x1, u.y1, `fill="${fill}" stroke="${INK}" stroke-width="1.75"`));
     for (const r of u.rooms) {
-      let ry = u.side === 'front' ? u.y0 : u.y1 - r.d;
-      if (r.type === 'bathroom' || r.type === 'hall') {
-        ry = u.side === 'front' ? u.y1 - r.d : u.y0;
-      }
+      if (r.area <= 0) continue; // wholly outside the envelope: nothing to draw
+      s.push(shape(r.outline, r.x, r.y, r.x + r.w, r.y + r.d, `fill="none" stroke="#b8b2a4" stroke-width="0.6"`));
+      // Label from the drawn extent, but clamped into the shape actually shown.
+      const lx = r.outline ? Math.min(...r.outline.map((p) => p[0])) : r.x;
+      const ly = r.outline ? Math.min(...r.outline.map((p) => p[1])) : r.y;
       s.push(
-        `<rect x="${X(r.x)}" y="${Y(ry)}" width="${px(r.w)}" height="${px(r.d)}" fill="none" stroke="#b8b2a4" stroke-width="0.6"/>`,
-        `<text x="${X(r.x) + 3}" y="${Y(ry) + 11}" font-size="7.5" fill="${MUTED}">${esc(r.name)} ${r.area}m²</text>`,
+        `<text x="${X(lx) + 3}" y="${Y(ly) + 11}" font-size="7.5" fill="${MUTED}">${esc(r.name)} ${r.area}m²</text>`,
       );
     }
-    const midx = (u.x0 + u.x1) / 2;
-    const midy = (u.y0 + u.y1) / 2;
+    // Centre the unit label on the clipped footprint, not on a midpoint that
+    // may sit outside the building.
+    const box = u.outline
+      ? [
+          Math.min(...u.outline.map((p) => p[0])),
+          Math.min(...u.outline.map((p) => p[1])),
+          Math.max(...u.outline.map((p) => p[0])),
+          Math.max(...u.outline.map((p) => p[1])),
+        ]
+      : [u.x0, u.y0, u.x1, u.y1];
     s.push(
-      `<text x="${X(midx)}" y="${Y(midy) + 4}" font-size="11" font-weight="600" text-anchor="middle" fill="${INK}">${u.no}: ${esc(
+      `<text x="${X((box[0] + box[2]) / 2)}" y="${Y((box[1] + box[3]) / 2) + 4}" font-size="11" font-weight="600" text-anchor="middle" fill="${INK}">${u.no}: ${esc(
         u.label,
       )} ${u.giaSqm}m²</text>`,
     );

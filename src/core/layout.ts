@@ -12,26 +12,22 @@
 //   best (largest) type its area, window count and living width can support.
 // - Rooms: bedrooms and living/kitchen on the facade (windowed), bathroom and
 //   hall on the internal strip (mechanical vent).
+// - Every proposed rectangle is CLIPPED to the envelope polygon before its area
+//   counts. The packing grid is the bounding box, so on an L/T/U-shaped floor a
+//   unit can overhang the building; measuring the unclipped rectangle inflated
+//   net area and GDV (AUDIT.md §6.3). A unit whose clipped area no longer
+//   supports any type in the strategy is dropped rather than shrunk, which
+//   leaves such floors deliberately under-packed — conservative, and visible in
+//   the net-to-gross figure.
 
 import type { Envelope, FloorPlanResult, MixStrategy, PlannedUnit, Room, UnitTypeKey } from './types';
 import type { Rules } from './rules';
 import { BEDS, LABEL, MAX_STRETCH, MIN_LIVING_W, PERSONS } from './rules';
+import { bounding, polyArea, rectClip } from './geom';
 
-export function polyArea(poly: [number, number][]): number {
-  let a = 0;
-  for (let i = 0; i < poly.length; i++) {
-    const [x1, y1] = poly[i];
-    const [x2, y2] = poly[(i + 1) % poly.length];
-    a += x1 * y2 - x2 * y1;
-  }
-  return Math.abs(a) / 2;
-}
-
-export function bounding(poly: [number, number][]): [number, number, number, number] {
-  const xs = poly.map((p) => p[0]);
-  const ys = poly.map((p) => p[1]);
-  return [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)];
-}
+// Re-exported: callers took these from here before the geometry helpers were
+// split out, and the layout engine remains their natural home in the API.
+export { bounding, polyArea };
 
 const round = (v: number, dp: number) => {
   const f = 10 ** dp;
@@ -141,6 +137,37 @@ export function planFloor(env: Envelope, rules: Rules, strategy: MixStrategy = '
     return null;
   }
 
+  /** The clipped footprint, but only when the rectangle actually overhangs the
+   *  envelope — a rectangular floor carries no redundant outlines. */
+  function outlineOf(c: { inside: boolean; ring: [number, number][] }): { outline?: [number, number][] } {
+    if (c.inside || c.ring.length < 3) return {};
+    return { outline: c.ring.map((p) => [round(p[0], 2), round(p[1], 2)] as [number, number]) };
+  }
+
+  /** One room rectangle, measured and drawn as clipped to the envelope. */
+  function room(
+    type: Room['type'],
+    name: string,
+    rx: number,
+    rw: number,
+    ry: number,
+    rd: number,
+    window: boolean,
+  ): Room {
+    const c = rectClip(env.envelope, rx, ry, rx + rw, ry + rd);
+    return {
+      type,
+      name,
+      x: round(rx, 2),
+      w: round(rw, 2),
+      y: round(ry, 2),
+      d: round(rd, 2),
+      area: round(c.area, 1),
+      ...outlineOf(c),
+      window,
+    };
+  }
+
   function makeUnit(
     t: UnitTypeKey,
     ux0: number,
@@ -152,53 +179,25 @@ export function planFloor(env: Envelope, rules: Rules, strategy: MixStrategy = '
   ): PlannedUnit {
     const w = ux1 - ux0;
     const d = uy1 - uy0;
+    const unitClip = rectClip(env.envelope, ux0, uy0, ux1, uy1);
     const hallD = 1.2;
     const facadeD = d - hallD;
     const br = rules.bedrooms;
+    // Habitable rooms take the window wall; bathroom and hall the strip against
+    // the corridor. 'front' units face min-y, 'rear' units max-y.
+    const facadeY0 = side === 'front' ? uy0 : uy1 - facadeD;
+    const internalY0 = side === 'front' ? uy1 - hallD : uy0;
     const rooms: Room[] = [];
     let cursor = ux0;
     for (let b = 0; b < BEDS[t]; b++) {
       const bw = Math.max(b === 0 ? br.doubleMinWidth : br.otherDoubleMinWidth, br.doubleMinArea / facadeD);
-      rooms.push({
-        type: 'bedroom',
-        name: `Bed ${b + 1}`,
-        x: round(cursor, 2),
-        w: round(bw, 2),
-        d: round(facadeD, 2),
-        area: round(bw * facadeD, 1),
-        window: true,
-      });
+      rooms.push(room('bedroom', `Bed ${b + 1}`, cursor, bw, facadeY0, facadeD, true));
       cursor += bw;
     }
-    const lw = ux1 - cursor;
-    rooms.push({
-      type: 'kitchen_living',
-      name: 'Living / Kitchen',
-      x: round(cursor, 2),
-      w: round(lw, 2),
-      d: round(facadeD, 2),
-      area: round(lw * facadeD, 1),
-      window: true,
-    });
+    rooms.push(room('kitchen_living', 'Living / Kitchen', cursor, ux1 - cursor, facadeY0, facadeD, true));
     const bathW = Math.min(2.2, w - 0.8);
-    rooms.push({
-      type: 'bathroom',
-      name: 'Bath',
-      x: round(ux0, 2),
-      w: round(bathW, 2),
-      d: hallD,
-      area: round(bathW * hallD, 1),
-      window: false,
-    });
-    rooms.push({
-      type: 'hall',
-      name: 'Hall / Storage',
-      x: round(ux0 + bathW, 2),
-      w: round(w - bathW, 2),
-      d: hallD,
-      area: round((w - bathW) * hallD, 1),
-      window: false,
-    });
+    rooms.push(room('bathroom', 'Bath', ux0, bathW, internalY0, hallD, false));
+    rooms.push(room('hall', 'Hall / Storage', ux0 + bathW, w - bathW, internalY0, hallD, false));
     return {
       no: 0,
       name: '',
@@ -211,7 +210,10 @@ export function planFloor(env: Envelope, rules: Rules, strategy: MixStrategy = '
       x1: round(ux1, 2),
       y0: round(uy0, 2),
       y1: round(uy1, 2),
-      giaSqm: round(w * d, 1),
+      // Clipped, not w x d: on a rectangular floor these are identical, on a
+      // notched one only the part inside the building counts.
+      giaSqm: round(unitClip.area, 1),
+      ...outlineOf(unitClip),
       windows: wins.map((v) => round(v, 2)),
       rooms,
     };
@@ -227,7 +229,9 @@ export function planFloor(env: Envelope, rules: Rules, strategy: MixStrategy = '
         const ux0 = cx;
         const ux1 = cx + wdt;
         const wins = wxs.filter((w) => ux0 + 0.2 <= w && w <= ux1 - 0.2);
-        const gia = wdt * depth;
+        // The area that actually exists, so a unit hanging over a notch is
+        // typed on (or rejected for) its real size.
+        const gia = rectClip(env.envelope, ux0, by0, ux1, by1).area;
         const br = rules.bedrooms;
         const livingWAt = (tt: UnitTypeKey) => {
           let bw = 0;
@@ -283,41 +287,47 @@ export function planFloorThrough(env: Envelope, rules: Rules): FloorPlanResult {
   const D = y1 - y0;
   const hallD = 1.2;
   const facadeD = D - hallD;
+  const roomD = facadeD / 2;
+  // Same convention as planFloor: habitable rooms on the window wall (min-y
+  // here, since a lateral unit is treated as front-facing), services behind.
+  const facadeY0 = y0;
+  const internalY0 = y1 - hallD;
+  /** Measured and drawn clipped to the envelope, as in planFloor. */
+  const room = (
+    type: Room['type'],
+    name: string,
+    rx: number,
+    rw: number,
+    ry: number,
+    rd: number,
+    window: boolean,
+  ): Room => {
+    const c = rectClip(env.envelope, rx, ry, rx + rw, ry + rd);
+    return {
+      type,
+      name,
+      x: round(rx, 2),
+      w: round(rw, 2),
+      y: round(ry, 2),
+      d: round(rd, 2),
+      area: round(c.area, 1),
+      ...(c.inside || c.ring.length < 3
+        ? {}
+        : { outline: c.ring.map((p) => [round(p[0], 2), round(p[1], 2)] as [number, number]) }),
+      window,
+    };
+  };
   const rooms: Room[] = [];
   let cursor = x0;
   const br = rules.bedrooms;
   for (let b = 0; b < BEDS[type]; b++) {
-    const bw = Math.max(b === 0 ? br.doubleMinWidth : br.otherDoubleMinWidth, br.doubleMinArea / Math.max(facadeD / 2, 2.5));
-    rooms.push({
-      type: 'bedroom',
-      name: `Bed ${b + 1}`,
-      x: round(cursor, 2),
-      w: round(bw, 2),
-      d: round(facadeD / 2, 2),
-      area: round(bw * (facadeD / 2), 1),
-      window: true,
-    });
+    const bw = Math.max(b === 0 ? br.doubleMinWidth : br.otherDoubleMinWidth, br.doubleMinArea / Math.max(roomD, 2.5));
+    rooms.push(room('bedroom', `Bed ${b + 1}`, cursor, bw, facadeY0, roomD, true));
     cursor += bw;
   }
-  rooms.push({
-    type: 'kitchen_living',
-    name: 'Living / Kitchen',
-    x: round(cursor, 2),
-    w: round(x1 - cursor, 2),
-    d: round(facadeD / 2, 2),
-    area: round((x1 - cursor) * (facadeD / 2), 1),
-    window: true,
-  });
-  rooms.push({ type: 'bathroom', name: 'Bath', x: round(x0, 2), w: 2.2, d: hallD, area: round(2.2 * hallD, 1), window: false });
-  rooms.push({
-    type: 'hall',
-    name: 'Hall / Storage',
-    x: round(x0 + 2.2, 2),
-    w: round(W - 2.2, 2),
-    d: hallD,
-    area: round((W - 2.2) * hallD, 1),
-    window: false,
-  });
+  rooms.push(room('kitchen_living', 'Living / Kitchen', cursor, x1 - cursor, facadeY0, roomD, true));
+  rooms.push(room('bathroom', 'Bath', x0, 2.2, internalY0, hallD, false));
+  rooms.push(room('hall', 'Hall / Storage', x0 + 2.2, W - 2.2, internalY0, hallD, false));
   const unit: PlannedUnit = {
     no: 1,
     name: 'Apartment 1',
@@ -330,7 +340,11 @@ export function planFloorThrough(env: Envelope, rules: Rules): FloorPlanResult {
     x1: round(x1, 2),
     y0: round(y0, 2),
     y1: round(y1, 2),
+    // Already polygon-correct: the whole floor minus its cores.
     giaSqm: round(nia, 1),
+    ...(rectClip(env.envelope, x0, y0, x1, y1).inside
+      ? {}
+      : { outline: env.envelope.map((p) => [round(p[0], 2), round(p[1], 2)] as [number, number]) }),
     windows: wins.map((v) => round(v, 2)),
     rooms,
   };

@@ -42,6 +42,8 @@ export const BANDS = {
   rentPsf: { min: 0.3, max: 12 } as Band,
   buildPsf: { min: 50, max: 1000 } as Band,
   ratePa: { min: 0, max: 0.35 } as Band,
+  /** Tender-price inflation: deflation is real, +30% pa is not. */
+  inflationPa: { min: -0.15, max: 0.3 } as Band,
   feePct: { min: 0, max: 0.1 } as Band,
 };
 
@@ -122,7 +124,10 @@ export function sanitizeBuildEstimates(raw: unknown, region: string, ranAt: stri
   const r = (raw ?? {}) as Record<string, unknown>;
   const blendedPsf = sanitizeEstimate(r.blendedPsf, BANDS.buildPsf);
   if (!blendedPsf) return null;
-  return { ranAt, region, blendedPsf };
+  // Inflation is optional: a missing forecast stays missing rather than
+  // becoming 0%, which the model would read as "tender prices are flat".
+  const tenderInflationPa = sanitizeEstimate(r.tenderInflationPa, BANDS.inflationPa);
+  return { ranAt, region, blendedPsf, ...(tenderInflationPa ? { tenderInflationPa } : {}) };
 }
 
 /** Which band each finance figure is judged against. */

@@ -19,7 +19,7 @@ import type {
   ScheduleRow,
   WaterfallResult,
 } from './types';
-import { hpiIndexAt, MONTHS, sdltLineCodeOf } from './dcf';
+import { buildCostSchedule, hpiIndexAt, MONTHS, sdltLineCodeOf } from './dcf';
 import { DEFAULT_PRICING } from './pricing';
 import { SQM_TO_SQFT } from './rules';
 import { sdltForFinance } from './sdlt';
@@ -157,6 +157,27 @@ export function sanitizeSpec(spec: PricingSpec): { spec: PricingSpec; repairs: A
   }
   f.hpi.annualPct = cleaned;
 
+  // Tender-price inflation: one annual rate, in a band credible for tender
+  // prices (deflation happens; +30% pa does not).
+  if (!f.buildInflation || typeof f.buildInflation.enabled !== 'boolean') {
+    repairs.push({
+      field: 'build inflation',
+      from: String(f.buildInflation?.enabled),
+      to: 'off',
+      reason: 'missing or malformed; build cost kept at today’s money',
+    });
+    f.buildInflation = { ...d.buildInflation, enabled: false };
+  }
+  f.buildInflation.annualPct = fix(
+    repairs,
+    'build inflation rate',
+    f.buildInflation.annualPct,
+    d.buildInflation.annualPct,
+    -0.15,
+    0.3,
+    'must be -15%..+30% pa',
+  );
+
   f.waterfall.prefRatePa = fix(repairs, 'preferred return', f.waterfall.prefRatePa, d.waterfall.prefRatePa, 0, 0.5, 'must be 0-50% pa');
   f.waterfall.residualInvestorPct = fix(repairs, 'investor share above pref', f.waterfall.residualInvestorPct, d.waterfall.residualInvestorPct, 0, 1, 'must be 0-100%');
 
@@ -264,6 +285,16 @@ export function auditAppraisal(r: AppraisalResult, spec: PricingSpec, schedule: 
   const allLines = (Object.keys(r.devCosts.groups) as DevCostGroup[]).flatMap((g) => r.devCosts.groups[g].lines);
   for (const specLine of spec.devCosts) {
     const outLine = allLines.find((l) => l.code === specLine.code);
+    const incidence = specLine.whenIncurred ?? 'always';
+    if (incidence !== 'always' && incidence !== r.devCosts.basis) {
+      // Correctly absent: this line belongs to the other exit.
+      if (outLine) {
+        linesOk = false;
+        lineDetail = `line ${specLine.code} is ${incidence} but appears in the ${r.devCosts.basis} build-up`;
+        break;
+      }
+      continue;
+    }
     if (!outLine) {
       linesOk = false;
       lineDetail = `line ${specLine.code} missing from output`;
@@ -289,6 +320,15 @@ export function auditAppraisal(r: AppraisalResult, spec: PricingSpec, schedule: 
       case 'salesLegalPerUnit':
         expected = f.sales.legalPerUnit * r.totals.units;
         break;
+      case 'perMonthHeld':
+        expected = specLine.value * r.devCosts.holdMonths;
+        break;
+      case 'perUnitPerMonthHeld':
+        expected = specLine.value * r.totals.units * r.devCosts.holdMonths;
+        break;
+      case 'pctAnnualRent':
+        expected = specLine.value * r.totals.grossAnnualRent;
+        break;
     }
     if (!closeAbs(outLine.amount, expected, 0.02)) {
       linesOk = false;
@@ -297,6 +337,34 @@ export function auditAppraisal(r: AppraisalResult, spec: PricingSpec, schedule: 
     }
   }
   ok('costs-lines', 'Every cost line recomputes from its driver (incl. sales fees on levered GDV)', linesOk, lineDetail);
+  // Build inflation, re-derived independently: the factor from the rate and the
+  // programme, and the line from today's cost x that factor. A wrong factor
+  // would otherwise be invisible, since every %-of-build line agrees with it.
+  const expectSchedule = buildCostSchedule(f.buildInflation, r.programme);
+  ok(
+    'costs-buildinflation',
+    'Build inflation factor = S-curve-weighted tender index over the construction period',
+    closeRel(r.devCosts.buildInflationFactor, expectSchedule.factor, 1e-9),
+    `${r.devCosts.buildInflationFactor} vs ${expectSchedule.factor}`,
+  );
+  ok(
+    'costs-buildtoday',
+    'Build cost = today’s cost × the inflation factor',
+    closeAbs(buildCost, r.devCosts.buildCostToday * r.devCosts.buildInflationFactor, 0.02),
+    `${gbp(buildCost)} vs ${gbp(r.devCosts.buildCostToday * r.devCosts.buildInflationFactor)}`,
+  );
+  ok(
+    'costs-buildinflation-off',
+    'Inflation disabled leaves the contract at today’s money',
+    f.buildInflation.enabled || closeAbs(buildCost, r.devCosts.buildCostToday, 0.02),
+    `${gbp(buildCost)} vs ${gbp(r.devCosts.buildCostToday)}`,
+  );
+  ok(
+    'costs-buildweights',
+    'Monthly contract certificates share out the whole contract sum (Σ weights = 1)',
+    closeRel(expectSchedule.weights.reduce((a, b) => a + b, 0), 1, 1e-9),
+    `Σ = ${expectSchedule.weights.reduce((a, b) => a + b, 0)}`,
+  );
   for (const g of Object.keys(r.devCosts.groups) as DevCostGroup[]) {
     const grp = r.devCosts.groups[g];
     const sum = grp.lines.reduce((s, l) => s + l.amount, 0);
@@ -304,6 +372,12 @@ export function auditAppraisal(r: AppraisalResult, spec: PricingSpec, schedule: 
   }
   const preFinance =
     r.devCosts.purchase + (Object.keys(r.devCosts.groups) as DevCostGroup[]).reduce((s, g) => s + r.devCosts.groups[g].total, 0);
+  ok(
+    'costs-hold',
+    'Time-based holding costs charged for the programme’s hold period',
+    r.devCosts.holdMonths === r.programme.holdMonths,
+    `${r.devCosts.holdMonths} vs ${r.programme.holdMonths}`,
+  );
   ok('costs-prefinance', 'Pre-finance total = purchase + Σ groups', closeAbs(r.devCosts.totalPreFinance, preFinance), `${gbp(r.devCosts.totalPreFinance)} vs ${gbp(preFinance)}`);
 
   // --- cashflow conservation ---
@@ -352,7 +426,20 @@ export function auditAppraisal(r: AppraisalResult, spec: PricingSpec, schedule: 
     '',
   );
   ok('fin-payoff', 'Dev payoff = balance at PC × (1 + exit fee)', closeAbs(r.finance.devPayoffAtPC, r.finance.devBalanceAtPC * (1 + f.devLoan.exitFee), 0.02), '');
-  ok('fin-ltgdv', 'LTGDV = peak balance / GDV, covenant flag consistent', (r.totals.gdv === 0 || closeAbs(r.finance.ltgdvAtPeak, r.finance.peakDevBalance / r.totals.gdv, 1e-6)) && r.finance.ltgdvOk === r.finance.ltgdvAtPeak <= f.devLoan.maxLtgdv, '');
+  // The ratio is null exactly when there is no GDV to divide by; the covenant
+  // verdict is null when the ratio is, or when no facility is estimated.
+  const ltgdvExpected = r.totals.gdv === 0 ? null : r.finance.peakDevBalance / r.totals.gdv;
+  const ltgdvOkExpected =
+    ltgdvExpected === null || r.finance.devFacilityNil ? null : ltgdvExpected <= f.devLoan.maxLtgdv;
+  ok(
+    'fin-ltgdv',
+    'LTGDV = peak balance / GDV, covenant flag consistent',
+    (ltgdvExpected === null
+      ? r.finance.ltgdvAtPeak === null
+      : r.finance.ltgdvAtPeak !== null && closeAbs(r.finance.ltgdvAtPeak, ltgdvExpected, 1e-6)) &&
+      r.finance.ltgdvOk === ltgdvOkExpected,
+    `${r.finance.ltgdvAtPeak} vs ${ltgdvExpected}, flag ${r.finance.ltgdvOk} vs ${ltgdvOkExpected}`,
+  );
 
   // --- scenarios ---
   const s = r.scenarios;
@@ -363,6 +450,74 @@ export function auditAppraisal(r: AppraisalResult, spec: PricingSpec, schedule: 
   ok('s4-benefit', 'S4 benefit vs S2 = S4 profit - S2 profit', closeAbs(s.s4.benefitVsS2, s.s4.netProfit - s.s2.netProfit), '');
   ok('s3-advance', 'S3 mortgage = refinance LTV × GDV at PC', closeAbs(s.s3.mortgageAdvance, f.refinance.ltv * s.s1.gdvAdjusted, 0.02), '');
   ok('s3-cash', 'S3 cashflow = net rent - mortgage interest', closeAbs(s.s3.netAnnualCashflow, s.s3.netAnnualRent - s.s3.annualInterest), '');
+  // Scenario 3 is priced on the LET basis: an independent re-derivation, since
+  // a wrong basis would still satisfy every conservation identity.
+  ok(
+    's3-letbasis',
+    'S3 unrealised profit = GDV at PC - all-in costs on the LET basis',
+    closeAbs(s.s3.unrealisedProfit, s.s1.gdvAdjusted - s.s3.costsIfLet, 0.02),
+    `${gbp(s.s3.unrealisedProfit)} vs ${gbp(s.s1.gdvAdjusted - s.s3.costsIfLet)}`,
+  );
+  {
+    // The selling costs a hold avoids must equal the onSale lines, recomputed
+    // from the spec rather than read back from the engine.
+    let expectAvoided = 0;
+    let expectLetting = 0;
+    for (const line of spec.devCosts) {
+      const inc = line.whenIncurred ?? 'always';
+      if (inc === 'always') continue;
+      let amt = 0;
+      switch (line.kind) {
+        case 'fixed':
+          amt = line.code === 'D01' ? buildCost : line.code === auditSdltCode ? autoSdlt! : line.value;
+          break;
+        case 'pctPurchase':
+          amt = line.value * f.purchasePrice;
+          break;
+        case 'pctBuild':
+          amt = line.value * buildCost;
+          break;
+        case 'perUnit':
+          amt = line.value * r.totals.units;
+          break;
+        case 'pctGDV':
+          amt = (line.value || f.sales.agentFeePct) * r.totals.gdv * salesFactor;
+          break;
+        case 'salesLegalPerUnit':
+          amt = f.sales.legalPerUnit * r.totals.units;
+          break;
+        case 'perMonthHeld':
+          amt = line.value * r.devCosts.holdMonths;
+          break;
+        case 'perUnitPerMonthHeld':
+          amt = line.value * r.totals.units * r.devCosts.holdMonths;
+          break;
+        case 'pctAnnualRent':
+          amt = line.value * r.totals.grossAnnualRent;
+          break;
+      }
+      if (inc === 'onSale') expectAvoided += amt;
+      else expectLetting += amt;
+    }
+    ok(
+      's3-avoided',
+      'S3 selling costs avoided = Σ the onSale lines',
+      closeAbs(s.s3.sellingCostsAvoided, expectAvoided, 0.02),
+      `${gbp(s.s3.sellingCostsAvoided)} vs ${gbp(expectAvoided)}`,
+    );
+    ok(
+      's3-letting',
+      'S3 letting costs = Σ the onLet lines',
+      closeAbs(s.s3.lettingCosts, expectLetting, 0.02),
+      `${gbp(s.s3.lettingCosts)} vs ${gbp(expectLetting)}`,
+    );
+    ok(
+      'costs-basis',
+      'The sale-basis build-up excludes exactly the onLet lines',
+      r.devCosts.basis === 'onSale' && closeAbs(r.devCosts.excludedTotal, expectLetting, 0.02),
+      `${gbp(r.devCosts.excludedTotal)} vs ${gbp(expectLetting)}`,
+    );
+  }
   ok(
     's3-rent',
     'S3 net rent = gross × (1 - void) × (1 - mgmt)',
@@ -381,6 +536,84 @@ export function auditAppraisal(r: AppraisalResult, spec: PricingSpec, schedule: 
   wfCheck('s1', s.s1.waterfall, s.s1.netProfit);
   wfCheck('s2', s.s2.waterfall, s.s2.netProfit);
   wfCheck('s4', s.s4.waterfall, s.s4.netProfit);
+
+  // --- plausibility (E3) ---
+  // Everything above re-derives the model and compares it against itself, so a
+  // defect that is arithmetically consistent survives: the SDLT-doubling bug
+  // did exactly that. These checks instead ask whether the answer can be true
+  // of any real scheme, which is how A4, A8, A9 and the ICR all hid in plain
+  // sight while every conservation identity held.
+  ok(
+    'plaus-facility',
+    'Dev facility estimate and its arrangement fee are never negative',
+    r.finance.devFacilityEstimate >= 0 && r.finance.devArrangementFee >= 0,
+    `facility ${gbp(r.finance.devFacilityEstimate)}, fee ${gbp(r.finance.devArrangementFee)}`,
+  );
+  ok(
+    'plaus-finance-cost',
+    'Finance is a cost, never income',
+    r.finance.totalFinanceCosts >= 0,
+    gbp(r.finance.totalFinanceCosts),
+  );
+  const unfunded = r.cashflow.filter((m) => m.fundingGap);
+  ok(
+    'plaus-funded',
+    'Every month of spend has a funding source',
+    unfunded.length === 0,
+    unfunded.length === 0
+      ? ''
+      : `month${unfunded.length > 1 ? 's' : ''} ${unfunded.map((m) => m.month).join(', ')} short by up to ${gbp(
+          Math.max(...unfunded.map((m) => m.fundingShortfall)),
+        )}`,
+  );
+  ok(
+    'plaus-gap-amount',
+    'The flagged funding gap and its amount agree',
+    r.cashflow.every((m) => m.fundingGap === m.fundingShortfall > 0 && m.fundingShortfall >= 0),
+    '',
+  );
+  // Client decision: cover below 100% only, no covenant test. Note what is
+  // being audited — NOT whether the deal is good. An ICR of 0.87 is a true
+  // statement about the demo scheme, and the auditor reports model defects,
+  // not weak deals. What would be a defect is the model presenting an
+  // unfundable refinance as a live exit in silence, so the check is that the
+  // shortfall is FLAGGED.
+  const icrFlagged = s.s3.interestCover === null || s.s3.interestCover >= 1 || /interest cover/i.test(r.warnings.join(' '));
+  ok(
+    'plaus-icr',
+    'S3 interest cover below 100% is never left unflagged',
+    icrFlagged,
+    s.s3.interestCover === null
+      ? ''
+      : `interest cover ${s.s3.interestCover.toFixed(2)} — net rent ${gbp(s.s3.netAnnualRent)} against interest ${gbp(
+          s.s3.annualInterest,
+        )} — and no warning says so`,
+  );
+  // A ratio may be a number or explicitly not applicable. What it may never be
+  // is a zero standing in for a division that could not be done — that is what
+  // let a scheme with no sale prices pass the LTGDV covenant.
+  const naOk = (ratio: number | null, denominator: number) => (denominator === 0 ? ratio === null : ratio !== null);
+  ok(
+    'plaus-ratios',
+    'No ratio reports a value where its denominator is zero',
+    naOk(r.finance.ltgdvAtPeak, r.totals.gdv) &&
+      naOk(s.s1.profitOnGdv, s.s1.gdvAdjusted) &&
+      naOk(s.s1.profitOnCost, r.finance.totalCostsAfterFinance) &&
+      naOk(s.s3.interestCover, s.s3.annualInterest) &&
+      naOk(s.s3.cashOnCash, s.s3.equityRemaining) &&
+      // The verdict is not-applicable exactly when the ratio is, or when there
+      // is no facility to assess. A `false` here is a real covenant breach and
+      // must stay one.
+      (r.finance.ltgdvOk === null) === (r.finance.ltgdvAtPeak === null || r.finance.devFacilityNil),
+    '',
+  );
+  ok(
+    'plaus-duration',
+    'A sell-out month is reported only when sales are modelled',
+    (f.sales.velocityPerMonth === 0) === (s.s2.monthsToSellOut === null) &&
+      (s.s2.monthsToSellOut === null) === (s.s2.totalDurationMonths === null),
+    `velocity ${f.sales.velocityPerMonth}, sell-out ${s.s2.monthsToSellOut}, duration ${s.s2.totalDurationMonths}`,
+  );
 
   // --- sensitivity: grids reconcile with the scenarios they claim to vary ---
   const zeroRow = r.sensitivity.grid1.find((g) => g.priceMove === 0);

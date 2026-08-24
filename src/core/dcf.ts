@@ -7,6 +7,8 @@
 
 import type {
   AppraisalResult,
+  BuildInflationInputs,
+  CostIncidence,
   DevCostGroup,
   DevCostsComputed,
   FinanceInputs,
@@ -20,7 +22,7 @@ import type {
   SensitivityResults,
   WaterfallResult,
 } from './types';
-import { SQM_TO_SQFT } from './rules';
+import { MAX_UNITS, SQM_TO_SQFT } from './rules';
 import { sdltForFinance } from './sdlt';
 
 export const MONTHS = 48; // '4. Cashflow' columns E..AZ
@@ -60,6 +62,47 @@ export function hpiIndexAt(hpi: HpiInputs, month: number): number {
     idx *= Math.pow(1 + rate, 1 / 12);
   }
   return idx;
+}
+
+/**
+ * Tender-price index from the purchase month to month m, compounded monthly
+ * from one annual rate. 1.0 when build inflation is disabled.
+ */
+export function buildIndexAt(bi: BuildInflationInputs, month: number): number {
+  if (!bi?.enabled || month <= 0 || !Number.isFinite(bi.annualPct) || bi.annualPct === 0) return 1;
+  return Math.pow(1 + bi.annualPct, month / 12);
+}
+
+/**
+ * How the main contract is drawn AND priced across the construction period.
+ *
+ * `weights[k-1]` is the share of the (inflated) contract sum certified in month
+ * k of the build; `factor` is the S-curve-weighted tender-price index, i.e. the
+ * ratio between today's contract sum and what it actually costs when spent.
+ *
+ * The two are consistent by construction: weights are the per-month
+ * indexed S-curve slices divided by `factor`, so
+ *   Σ weights = 1                          (no pound of contract goes missing)
+ *   todayCost x factor = inflated total      (D01 and the cashflow agree)
+ * and each month still carries its OWN index, not an averaged one.
+ *
+ * With inflation off the raw S-curve slices are returned untouched — not
+ * divided by a `factor` that is only floating-point-close to 1 — so an existing
+ * appraisal's figures do not move by a rounding step.
+ */
+export function buildCostSchedule(
+  bi: BuildInflationInputs,
+  prog: Pick<Programme, 'preConMonths' | 'conMonths'>,
+): { factor: number; weights: number[] } {
+  const raw: number[] = [];
+  for (let k = 1; k <= prog.conMonths; k++) raw.push(sCurveMonth(k, prog.conMonths));
+  if (!bi?.enabled || !Number.isFinite(bi.annualPct) || bi.annualPct === 0) {
+    return { factor: 1, weights: raw };
+  }
+  const indexed = raw.map((slice, i) => slice * buildIndexAt(bi, prog.preConMonths + i + 1));
+  const factor = indexed.reduce((a, b) => a + b, 0);
+  if (!(factor > 0)) return { factor: 1, weights: raw };
+  return { factor, weights: indexed.map((v) => v / factor) };
 }
 
 /** Match cost lines that get special timing, by code with a label fallback
@@ -136,6 +179,25 @@ export function computeDevCosts(
    * indexed understates selling costs and breaks S1 = grid1's matching row.
    */
   salesGdvFactor = 1,
+  /**
+   * S-curve-weighted tender-price index (from `buildCostSchedule`). The typed
+   * D01 / room-rate table is TODAY'S cost; this carries it to the months the
+   * contract is actually certified. Percentage-of-build lines (contingency,
+   * demolition) follow automatically, which is correct — they scale with the
+   * contract they are a percentage of.
+   */
+  buildInflationFactor = 1,
+  /**
+   * Which exit to price. 'onSale' keeps the always + onSale lines (the
+   * development case, and the basis for S1/S2/S4); 'onLet' keeps always + onLet
+   * (S3's refinance-and-hold). Each build-up is internally complete, so the
+   * cashflow and every identity work unchanged on either.
+   */
+  basis: Exclude<CostIncidence, 'always'> = 'onSale',
+  /** Months held after PC, for the time-based holding lines. */
+  holdMonths = 1,
+  /** Gross annual rent, for letting fees priced as a percentage of it. */
+  grossAnnualRent = 0,
 ): DevCostsComputed {
   const f = spec.finance;
   const buildLine = spec.devCosts.find((l) => l.code === 'D01');
@@ -143,7 +205,8 @@ export function computeDevCosts(
 
   const useRoomRates = spec.buildCostMode === 'roomRates' && !!roomAreas;
   const roomResult = useRoomRates ? buildCostFromRooms(spec, roomAreas!) : null;
-  const buildCost = roomResult ? roomResult.total : fixedBuildCost;
+  const buildCostToday = roomResult ? roomResult.total : fixedBuildCost;
+  const buildCost = buildCostToday * buildInflationFactor;
 
   const groups: DevCostsComputed['groups'] = {
     legals: { lines: [], total: 0 },
@@ -153,6 +216,7 @@ export function computeDevCosts(
     postConstruction: { lines: [], total: 0 },
     salesMarketing: { lines: [], total: 0 },
     other: { lines: [], total: 0 },
+    letting: { lines: [], total: 0 },
   };
 
   // Stamp duty computed from HMRC bands (on the VAT-inclusive price when
@@ -161,8 +225,12 @@ export function computeDevCosts(
   // SDLT-looking lines keep their typed values (and runAppraisal warns).
   const computedSdlt = sdltForFinance(f);
   const sdltCode = computedSdlt !== null ? sdltLineCodeOf(spec.devCosts) : null;
+  let excludedTotal = 0;
 
   for (const line of spec.devCosts) {
+    // A line tagged for the OTHER exit is not incurred here at all. Absent tag
+    // means 'always', so pre-existing specs are unaffected.
+    const incidence = line.whenIncurred ?? 'always';
     let amount = 0;
     switch (line.kind) {
       case 'fixed':
@@ -183,6 +251,21 @@ export function computeDevCosts(
       case 'salesLegalPerUnit': // G04 = E41 x F40
         amount = f.sales.legalPerUnit * totals.units;
         break;
+      case 'perMonthHeld':
+        amount = line.value * holdMonths;
+        break;
+      case 'perUnitPerMonthHeld':
+        amount = line.value * totals.units * holdMonths;
+        break;
+      case 'pctAnnualRent':
+        amount = line.value * grossAnnualRent;
+        break;
+    }
+    if (incidence !== 'always' && incidence !== basis) {
+      // Not incurred on this exit. Recorded as excluded rather than dropped, so
+      // a scenario can say what it avoided instead of the figure vanishing.
+      excludedTotal += amount;
+      continue;
     }
     groups[line.group].lines.push({ code: line.code, label: line.label, amount });
     groups[line.group].total += amount;
@@ -193,10 +276,15 @@ export function computeDevCosts(
     (Object.keys(groups) as DevCostGroup[]).reduce((s, g) => s + groups[g].total, 0); // F87
 
   return {
+    basis,
+    holdMonths,
+    excludedTotal,
     purchase: f.purchasePrice,
     groups,
     totalPreFinance,
     buildCost,
+    buildCostToday,
+    buildInflationFactor,
     buildCostSource: roomResult ? 'roomRates' : 'fixed',
     buildBreakdown: roomResult ? roomResult.breakdown : null,
   };
@@ -208,6 +296,13 @@ export interface Programme {
   conMonths: number; // E12 = max build months
   conStartMonth: number; // E13 = E11 + 1
   pcMonth: number; // E14 = E11 + E12
+  /**
+   * Months the finished stock is expected to be held after PC, i.e. the
+   * sell-down period at the modelled velocity, clamped to the cashflow horizon.
+   * Time-based holding costs are charged for exactly this long, and the
+   * cashflow spreads them over exactly these months, so the two cannot drift.
+   */
+  holdMonths: number;
 }
 
 export function programmeOf(f: FinanceInputs, totals: ScheduleTotals): Programme {
@@ -217,12 +312,18 @@ export function programmeOf(f: FinanceInputs, totals: ScheduleTotals): Programme
   const legalMonths = Math.max(1, Math.round(f.legalMonths));
   const preConMonths = Math.max(1, Math.round(f.preConMonths));
   const conMonths = Math.max(1, Math.round(totals.maxBuildMonths));
+  const pcMonth = preConMonths + conMonths;
+  // Sell-down at the modelled velocity, clamped so it cannot run past the
+  // cashflow horizon. Zero velocity means nothing sells, so the stock is held
+  // for whatever horizon remains rather than for "no months at all".
+  const sellMonths = f.sales.velocityPerMonth > 0 ? Math.ceil(totals.units / f.sales.velocityPerMonth) : MONTHS - pcMonth;
   return {
     legalMonths,
     preConMonths,
     conMonths,
     conStartMonth: preConMonths + 1,
-    pcMonth: preConMonths + conMonths,
+    pcMonth,
+    holdMonths: Math.max(1, Math.min(sellMonths, MONTHS - pcMonth)),
   };
 }
 
@@ -236,6 +337,10 @@ export function computeCashflow(
   dev: DevCostsComputed,
   prog: Programme,
   totals: ScheduleTotals,
+  /** Per-month shares of the contract sum, from `buildCostSchedule`. Each
+   *  carries its own tender-price index, and they sum to 1. Defaults to the
+   *  plain S-curve. */
+  buildWeights?: number[],
 ): CashflowResult {
   const { legalMonths, preConMonths, conMonths, conStartMonth, pcMonth } = prog;
   const g = dev.groups;
@@ -249,8 +354,16 @@ export function computeCashflow(
   // E29 facility = F87 - equity - advance + est. redemption. The arrangement
   // fee is set on the committed facility at signing, which is itself an
   // estimate — so the estimate basis is faithful to how facilities are priced.
-  const devFacilityEstimate = dev.totalPreFinance - f.equity.total - bridgeAdvance + estRedemption;
-  const devArrangementFee = f.devLoan.arrangementFee * devFacilityEstimate;
+  // A4: unfloored, this went NEGATIVE on an over-equitised scheme (-£812,718
+  // with £6m of equity against ~£5.1m of cost) and the arrangement fee below
+  // became phantom finance INCOME of -£12,191, quietly reducing total costs.
+  // The E29 basis itself is kept — it is faithful to how facilities are priced
+  // at signing — so the floor is the fix, and `devFacilityNil` carries the
+  // "no facility estimated" state on to the covenant and the warnings.
+  const devFacilityRaw = dev.totalPreFinance - f.equity.total - bridgeAdvance + estRedemption;
+  const devFacilityEstimate = Math.max(0, devFacilityRaw);
+  const devFacilityNil = devFacilityEstimate === 0;
+  const devArrangementFee = devFacilityEstimate * f.devLoan.arrangementFee;
 
   // Cost-line splits that get their own timing.
   const sumWhere = (grp: { lines: { code: string; label: string; amount: number }[] }, pred: (c: string, l: string) => boolean) =>
@@ -264,11 +377,11 @@ export function computeCashflow(
   const contingencyTotal = sumWhere(g.construction, isContingencyLine); // spent as the build progresses
   const constructionRest = g.construction.total - qsTotal - buildTotal - contingencyTotal;
 
-  // Post-construction holding costs straight-line over the expected sell
-  // period (confirmed practice), not a lump at PC.
-  const sellMonthsRaw = f.sales.velocityPerMonth > 0 ? Math.ceil(totals.units / f.sales.velocityPerMonth) : 1;
+  // Post-construction holding and letting costs straight-line over the hold
+  // period. Taken from the programme, which is the SAME figure the time-based
+  // cost lines were charged for, so the two cannot drift.
   const postConStart = pcMonth + 1;
-  const postConMonths = Math.max(1, Math.min(sellMonthsRaw, MONTHS - pcMonth));
+  const postConMonths = prog.holdMonths;
 
   // Retention: withheld from each certificate, part released at PC, the rest
   // at the end of the defects period.
@@ -305,7 +418,9 @@ export function computeCashflow(
     if (m <= pcMonth) costs += (architectTotal + qsTotal) / pcMonth; // architect & QS run to PC
     if (m > preConMonths && m <= pcMonth) {
       const k = m - preConMonths;
-      const certified = buildTotal * sCurveMonth(k, conMonths); // (D01) S-curve certificate
+      // (D01) certificate for this month: the S-curve slice, priced at this
+      // month's tender-price index when build inflation is on.
+      const certified = buildTotal * (buildWeights ? (buildWeights[k - 1] ?? 0) : sCurveMonth(k, conMonths));
       retentionWithheld = certified * Math.max(0, ret.pctDuringWorks);
       costs += certified - retentionWithheld;
       costs += contingencyTotal * sCurveMonth(k, conMonths);
@@ -323,7 +438,8 @@ export function computeCashflow(
     }
     costs += retentionReleased;
     if (pcMonth >= MONTHS ? m === MONTHS : m >= postConStart && m < postConStart + postConMonths) {
-      costs += g.postConstruction.total / postConMonths; // (F) holding costs over the sell period
+      // (F) holding costs and (I) letting costs over the hold period.
+      costs += (g.postConstruction.total + g.letting.total) / postConMonths;
     }
     if (m <= pcMonth) costs += g.other.total / pcMonth; // (H)
     cumCosts += costs;
@@ -395,7 +511,10 @@ export function computeCashflow(
     devBalance = m > pcMonth ? 0 : prevDevBal + devInterest + devDrawdown;
     if (m === 1) devBalance = devDrawdown; // E28 = E26
 
-    const fundingGap = m < conStartMonth && cumNeed > bridgeAdvance + f.equity.total;
+    // A8: the amount, not just the flag. No dev loan draws before construction
+    // start, so anything above bridge + equity here is spend with no source.
+    const fundingShortfall = m < conStartMonth ? Math.max(0, cumNeed - bridgeAdvance - f.equity.total) : 0;
+    const fundingGap = fundingShortfall > 0;
 
     rows.push({
       month: m,
@@ -410,6 +529,7 @@ export function computeCashflow(
       devInterest,
       devBalance,
       fundingGap,
+      fundingShortfall,
       vatPaid,
       vatReclaimed,
       vatLoanBalance,
@@ -435,7 +555,9 @@ export function computeCashflow(
   const devExitFee = devBalanceAtPC * f.devLoan.exitFee; // C39
   const devPayoffAtPC = devBalanceAtPC + devExitFee; // C40
   const peakDevBalance = Math.max(...rows.map((r) => r.devBalance)); // C41
-  const ltgdvAtPeak = totals.gdv === 0 ? 0 : peakDevBalance / totals.gdv; // C42
+  // A9: with no GDV there is nothing to divide by, and the old zero then read
+  // as 0 <= maxLtgdv, i.e. a PASS on a scheme with no sale prices at all.
+  const ltgdvAtPeak = totals.gdv === 0 ? null : peakDevBalance / totals.gdv; // C42
   const retentionHeldPeak = Math.max(...rows.map((r) => r.retentionBalance));
   const depositInterestRetention = rows.reduce((s, r) => s + r.depositInterest, 0);
   const totalFinanceCosts =
@@ -467,7 +589,10 @@ export function computeCashflow(
       devPayoffAtPC,
       peakDevBalance,
       ltgdvAtPeak,
-      ltgdvOk: ltgdvAtPeak <= f.devLoan.maxLtgdv,
+      // Not applicable when the ratio is (no GDV) or when no facility is
+      // estimated: neither state is a covenant pass.
+      ltgdvOk: ltgdvAtPeak === null || devFacilityNil ? null : ltgdvAtPeak <= f.devLoan.maxLtgdv,
+      devFacilityNil,
       vatOnPurchase,
       vatLoanFee,
       vatLoanInterest: vatLoanInterestTotal,
@@ -606,6 +731,11 @@ export function computeScenarios(
   fin: FinanceSummary,
   prog: Programme,
   rows: MonthRow[],
+  /** The LET-basis cost build-up and its own finance roll-up, for S3. A hold
+   *  does not pay selling costs and does pay letting costs, and its dev loan at
+   *  PC differs accordingly, so scenario 3 is priced on its own cashflow rather
+   *  than on the sale case's. */
+  let_?: { dev: DevCostsComputed; fin: FinanceSummary },
 ): ScenarioResults {
   // Scenario 1 — immediate sale at PC. Today's GDV is indexed forward to PC
   // by the HPI projection (index 1.0 when disabled), then the price lever.
@@ -617,8 +747,8 @@ export function computeScenarios(
     gdvAdjusted,
     hpiIndexAtPc,
     netProfit: netProfit1,
-    profitOnCost: fin.totalCostsAfterFinance === 0 ? 0 : netProfit1 / fin.totalCostsAfterFinance,
-    profitOnGdv: gdvAdjusted === 0 ? 0 : netProfit1 / gdvAdjusted,
+    profitOnCost: fin.totalCostsAfterFinance === 0 ? null : netProfit1 / fin.totalCostsAfterFinance,
+    profitOnGdv: gdvAdjusted === 0 ? null : netProfit1 / gdvAdjusted,
     investorProfit: wf1.investorProfit,
     developerProfit: wf1.developerProfit,
     investorRoi: wf1.investorRoi,
@@ -640,13 +770,16 @@ export function computeScenarios(
     monthlyRate: f.devLoan.ratePa / 12,
     depositRatePa: f.depositRatePa,
   });
-  const monthsToSellOut = f.sales.velocityPerMonth === 0 ? 0 : Math.ceil(totals.units / f.sales.velocityPerMonth); // F33
+  // A6: zero velocity used to report month 0 — "sold out at completion" —
+  // beside a loan that never repays and £1.16m of extra interest. There is no
+  // sell-out month, so say so rather than naming one.
+  const monthsToSellOut = f.sales.velocityPerMonth === 0 ? null : Math.ceil(totals.units / f.sales.velocityPerMonth); // F33
   const repayMonthsOf = (bal: number[]): number | '36+' =>
     bal.length >= SELLDOWN_MONTHS && bal[SELLDOWN_MONTHS - 1] > 0.01 ? '36+' : bal.filter((b) => b > 0.01).length + 1;
   const monthsToRepay = repayMonthsOf(sd2.closingBalances); // F34
   // Distributions cannot happen until the units are sold AND the loan is
   // repaid — the pref accrues to whichever comes later.
-  const exitAfterPc2 = Math.max(monthsToSellOut, monthsToRepay === '36+' ? SELLDOWN_MONTHS : monthsToRepay);
+  const exitAfterPc2 = Math.max(monthsToSellOut ?? SELLDOWN_MONTHS, monthsToRepay === '36+' ? SELLDOWN_MONTHS : monthsToRepay);
   const netProfit2 = netProfit1 + sd2.hpiUplift + sd2.depositInterest - sd2.totalInterest; // F36 + HPI + deposit interest
   const wf2 = computeWaterfall(f, rows, netProfit2, prog.pcMonth + exitAfterPc2);
   const s2 = {
@@ -658,32 +791,45 @@ export function computeScenarios(
     netProfit: netProfit2,
     investorProfit: wf2.investorProfit, // F37
     investorRoi: wf2.investorRoi, // F38
-    totalDurationMonths: prog.pcMonth + monthsToSellOut, // F39
+    totalDurationMonths: monthsToSellOut === null ? null : prog.pcMonth + monthsToSellOut, // F39
     waterfall: wf2,
   };
 
-  // Scenario 3 — refinance at PC & rent (rows 43-54)
+  // Scenario 3 — refinance at PC & rent (rows 43-54).
+  // Priced on the LET basis: no selling costs (no sale happens), plus the (I)
+  // letting costs, and its own dev loan roll-up. Falls back to the sale case
+  // when no let basis was supplied, which reproduces the old behaviour.
+  const devLet = let_?.dev ?? dev;
+  const finLet = let_?.fin ?? fin;
   const mortgageAdvance = f.refinance.ltv * gdvAdjusted; // F43
   const refiArrFee = mortgageAdvance * f.refinance.arrangementFee; // F44
-  const surplusReleased = mortgageAdvance - refiArrFee - fin.devPayoffAtPC; // F46
+  const surplusReleased = mortgageAdvance - refiArrFee - finLet.devPayoffAtPC; // F46
   const grossAnnualRent = totals.grossAnnualRent; // F47 = UI F46
   const netAnnualRent = grossAnnualRent * (1 - f.refinance.voidPct) * (1 - f.refinance.mgmtPct); // F48
   const annualInterest = mortgageAdvance * f.refinance.ratePa; // F49
   const netAnnualCashflow = netAnnualRent - annualInterest; // F50
   const equityRemaining = f.equity.total - surplusReleased; // F52
+  const costsIfLet = finLet.totalCostsAfterFinance;
   const s3 = {
+    // On the let basis, the excluded lines ARE the selling costs.
+    sellingCostsAvoided: devLet.excludedTotal,
+    lettingCosts: devLet.groups.letting.total,
+    costsIfLet,
     mortgageAdvance,
     arrangementFee: refiArrFee,
-    devPayoff: fin.devPayoffAtPC, // F45 = F12
+    devPayoff: finLet.devPayoffAtPC, // F45 = F12
     surplusReleased,
     grossAnnualRent,
     netAnnualRent,
     annualInterest,
     netAnnualCashflow,
-    interestCover: annualInterest === 0 ? 0 : netAnnualRent / annualInterest, // F51
+    interestCover: annualInterest === 0 ? null : netAnnualRent / annualInterest, // F51
     equityRemaining,
-    cashOnCash: equityRemaining === 0 ? 0 : netAnnualCashflow / equityRemaining, // F53
-    unrealisedProfit: netProfit1, // F54
+    cashOnCash: equityRemaining === 0 ? null : netAnnualCashflow / equityRemaining, // F53
+    // Value uplift if refinanced and held, against the costs a HOLD actually
+    // incurs — not the sale case's profit, which charged agent fees on a sale
+    // that never happens.
+    unrealisedProfit: gdvAdjusted - costsIfLet, // F54
   };
 
   // Scenario 4 — refinance at PC, then delayed sales at the lower rate (rows 59-75)
@@ -703,7 +849,7 @@ export function computeScenarios(
   });
   const netProfit4 = netProfit1 + sd4.hpiUplift + sd4.depositInterest - refiFeeRolled - sd4.totalInterest; // F72 + HPI + deposit
   const repay4 = repayMonthsOf(sd4.closingBalances);
-  const exitAfterPc4 = Math.max(monthsToSellOut, repay4 === '36+' ? SELLDOWN_MONTHS : repay4);
+  const exitAfterPc4 = Math.max(monthsToSellOut ?? SELLDOWN_MONTHS, repay4 === '36+' ? SELLDOWN_MONTHS : repay4);
   const wf4 = computeWaterfall(f, rows, netProfit4, prog.pcMonth + exitAfterPc4);
   const s4 = {
     refiPrincipal,
@@ -749,11 +895,18 @@ export function computeSensitivity(
     return {
       priceMove: p,
       netProfit,
-      profitOnGdv: gdvBase === 0 ? 0 : netProfit / (gdvBase * (1 + p)),
+      profitOnGdv: gdvBase === 0 ? null : netProfit / (gdvBase * (1 + p)),
     };
   });
 
-  // Grid 2: C17 = C8(p) - C40*(devRate/12)*(MIN(ceil(units/vel), ceil(C40/max(1, monthlyNet(p,vel))))+1)/2
+  // Grid 2: C17 = C8(p) - C40*(devRate/12)*(MIN(ceil(units/vel), ceil(C40/max(1, monthlyNet(p,vel))))+1)/2,
+  // plus the holding-cost difference the changed velocity implies.
+  //
+  // `base` comes from grid 1, whose cost base carries the holding costs for the
+  // MODELLED velocity. Sweeping velocity here without re-pricing them would let
+  // interest scale while council tax and insurance stayed put — exactly the
+  // defect §6.5 fixed, relocated into the grid.
+  const holdingPerMonth = dev.holdMonths > 0 ? dev.groups.postConstruction.total / dev.holdMonths : 0;
   const grid2 = GRID1_MOVES.map((p, i) => {
     const base = grid1[i].netProfit;
     return {
@@ -764,7 +917,8 @@ export function computeSensitivity(
         const monthsSellOut = Math.ceil(totals.units / vel);
         const monthsRepay = Math.ceil(fin.devPayoffAtPC / Math.max(1, monthlyNet));
         const months = Math.min(monthsSellOut, monthsRepay);
-        const netProfit = base - fin.devPayoffAtPC * (f.devLoan.ratePa / 12) * ((months + 1) / 2);
+        const extraHolding = holdingPerMonth * (monthsSellOut - dev.holdMonths);
+        const netProfit = base - fin.devPayoffAtPC * (f.devLoan.ratePa / 12) * ((months + 1) / 2) - extraHolding;
         return { velocity: vel, netProfit };
       }),
     };
@@ -789,9 +943,21 @@ export function runAppraisal(schedule: ScheduleRow[], spec: PricingSpec, roomAre
   const prog = programmeOf(f, totals);
   // Sales costs are priced on the revenue the scenarios actually sell at.
   const salesGdvFactor = hpiIndexAt(f.hpi, prog.pcMonth) * (1 + f.sales.priceAdjust);
-  const dev = computeDevCosts(spec, totals, roomAreas, salesGdvFactor);
-  const { rows, finance } = computeCashflow(f, dev, prog, totals);
-  const scenarios = computeScenarios(f, totals, dev, finance, prog, rows);
+  // Build cost is priced on the months the contract is certified, so the same
+  // schedule sizes line D01 and spreads it across the cashflow.
+  const buildSchedule = buildCostSchedule(f.buildInflation, prog);
+  const devArgs = [spec, totals, roomAreas, salesGdvFactor, buildSchedule.factor] as const;
+  const dev = computeDevCosts(...devArgs, 'onSale', prog.holdMonths, totals.grossAnnualRent);
+  const { rows, finance } = computeCashflow(f, dev, prog, totals, buildSchedule.weights);
+  // Scenario 3 holds rather than sells, so it gets its own cost build-up and
+  // its own finance roll-up: no selling costs, letting costs instead, and a
+  // dev loan at PC that reflects both.
+  const devLet = computeDevCosts(...devArgs, 'onLet', prog.holdMonths, totals.grossAnnualRent);
+  const letCashflow = computeCashflow(f, devLet, prog, totals, buildSchedule.weights);
+  const scenarios = computeScenarios(f, totals, dev, finance, prog, rows, {
+    dev: devLet,
+    fin: letCashflow.finance,
+  });
   const sensitivity = computeSensitivity(f, totals, dev, finance, scenarios);
 
   const warnings: string[] = [];
@@ -818,6 +984,23 @@ export function runAppraisal(schedule: ScheduleRow[], spec: PricingSpec, roomAre
   if (f.hpi.enabled && !f.hpi.annualPct.some((r) => r !== 0)) {
     warnings.push('House price inflation is enabled but every annual rate is zero.');
   }
+  // The asymmetry that manufactured profit: revenue indexed forward while the
+  // contract stayed at today's prices, so a LONGER programme looked better.
+  // Never silent — this is the single most misleading state the model can be in.
+  if (f.hpi.enabled && f.hpi.annualPct.some((r) => r !== 0) && !f.buildInflation.enabled) {
+    warnings.push(
+      'House price inflation is indexing sale prices forward but tender-price inflation is OFF, so the build cost is frozen at today’s money. Profit is overstated and a longer programme will wrongly look more profitable. Set a build inflation rate, or turn HPI off.',
+    );
+  }
+  if (f.buildInflation.enabled && f.buildInflation.annualPct === 0) {
+    warnings.push('Tender-price inflation is enabled but the rate is zero, so build cost stays at today’s money.');
+  }
+  if (f.buildInflation.enabled && f.buildInflation.annualPct !== 0) {
+    const factor = buildCostSchedule(f.buildInflation, prog).factor;
+    warnings.push(
+      `Build cost indexed for tender-price inflation at ${(f.buildInflation.annualPct * 100).toFixed(1)}% pa: the contract is priced at ${((factor - 1) * 100).toFixed(1)}% above today’s money (S-curve-weighted over months ${prog.conStartMonth}-${prog.pcMonth}). Other cost lines remain in today’s money.`,
+    );
+  }
   if (prog.pcMonth > MONTHS) {
     warnings.push(
       `Programme runs to month ${prog.pcMonth}, beyond the ${MONTHS}-month cashflow horizon, so finance costs are understated. Shorten the programme.`,
@@ -834,8 +1017,65 @@ export function runAppraisal(schedule: ScheduleRow[], spec: PricingSpec, roomAre
       `Sell-out takes longer than the ${SELLDOWN_MONTHS}-month scenario horizon, so delayed-sale interest is understated.`,
     );
   }
+  // A6 — the case the old sell-out warning could never reach, because it was
+  // gated on velocity > 0. Zero velocity is not a fast sale, it is no sale.
+  if (f.sales.velocityPerMonth === 0) {
+    warnings.push(
+      `Sales velocity is zero, so no sales are modelled: scenarios 2 and 4 have no sell-out month and their duration is not applicable. The development loan is never repaid from sales, which is why the delayed-sale interest is £${Math.round(
+        scenarios.s2.extraInterest,
+      ).toLocaleString('en-GB')}. Set a velocity, or read scenario 3 (refinance and hold) instead.`,
+    );
+  }
+  // A8 — pre-construction months whose spend exceeds bridge + equity. No dev
+  // loan draws that early, so the money is spent with no source and no
+  // interest charged: previously computed every month and surfaced nowhere.
+  const gapMonths = rows.filter((r) => r.fundingGap);
+  if (gapMonths.length > 0) {
+    const peakGap = Math.max(...gapMonths.map((r) => r.fundingShortfall));
+    warnings.push(
+      `Month${gapMonths.length > 1 ? 's' : ''} ${gapMonths
+        .map((r) => r.month)
+        .join(', ')} ${gapMonths.length > 1 ? 'are' : 'is'} unfunded: pre-construction spend exceeds the bridge advance plus committed equity by up to £${Math.round(
+        peakGap,
+      ).toLocaleString('en-GB')}. No development loan draws before construction starts, so this shortfall carries no finance cost in the model. Add equity, raise the bridge, or arrange a stretch facility.`,
+    );
+  }
+  // A4 — the estimate is floored, so a cash-rich scheme no longer books
+  // negative finance income. But the cashflow can still draw the facility to
+  // redeem the bridge, and that draw is then priced at a £0 arrangement fee.
+  if (finance.devFacilityNil && finance.peakDevBalance > 0.01) {
+    warnings.push(
+      `No development facility is estimated (committed equity covers the costs), yet the cashflow still draws up to £${Math.round(
+        finance.peakDevBalance,
+      ).toLocaleString(
+        'en-GB',
+      )} to redeem the bridge at construction start. The arrangement fee is therefore £0 and the LTGDV covenant is not assessed, so facility costs are understated. Fund the bridge redemption from equity, or set the facility size by hand.`,
+    );
+  }
+  // A7 — client decision: warn below 100% cover only. No stress rate, no
+  // covenant test, no capping of the advance.
+  if (scenarios.s3.interestCover !== null && scenarios.s3.interestCover < 1) {
+    warnings.push(
+      `Scenario 3 interest cover is ${scenarios.s3.interestCover.toFixed(
+        2,
+      )}: net rent of £${Math.round(scenarios.s3.netAnnualRent).toLocaleString(
+        'en-GB',
+      )} does not cover mortgage interest of £${Math.round(scenarios.s3.annualInterest).toLocaleString(
+        'en-GB',
+      )}, so the refinance-and-hold exit is cashflow-negative and no lender would advance on these terms.`,
+    );
+  }
   if (spec.buildCostMode === 'roomRates' && !roomAreas) {
     warnings.push('No room-type areas for this schedule, so build cost falls back to the fixed D01 amount.');
+  }
+  if (totals.units > MAX_UNITS) {
+    // The workbook's '1. Unit Import' holds rows 7-36. The app's own model
+    // prices every unit, but an Excel export cannot carry more than MAX_UNITS,
+    // so say here exactly what sheets 1-6 would leave out.
+    const droppedGdv = schedule.slice(MAX_UNITS).reduce((s2, r) => s2 + r.unitGdv, 0);
+    warnings.push(
+      `${totals.units} units exceeds the ${MAX_UNITS}-unit capacity of the workbook's '1. Unit Import' sheet. This appraisal prices all ${totals.units}, but an Excel export carries only the first ${MAX_UNITS} into sheets 1-6, omitting £${Math.round(droppedGdv).toLocaleString('en-GB')} of GDV there. The '7. App Model v2' sheet always reflects the full schedule.`,
+    );
   }
 
   return {

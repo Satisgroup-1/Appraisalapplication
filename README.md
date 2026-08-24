@@ -124,6 +124,11 @@ profit distribution independently of the engine, and recoverable input messes ar
 with a visible note. For engine changes, run the `/audit-dcf` skill — it fans out the
 `dcf-financial-auditor` and `dcf-numeric-verifier` agents (`.claude/agents/`).
 
+An hourly improvement loop (`.claude/appraisal-loop.md`) runs three agents — planner, builder
+and a reviewer holding a hard veto — against the backlog in **IMPROVEMENTS.md**. Run
+`./scripts/loop-status.sh` to see where it has got to: branch state, the green bar, every
+cycle's outcome from `LOOP-LOG.md`, the remaining backlog, and anything waiting on a decision.
+
 See **AUDIT.md** for the full model audit: golden tests, financial identity tests, the
 regulation review of the floorplan converter, and a LibreOffice cross-check
 (`./scripts/crosscheck.sh`) that recalculates an exported workbook headlessly and verifies the
@@ -157,3 +162,14 @@ Layouts are feasibility schematics, not architecture. Planning matters — permi
 rights, Class MA, minimum natural-light tests, fire strategy, external amenity — are out of
 scope and flagged as risks, never claimed compliant. Options exceeding 30 units warn that they
 exceed the appraisal workbook's unit capacity.
+
+**All figures are pre-tax** — no corporation tax on SPV profit, no VAT on works. Investors
+model their own tax position.
+
+**Tenure**: flats are sold on 999-year leases with the freehold retained. That contributes
+nothing to GDV and the model deliberately adds nothing for it: a peppercorn ground rent is
+mandatory on newly granted residential long leases (Leasehold Reform (Ground Rent) Act 2022),
+so there is no ground rent income, and a 999-year reversion has no present value. The
+freeholder's continuing obligations — structure, block insurance, service-charge administration,
+and Building Safety Act duties on higher-risk buildings — are real but out of scope, like other
+planning and regulatory matters.
