@@ -162,3 +162,14 @@ Layouts are feasibility schematics, not architecture. Planning matters — permi
 rights, Class MA, minimum natural-light tests, fire strategy, external amenity — are out of
 scope and flagged as risks, never claimed compliant. Options exceeding 30 units warn that they
 exceed the appraisal workbook's unit capacity.
+
+**All figures are pre-tax** — no corporation tax on SPV profit, no VAT on works. Investors
+model their own tax position.
+
+**Tenure**: flats are sold on 999-year leases with the freehold retained. That contributes
+nothing to GDV and the model deliberately adds nothing for it: a peppercorn ground rent is
+mandatory on newly granted residential long leases (Leasehold Reform (Ground Rent) Act 2022),
+so there is no ground rent income, and a 999-year reversion has no present value. The
+freeholder's continuing obligations — structure, block insurance, service-charge administration,
+and Building Safety Act duties on higher-risk buildings — are real but out of scope, like other
+planning and regulatory matters.

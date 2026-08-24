@@ -140,6 +140,45 @@ describe('export payload uses the sanitized spec (D1)', () => {
     }
   });
 
+  it('states the tenure and the pre-tax basis, so neither reads as forgotten', async () => {
+    // Disclosure, not arithmetic: a workbook reader must be able to see that
+    // the retained freehold contributes nothing to GDV by decision (999-year
+    // leases, peppercorn ground rent by statute, freehold never sold on) and
+    // that every figure is pre-tax. Pinned because a dropped assumption line
+    // is invisible — nothing else in the suite would notice.
+    const { spec } = sanitizeSpec(clonePricing(DEFAULT_PRICING));
+    const result = runAppraisal(DEMO_SCHEDULE, spec);
+    const assumptions = buildModelV2(spec, result).assumptions;
+
+    const tenure = assumptions.find((a) => /999-year leases/.test(a));
+    expect(tenure).toBeDefined();
+    expect(tenure).toMatch(/freehold retained/i);
+    expect(tenure).toMatch(/no ground rent/i);
+    expect(tenure).toMatch(/adds nothing to GDV/i);
+
+    expect(assumptions.some((a) => /PRE-TAX/.test(a) && /no corporation tax/i.test(a))).toBe(true);
+
+    // And the assumptions reach the workbook, not just the payload.
+    const out = tmpOut('assumptions.xlsx');
+    await exportWorkbook(
+      TEMPLATE,
+      out,
+      DEMO_SCHEDULE,
+      buildExportInputs({ address: 'Test', spec, result }),
+      buildModelV2(spec, result),
+    );
+    const ws = (await readBack(out)).getWorksheet('7. App Model v2')!;
+    let sawTenure = false;
+    let sawPreTax = false;
+    ws.eachRow((row) => {
+      const v = String(row.getCell(2).value ?? '');
+      if (/999-year leases/.test(v)) sawTenure = true;
+      if (/PRE-TAX/.test(v)) sawPreTax = true;
+    });
+    expect(sawTenure).toBe(true);
+    expect(sawPreTax).toBe(true);
+  });
+
   it('a clean spec is written through unchanged', async () => {
     const { spec, repairs } = sanitizeSpec(clonePricing(DEFAULT_PRICING));
     expect(repairs).toEqual([]);

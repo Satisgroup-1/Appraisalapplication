@@ -108,6 +108,10 @@ export function buildModelV2(spec: PricingSpec, result: AppraisalResult): ModelV
         ? `Waterfall: ${pct(fin.waterfall.prefRatePa)} pref (monthly compounding), then ${pct(fin.waterfall.residualInvestorPct, 0)} investor`
         : `Simple profit split: ${pct(fin.equity.investorShare, 0)} investor`,
       'Sales pacing uniform across units',
+      // Both stated rather than left to be inferred: a reader should be able to
+      // see that the tenure and the tax basis were considered, not forgotten.
+      'Flats sold on 999-year leases with the freehold retained. No ground rent income (a peppercorn is mandatory on new residential long leases under the Leasehold Reform (Ground Rent) Act 2022) and no reversion value at 999 years, so the retained freehold adds nothing to GDV',
+      'All figures are PRE-TAX: no corporation tax on SPV profit and no VAT on works',
     ],
     summary: [
       ['GDV (today)', Math.round(result.totals.gdv)],

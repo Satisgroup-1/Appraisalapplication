@@ -166,9 +166,15 @@ These are absent by design or never specified. Each needs a decision before it i
   See question 2.
 - **B3 — No planning obligations.** No CIL, no S106, no affordable-housing contribution, no
   Building Safety Act gateway fees. For conversions these can be nil — or six figures.
-- **B4 — No leasehold structure.** Flat GDV assumes long-leasehold sales, but there is no
-  ground rent income, no freehold reversion value, no service-charge float or management
-  company set-up cost.
+- ~~**B4 — No leasehold structure.**~~ **CLOSED 2026-08-24 — no change needed.** Flats are
+  sold on 999-year leases with the freehold retained and never sold on, so there is no GDV to
+  add: a peppercorn ground rent is mandatory on newly granted residential long leases
+  (Leasehold Reform (Ground Rent) Act 2022), a 999-year reversion has no present value, and
+  there is no disposal receipt. The assumption is now stated in the exported v2 assumptions
+  and the README, and pinned by a test, so it reads as considered rather than missing. The
+  freeholder's continuing obligations (structure, block insurance, service-charge
+  administration, Building Safety Act duties) are real but out of scope like other regulatory
+  matters.
 - **B5 — Personal guarantee cost** — already flagged as deliberately deferred in AUDIT.md §5;
   restating only so it stays on one list.
 - **B6 — Sensitivity grids don't cover the drivers that matter most.** Three grids: price,
@@ -444,12 +450,10 @@ Question 3 above is decided in principle but needs one number (5). The rest are 
    values, so making lines user-addable is a fair backlog candidate.
 7. **Non-rectangular floors (C1).** How often are real envelopes L/T/U-shaped? If it is most
    of them, the clipping fix is the top priority rather than the second.
-8. **Leasehold (B4).** **PARTLY ANSWERED 2026-08-24: yes — long leases, freehold retained.**
-   But the naive fix is wrong: the Leasehold Reform (Ground Rent) Act 2022 mandates a
-   peppercorn ground rent on newly granted residential long leases, so there is **no ground
-   rent income** to add. Still needed: the lease length granted (999 vs 125 years), and
-   whether the freehold is sold on to a freehold investor and for roughly what — that
-   disposal receipt is the only clean capital item for GDV.
+8. ~~**Leasehold (B4).**~~ **ANSWERED AND CLOSED 2026-08-24: 999-year leases, freehold
+   retained and not sold on.** No ground rent (peppercorn by statute), no reversion value at
+   999 years, no disposal receipt — so nothing is added to GDV, deliberately. Stated in the
+   exported assumptions and the README, and pinned by a test.
 9. **Refinance covenant (A7).** What ICR do your BTL/portfolio lenders actually test at, and
    at what stressed rate? That number is needed to make the covenant check real rather than
    nominal.

@@ -12,13 +12,16 @@ Columns: when (UTC) · outcome · item · title · rework rounds · what happene
 
 ## Awaiting the client
 
-Questions the loop refuses to answer for itself. It will not invent a
-commercial assumption; these block the items named.
+Nothing. Every question the audit raised has been answered:
 
-- **Leasehold / retained freehold (B4).** Confirmed: flats sold on long leases
-  with the freehold retained. Still needed before anything reaches GDV — what
-  lease length is granted (999 or 125 years), and is the freehold sold on to a
-  freehold investor afterwards, for roughly what? Note the Leasehold Reform
-  (Ground Rent) Act 2022 requires a peppercorn ground rent on newly granted
-  residential long leases, so there is **no ground rent income** to model; a
-  freehold disposal receipt is the only clean capital item.
+- Build cost inflation — own researched input, independent of HPI (done, AUDIT.md §6.4)
+- Exit cost attribution — `whenIncurred` plus an `(I)` letting group (done, §6.5)
+- Discounting — equity IRR by default, no hurdle; hurdle an optional UI input (unblocked, B1)
+- ROI denominator — report both committed and drawn capital (unblocked, A5)
+- Tax — pre-tax throughout, and say so (done in the assumptions and README)
+- Refinance ICR — warn below 100% cover only, no covenant modelling (unblocked, A7)
+- Estimator priority — the `(E)` and `(F)` holding/site-running groups first (goal C)
+- Planning obligations — no CIL, no S106 (closed, B3)
+- Leasehold — 999-year leases, freehold retained, nothing added to GDV (closed, B4)
+
+The loop will add new entries here if a cycle hits something it refuses to decide alone.
