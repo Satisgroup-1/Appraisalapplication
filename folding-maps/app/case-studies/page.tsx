@@ -1,15 +1,14 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowUpRight } from 'lucide-react';
-import { PrecisionLabel } from '@/components/PrecisionLabel';
-import { ImageStreamHero } from '@/components/ui/image-stream-hero';
+import { ArrowRight } from 'lucide-react';
 import { cases } from '@/lib/content';
 import styles from './case-studies.module.css';
 import { createPageMetadata } from '@/lib/seo';
 
 export const metadata = createPageMetadata({
-  title: 'AI implementation case studies',
-  description: 'Decision papers showing how Quiet Gears connects operational problems, control models and delivery architecture for UK SMEs.',
+  title: 'Work',
+  description:
+    'Engagement accounts: the operating problem, the reasoning behind the design, the controls, and the measures each piece of work is judged against.',
   path: '/case-studies',
 });
 
@@ -21,55 +20,68 @@ const caseImagery: Record<string, string> = {
   'field-service-planning': '/images/cases/field-service-planning.webp',
 };
 
-const streamImages = cases.map((study) => ({
-  src: caseImagery[study.slug] ?? study.image,
-  alt: study.title,
-}));
-
 export default function Cases() {
   return (
     <>
-      <ImageStreamHero
-        images={streamImages}
-        cards={10}
-        speed={20}
-        axis={57}
-        className={styles.hero}
-      >
-        <div className={styles.heroContent}>
-          <div className={styles.heroLead}>
-            <PrecisionLabel index="QG–CS" label="Case studies" detail="Operational evidence / controlled delivery" />
-            <h1>From operational friction<br/><em>to working systems.</em></h1>
+      <section className="page-hero container">
+        <span className="kicker">Work</span>
+        <h1>Engagement accounts, written as decision papers.</h1>
+        <p className="lede">
+          Each one sets out the situation as we found it, the design and the alternatives
+          rejected, the control model, and the measures the work is judged against. They are
+          longer than a case study usually is, because the reasoning is the part worth
+          reading.
+        </p>
+      </section>
+
+      <section className="section container" aria-labelledby="selected-work-title">
+        <h2 id="selected-work-title" className="sr-only">
+          Selected work
+        </h2>
+
+        <div className={styles.list}>
+          {cases.map((study, index) => (
+            <Link href={`/case-studies/${study.slug}`} className={styles.item} key={study.slug}>
+              <div className={styles.visual}>
+                <Image
+                  src={caseImagery[study.slug] ?? study.image}
+                  alt=""
+                  fill
+                  sizes="(max-width: 900px) 100vw, 40vw"
+                  className={styles.image}
+                />
+              </div>
+              <div className={styles.copy}>
+                <span className={styles.meta}>
+                  <span className={styles.num}>{String(index + 1).padStart(2, '0')}</span>
+                  {study.sector}
+                </span>
+                <h3>{study.title}</h3>
+                <p>{study.summary}</p>
+                <span className="text-link">
+                  Read the engagement <ArrowRight size={15} aria-hidden="true" />
+                </span>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <section className="contact-band">
+        <div className="container inner">
+          <div>
+            <span className="kicker">Enquiries</span>
+            <h2>Recognise one of these?</h2>
+            <p>
+              The sector rarely matters as much as the shape of the problem. If one of these
+              accounts reads like your operation, the first conversation can start from
+              there.
+            </p>
           </div>
-          <p className={styles.heroSummary}>Engagement papers that connect the operating problem, control model and delivery architecture. Illustrative work and in-progress outcomes are labelled clearly.</p>
-        </div>
-      </ImageStreamHero>
-      <section className={styles.collection} aria-labelledby="selected-work-title">
-        <div className={styles.collectionHeading}>
-          <PrecisionLabel index="01–05" label="Selected work" />
-          <h2 id="selected-work-title">Evidence, architecture<br/><em>and accountable delivery.</em></h2>
-          <p>Each study is structured as a decision paper: situation, design response, control position and the evidence required before expansion.</p>
-        </div>
-        {cases.map((study, index) => (
-          <Link href={`/case-studies/${study.slug}`} className={styles.caseStudy} key={study.slug}>
-            <div className={styles.caseVisual}>
-              <Image
-                src={caseImagery[study.slug] ?? study.image}
-                alt=""
-                fill
-                sizes="(max-width: 800px) 100vw, 58vw"
-                className={styles.caseImage}
-              />
-              <span className={styles.caseIndex}>{String(index + 1).padStart(2, '0')}</span>
-            </div>
-            <div className={styles.caseCopy}>
-              <PrecisionLabel index={study.status === 'Illustrative' ? 'CONCEPT' : 'ACTIVE'} label={study.sector} />
-              <h3>{study.title}</h3>
-              <p>{study.summary}</p>
-              <span className={styles.caseAction}>Read the decision paper <ArrowUpRight size={16}/></span>
-            </div>
+          <Link className="button" href="/contact">
+            Start an enquiry <ArrowRight size={17} aria-hidden="true" />
           </Link>
-        ))}
+        </div>
       </section>
     </>
   );

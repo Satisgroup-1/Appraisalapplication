@@ -1,23 +1,74 @@
-.contact :global(.contact-intro .precision-label) { color: var(--machine); }
-
-.contact :global(.contact-facts) {
+.layout {
   display: grid;
-  margin-top: 4.5rem;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 2rem;
-  border: 0;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+  gap: var(--s-9);
+  padding-top: var(--section);
+  padding-bottom: var(--section);
+  align-items: start;
 }
 
-.contact :global(.contact-facts > div) {
-  position: relative;
-  display: block;
-  padding: 1.4rem 0 0;
-  border: 0;
+.aside > section + section { margin-top: var(--s-8); }
+
+.asideHeading {
+  margin-bottom: var(--s-5);
+  padding-bottom: var(--s-3);
+  border-bottom: 1px solid var(--line);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
 }
 
-.contact :global(.contact-facts > div::before) { content: ''; position: absolute; top: 0; left: 0; width: 42px; height: 1px; background: var(--brass); }
-.contact :global(.contact-facts svg) { margin-bottom: 1rem; color: var(--machine); }
+.process {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.process li {
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1fr);
+  gap: var(--s-4);
+  padding: var(--s-5) 0;
+  border-bottom: 1px solid var(--line);
+}
+.process li > span {
+  font-size: var(--step--1);
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  padding-top: 3px;
+}
+.process h3 { margin-bottom: var(--s-2); font-size: var(--step-1); }
+.process p { margin: 0; font-size: 0.9375rem; line-height: 1.65; color: var(--muted); }
 
-@media (max-width: 800px) {
-  .contact :global(.contact-facts) { grid-template-columns: 1fr; }
+.details dl { margin: 0; }
+.details dl > div {
+  padding: var(--s-4) 0;
+  border-bottom: 1px solid var(--line);
+}
+.details dt {
+  margin-bottom: var(--s-2);
+  font-size: var(--step--1);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.details dd { margin: 0; font-size: 0.9375rem; line-height: 1.6; }
+
+.formPanel {
+  padding: var(--s-7);
+  background: var(--surface);
+}
+.formPanel h2 { font-size: var(--step-3); max-width: 22ch; }
+
+.formIntro {
+  margin-bottom: var(--s-7);
+  font-size: 0.9375rem;
+  line-height: 1.7;
+  color: var(--ink-90);
+}
+
+@media (max-width: 980px) {
+  .layout { grid-template-columns: 1fr; gap: var(--s-8); }
+  .formPanel { padding: var(--s-6) var(--s-5); }
 }

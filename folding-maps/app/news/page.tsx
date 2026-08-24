@@ -1,51 +1,83 @@
-import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowUpRight } from 'lucide-react';
-import { PrecisionLabel } from '@/components/PrecisionLabel';
+import { ArrowRight } from 'lucide-react';
 import { articles } from '@/lib/content';
 import { newsEditorial } from '@/lib/newsEditorial';
 import styles from './news.module.css';
 import { createPageMetadata } from '@/lib/seo';
 
 export const metadata = createPageMetadata({
-  title: 'AI news and analysis for UK business leaders',
-  description: 'Evidence-led analysis for leaders navigating AI, automation, governance and operating-model change.',
+  title: 'Insights',
+  description:
+    'Long-form analysis for leaders making decisions about AI, automation and operating-model change. Each piece states its argument, tests the counter-case and carries its sources.',
   path: '/news',
 });
 
 export default function News() {
+  const [lead, ...rest] = articles;
+  const leadEditorial = newsEditorial[lead.slug];
+
   return (
     <>
-      <section className="page-hero report-hero insight-hero report-hero-layout">
-        <div className="report-hero-copy"><PrecisionLabel index="QG–RS" label="News and analysis" detail="Evidence / argument / decision" />
-          <h1>Evidence for better<br/><em>technology decisions.</em></h1>
-          <p>Evidence-led analysis for leaders navigating AI, automation and operating-model change. Each report develops a clear argument, tests the downside and preserves the route to its underlying sources.</p>
-        </div>
-        <div className={styles.researchPlate} aria-hidden="true"><i/><i/><i/><span>QG / RESEARCH DATUM</span></div>
+      <section className="page-hero container">
+        <span className="kicker">Insights</span>
+        <h1>Arguments, with the evidence attached.</h1>
+        <p className="lede">
+          Each piece takes a position, sets out the case against it, and links every figure
+          to its source. Where the evidence is thin we say so rather than rounding it up
+          into a recommendation.
+        </p>
       </section>
-      <section className={styles.journal} aria-labelledby="latest-analysis-title">
-        <div className={styles.journalHeading}>
-          <PrecisionLabel index="01–08" label="Latest analysis" />
-          <h2 id="latest-analysis-title">Research that supports<br/><em>an accountable decision.</em></h2>
-          <p>Long-form briefs structured around argument, evidence, counterargument and practical action.</p>
+
+      <section className="section container" aria-labelledby="latest-title">
+        <h2 id="latest-title" className="sr-only">
+          Latest analysis
+        </h2>
+
+        <Link className={styles.lead} href={`/news/${lead.slug}`}>
+          <span className={styles.meta}>
+            {lead.tag} · {lead.date} · {lead.read}
+          </span>
+          <h3>{leadEditorial.title}</h3>
+          <p className={styles.leadStandfirst}>{leadEditorial.standfirst}</p>
+          <div className={styles.thesis}>
+            <span className="fact-label">The contention</span>
+            <p>{leadEditorial.thesis}</p>
+          </div>
+          <span className="text-link">
+            Read the analysis <ArrowRight size={15} aria-hidden="true" />
+          </span>
+        </Link>
+
+        <div className={styles.grid}>
+          {rest.map((article) => {
+            const editorial = newsEditorial[article.slug];
+            return (
+              <Link className={styles.story} href={`/news/${article.slug}`} key={article.slug}>
+                <span className={styles.meta}>
+                  {article.tag} · {article.date}
+                </span>
+                <h3>{editorial.title}</h3>
+                <p>{editorial.standfirst}</p>
+                <span className={styles.read}>{article.read}</span>
+              </Link>
+            );
+          })}
         </div>
-        <div className={styles.storyField}>
-        {articles.map((article, index) => {
-          const editorial = newsEditorial[article.slug];
-          return <Link className={`${styles.story} ${index === 0 ? styles.leadStory : ''}`} href={`/news/${article.slug}`} key={article.slug}>
-            <div className={styles.storyArt}>
-              <Image src={article.image} alt="" fill sizes={index === 0 ? '100vw' : '(max-width: 800px) 100vw, 44vw'} className={styles.storyImage}/>
-              <span>{String(index + 1).padStart(2, '0')}</span>
-            </div>
-            <div className={styles.storyCopy}>
-              <PrecisionLabel index={article.tag} label={article.date} detail={article.read} />
-              <h3>{editorial.title}</h3>
-              <p>{editorial.standfirst}</p>
-              <blockquote><span>Central contention</span>{editorial.thesis}</blockquote>
-              <span className={styles.storyAction}>Read the analysis <ArrowUpRight size={15}/></span>
-            </div>
-          </Link>;
-        })}
+      </section>
+
+      <section className="contact-band">
+        <div className="container inner">
+          <div>
+            <span className="kicker">Enquiries</span>
+            <h2>Disagree with one of these?</h2>
+            <p>
+              That is a more useful conversation than agreement. If your operation
+              contradicts an argument here, we would rather hear it than defend the piece.
+            </p>
+          </div>
+          <Link className="button" href="/contact">
+            Start an enquiry <ArrowRight size={17} aria-hidden="true" />
+          </Link>
         </div>
       </section>
     </>

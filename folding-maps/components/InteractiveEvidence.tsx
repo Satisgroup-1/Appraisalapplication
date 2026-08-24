@@ -1,11 +1,11 @@
 'use client';
 
 import { useEffect, useId, useMemo, useState, type CSSProperties } from 'react';
-import { ArrowUpRight, CircleDot, Cog } from 'lucide-react';
+import { ArrowUpRight } from 'lucide-react';
 import type { EvidenceView } from '@/lib/editorialGraphics';
 
 export function InteractiveEvidence({
-  eyebrow = 'Interactive evidence',
+  eyebrow = 'Evidence',
   views,
 }: {
   eyebrow?: string;
@@ -28,7 +28,6 @@ export function InteractiveEvidence({
           <h2 id={headingId}>{view.title}</h2>
           <p>{view.summary}</p>
         </div>
-        <div className="evidence-gear" aria-hidden="true" style={{ transform: `rotate(${pointIndex * 28}deg)` }}><Cog/><CircleDot/></div>
       </div>
 
       {views.length > 1 && (

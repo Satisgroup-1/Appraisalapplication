@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ArrowUpRight, Menu, X } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { useEffect, useEffectEvent, useState } from 'react';
 import styles from './Shell.module.css';
 
@@ -14,18 +14,34 @@ const mainLinks = [
   ['About', '/about'],
 ] as const;
 
-const footerLinks = [
-  ['Services', '/services'],
-  ['Industries', '/industries'],
-  ['Work', '/case-studies'],
-  ['Insights', '/news'],
-  ['About', '/about'],
+const footerColumns = [
+  {
+    heading: 'Firm',
+    links: [
+      ['About', '/about'],
+      ['Work', '/case-studies'],
+      ['Insights', '/news'],
+      ['Contact', '/contact'],
+    ],
+  },
+  {
+    heading: 'What we do',
+    links: [
+      ['Services', '/services'],
+      ['Industries', '/industries'],
+      ['AI strategy', '/services/ai-strategy'],
+      ['Workflow automation', '/services/workflow-automation'],
+    ],
+  },
 ] as const;
 
 export function Logo({ footer = false }: { footer?: boolean }) {
   return (
-    <Link className={`${styles.logo} ${footer ? styles.footerLogo : ''}`} href="/" aria-label="Quiet Gears home">
-      <span aria-hidden="true">q</span>
+    <Link
+      className={`${styles.logo} ${footer ? styles.footerLogo : ''}`}
+      href="/"
+      aria-label="Quiet Gears home"
+    >
       Quiet Gears
     </Link>
   );
@@ -35,9 +51,8 @@ export function Header() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const isHome = pathname === '/';
 
-  const updateScrollState = useEffectEvent(() => setScrolled(window.scrollY > 24));
+  const updateScrollState = useEffectEvent(() => setScrolled(window.scrollY > 8));
   const closeMenu = useEffectEvent(() => setOpen(false));
 
   useEffect(() => {
@@ -64,14 +79,8 @@ export function Header() {
     };
   }, [open]);
 
-  const headerClass = [
-    styles.header,
-    isHome ? styles.homeHeader : styles.innerHeader,
-    scrolled || open ? styles.scrolled : '',
-  ].filter(Boolean).join(' ');
-
   return (
-    <header className={headerClass}>
+    <header className={`${styles.header} ${scrolled || open ? styles.scrolled : ''}`}>
       <div className={styles.navWrap}>
         <Logo />
         <button
@@ -82,7 +91,7 @@ export function Header() {
           aria-controls="primary-navigation"
           aria-label={open ? 'Close menu' : 'Open menu'}
         >
-          {open ? <X aria-hidden="true" /> : <Menu aria-hidden="true" />}
+          {open ? <X size={20} aria-hidden="true" /> : <Menu size={20} aria-hidden="true" />}
         </button>
         <nav
           id="primary-navigation"
@@ -93,14 +102,20 @@ export function Header() {
             {mainLinks.map(([label, href]) => {
               const active = pathname === href || pathname.startsWith(`${href}/`);
               return (
-                <Link key={href} className={active ? styles.active : ''} href={href} onClick={() => setOpen(false)}>
+                <Link
+                  key={href}
+                  className={active ? styles.active : ''}
+                  href={href}
+                  aria-current={active ? 'page' : undefined}
+                  onClick={() => setOpen(false)}
+                >
                   {label}
                 </Link>
               );
             })}
           </div>
           <Link className={styles.navCta} href="/contact" onClick={() => setOpen(false)}>
-            Start a conversation <ArrowUpRight size={16} aria-hidden="true" />
+            Contact
           </Link>
         </nav>
       </div>
@@ -111,21 +126,43 @@ export function Header() {
 export function Footer() {
   return (
     <footer className={styles.footer}>
-      <div className={styles.footerLead}>
-        <Logo footer />
-        <p>AI advisory and engineering for ambitious UK SMEs.</p>
-      </div>
-      <div className={styles.footerDetails}>
-        <div className={styles.footerNav} role="navigation" aria-label="Footer navigation">
-          {footerLinks.map(([label, href]) => <Link key={href} href={href}>{label}</Link>)}
+      <div className={styles.footerInner}>
+        <div className={styles.footerLead}>
+          <Logo footer />
+          <p>
+            An independent AI advisory and engineering firm working with UK small and
+            mid-sized companies. We advise on where AI is worth using, build the systems
+            that follow, and hand them over to the people who run them.
+          </p>
         </div>
-        <div className={styles.contact}>
-          <a href="mailto:quietgearsai@gmail.com">quietgearsai@gmail.com</a>
-          <span>London · UK-wide</span>
+
+        <div className={styles.footerNav}>
+          {footerColumns.map((column) => (
+            <div key={column.heading}>
+              <h2>{column.heading}</h2>
+              <ul>
+                {column.links.map(([label, href]) => (
+                  <li key={href}>
+                    <Link href={href}>{label}</Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+          <div>
+            <h2>Enquiries</h2>
+            <ul>
+              <li>
+                <a href="mailto:quietgearsai@gmail.com">quietgearsai@gmail.com</a>
+              </li>
+              <li className={styles.plain}>London, working UK-wide</li>
+            </ul>
+          </div>
         </div>
       </div>
+
       <div className={styles.footerBottom}>
-        <span>© 2026 Quiet Gears Ltd</span>
+        <span>© {new Date().getFullYear()} Quiet Gears Ltd</span>
         <div>
           <Link href="/privacy">Privacy</Link>
           <Link href="/terms">Terms</Link>

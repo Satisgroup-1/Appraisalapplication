@@ -1,62 +1,207 @@
-.corporateDetail :global(.industry-hero-copy .precision-label) { color: var(--industry-accent, var(--machine)); }
+.lead {
+  margin-top: var(--s-5);
+  max-width: 62ch;
+  color: var(--muted);
+}
 
-.corporateDetail :global(.opportunity-grid),
-.corporateDetail :global(.industry-roadmap-steps),
-.corporateDetail :global(.industry-service-grid) {
+/* A contents rail beside the reading column. Below 1020px the rail becomes a
+   row of chips above the content, which is why SectionNav restyles itself
+   rather than being hidden — the links are useful on a phone too. */
+.body {
   display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  gap: clamp(5rem, 9vw, 9rem) 4vw;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: var(--s-9);
+  padding-top: var(--section);
+  padding-bottom: var(--section);
 }
 
-.corporateDetail :global(.opportunity-grid article),
-.corporateDetail :global(.industry-roadmap-steps article),
-.corporateDetail :global(.industry-service-grid article) {
-  min-height: 300px;
-  padding: 1.6rem 0 0;
-  border: 0;
-  border-top: 1px solid var(--industry-accent, var(--brass));
-  background: transparent;
-  box-shadow: none;
-  transform: none;
+@media (max-width: 1020px) {
+  .body { grid-template-columns: 1fr; gap: 0; }
 }
 
-.corporateDetail :global(.opportunity-grid article:nth-child(odd)),
-.corporateDetail :global(.industry-roadmap-steps article:nth-child(odd)),
-.corporateDetail :global(.industry-service-grid article:nth-child(odd)) { grid-column: 1 / 7; }
+.content > * + * { margin-top: clamp(56px, 6vw, 88px); }
 
-.corporateDetail :global(.opportunity-grid article:nth-child(even)),
-.corporateDetail :global(.industry-roadmap-steps article:nth-child(even)),
-.corporateDetail :global(.industry-service-grid article:nth-child(even)) { grid-column: 7 / 13; margin-top: 6rem; }
+.thesis {
+  padding-bottom: var(--s-7);
+  border-bottom: 1px solid var(--line);
+}
+.thesis blockquote {
+  margin: 0;
+  padding-left: var(--s-5);
+  border-left: 2px solid var(--accent);
+  font-size: var(--step-3);
+  line-height: 1.35;
+  letter-spacing: -0.018em;
+}
 
-.corporateDetail :global(.opportunity-grid h3),
-.corporateDetail :global(.industry-roadmap-steps h3),
-.corporateDetail :global(.industry-service-grid h3) { margin-top: 3rem; font-size: clamp(2.4rem, 4vw, 4.5rem); }
+.section { scroll-margin-top: 96px; }
+.section h2 { font-size: var(--step-3); max-width: 24ch; }
 
-.corporateDetail :global(.opportunity-grid b) { position: static; display: block; margin-top: 2.2rem; padding-top: 1rem; border-top: 0; color: var(--industry-accent, var(--machine)); }
-.corporateDetail :global(.industry-roadmap-steps article > div) { border: 0; }
-.corporateDetail :global(.industry-roadmap-steps article svg) { display: none; }
+.sectionNum {
+  display: block;
+  margin-bottom: var(--s-4);
+  font-size: var(--step--1);
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
 
-.corporateDetail :global(.industry-questions ol) {
+.sectionLede {
+  max-width: 60ch;
+  margin-bottom: var(--s-7);
+  color: var(--muted);
+}
+
+/* -------------------------------------------------------------------------- */
+
+.opportunities {
   display: grid;
-  max-width: 1200px;
-  margin: 0 auto;
-  grid-template-columns: 1fr 1fr;
-  gap: 5rem 8vw;
-  border: 0;
+  gap: 0;
+  border-top: 1px solid var(--line);
+}
+.opportunities article {
+  display: grid;
+  grid-template-columns: 3rem minmax(0, 1fr);
+  gap: var(--s-5);
+  padding: var(--s-6) 0;
+  border-bottom: 1px solid var(--line);
+}
+.opportunities article > span {
+  font-size: var(--step--1);
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  padding-top: 4px;
+}
+.opportunities h3 { grid-column: 2; margin-bottom: var(--s-3); font-size: var(--step-1); }
+.opportunities p { grid-column: 2; margin: 0; color: var(--ink-90); }
+
+.measure {
+  grid-column: 2;
+  margin-top: var(--s-5);
+  padding-top: var(--s-4);
+  border-top: 1px solid var(--line);
+  font-size: 0.9375rem;
+  color: var(--ink);
 }
 
-.corporateDetail :global(.industry-questions li) { display: block; padding: 1.4rem 0 0; border: 0; border-top: 1px solid var(--industry-accent, var(--brass)); }
-.corporateDetail :global(.industry-questions li p) { margin-top: 2rem; }
+/* -------------------------------------------------------------------------- */
 
-.corporateDetail :global(.industry-controls > div:last-child) { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 6rem 4vw; }
-.corporateDetail :global(.industry-controls article) { grid-column: span 4; min-height: 320px; padding: 1.5rem 0 0; border: 0; border-top: 1px solid rgba(247, 240, 229, .35); background: transparent; }
-.corporateDetail :global(.industry-controls article + article) { border-left: 0; }
-.corporateDetail :global(.industry-controls article svg) { display: none; }
-
-@media (max-width: 800px) {
-  .corporateDetail :global(.opportunity-grid article:nth-child(n)),
-  .corporateDetail :global(.industry-roadmap-steps article:nth-child(n)),
-  .corporateDetail :global(.industry-service-grid article:nth-child(n)) { grid-column: 1 / -1; margin-top: 0; }
-  .corporateDetail :global(.industry-questions ol) { grid-template-columns: 1fr; }
-  .corporateDetail :global(.industry-controls article) { grid-column: 1 / -1; min-height: 0; }
+.questions {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--line);
 }
+.questions li {
+  display: grid;
+  grid-template-columns: 3rem minmax(0, 1fr);
+  gap: var(--s-5);
+  padding: var(--s-5) 0;
+  border-bottom: 1px solid var(--line);
+}
+.questions span {
+  font-size: var(--step--1);
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  padding-top: 5px;
+}
+.questions p { margin: 0; font-size: var(--step-1); line-height: 1.5; }
+
+/* -------------------------------------------------------------------------- */
+
+.controls {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--s-7);
+}
+.controls article {
+  padding: var(--s-5) var(--s-5) var(--s-5) var(--s-6);
+  border-left: 2px solid var(--line-strong);
+  background: var(--surface);
+}
+.controls h3 { margin-bottom: var(--s-3); font-size: var(--step-1); }
+.controls p { margin: 0; font-size: 0.9375rem; line-height: 1.7; color: var(--ink-90); }
+
+@media (max-width: 860px) {
+  .controls { grid-template-columns: 1fr; gap: var(--s-5); }
+}
+
+/* -------------------------------------------------------------------------- */
+
+.roadmap {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: stage;
+}
+.roadmap li {
+  display: grid;
+  grid-template-columns: 3rem minmax(0, 1fr);
+  gap: var(--s-5);
+  padding-bottom: var(--s-6);
+  position: relative;
+}
+.roadmap li:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  left: 11px;
+  top: 26px;
+  bottom: 0;
+  width: 1px;
+  background: var(--line);
+}
+.roadmap li > span {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 23px;
+  height: 23px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+.roadmap h3 { margin-bottom: var(--s-3); font-size: var(--step-1); }
+.roadmap p { margin: 0; color: var(--ink-90); }
+
+/* -------------------------------------------------------------------------- */
+
+.services {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--s-7);
+}
+.services article {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  padding-top: var(--s-4);
+  border-top: 2px solid var(--ink);
+}
+.services h3 { margin: 0; font-size: var(--step-1); }
+.services p { margin: 0; flex: 1; font-size: 0.9375rem; line-height: 1.7; color: var(--muted); }
+
+.closing {
+  max-width: 62ch;
+  padding-top: var(--s-6);
+  border-top: 1px solid var(--line);
+  font-size: var(--step-1);
+  line-height: 1.6;
+  color: var(--ink-90);
+}
+
+/* -------------------------------------------------------------------------- */
+
+.next {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  padding: var(--s-6) 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  transition: color var(--speed) var(--ease);
+}
+.next strong { flex: 1; font-size: var(--step-2); font-weight: 600; }
+.next :global(.kicker) { margin: 0; }
+.next:hover { color: var(--accent); }

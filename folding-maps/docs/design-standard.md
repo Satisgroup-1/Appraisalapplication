@@ -1,0 +1,110 @@
+# Design and editorial standard
+
+The register to build against: the AI practices of the large strategy firms
+(McKinsey QuantumBlack, BCG X, Bain Vector) and the credible independent AI
+consultancies. What follows is the working standard for this site. Where a
+judgement is contestable it is written as a rule anyway, because a site with
+one opinion reads better than a site with several.
+
+## What those firms actually do
+
+**Navigation is capability-led and short.** Five or six top-level items, named
+for what a buyer is looking for — Industries, Services, Insights, About — not
+for the firm's internal structure. The contact route is present but quiet: a
+single link, not a shouting button. Executives arriving on these sites are
+looking for evidence of specific expertise, not for an offer.
+
+**The hero states what the firm is, not what the reader should feel.** It is
+declarative and unexcited. There is no imperative slogan, no exclamation, no
+second-person command. The subhead adds a concrete fact — where the firm
+works, what it builds, who it serves — rather than restating the headline in
+different words.
+
+**Insight is the proof.** The centre of gravity is published thinking, not
+testimonials. A firm demonstrates competence by reasoning in public about hard
+problems in its clients' industries. This is the single largest difference
+between a consultancy site and a software marketing site, and the one most
+often missed.
+
+**Numbers are sourced or absent.** Every figure carries its provenance and its
+date. A number without a source is worse than no number, because it invites
+the one question the site cannot answer.
+
+**Restraint signals seniority.** Near-monochrome palette, one accent used
+sparingly, hairline rules instead of drop-shadowed cards, generous whitespace,
+no decorative illustration. The visual language says the work is the point.
+
+## Rules for this site
+
+### Colour
+
+- A single deep institutional base (near-black navy), near-white paper, and a
+  graphite mid-tone for secondary text.
+- One accent. It marks interactive elements and nothing else — never a
+  decorative fill, never a highlight for emphasis in prose.
+- No gradients, no texture, no paper grain, no background ornament.
+- Contrast: body text at least 7:1 on its background, interface text at least
+  4.5:1. Test rather than assume.
+
+### Typography
+
+- One sans family throughout, at two weights. No serif italics, no display
+  face, no letterform ornament.
+- The display size tops out where a headline still reads as a sentence, not as
+  a poster. Nothing on this site needs 124px.
+- Measure: 62–75 characters for prose. Longer is unreadable; shorter is choppy.
+- Tabular figures for anything numeric so columns align.
+
+### Layout
+
+- One grid, twelve columns, consistent gutters, consistent vertical rhythm.
+- Section spacing comes from a scale, not from ad-hoc pixel values.
+- Rules and space do the separating. A card needs a border only when it is
+  genuinely a discrete object.
+
+### Motion and interactivity
+
+- Motion is functional: it shows state changing or content arriving. 150–250ms,
+  ease-out, opacity and small translations only.
+- Every interactive element has a visible hover, focus-visible and active
+  state, and the focus ring is never removed.
+- `prefers-reduced-motion` is honoured everywhere, not on the hero alone.
+- Interactivity must do something. A control that only animates is decoration
+  with a click target; either give it a job or delete it.
+
+## Rules for the writing
+
+The test for every sentence: **would a partner say this out loud to a client
+without embarrassment?** If not, cut it.
+
+### Banned
+
+- Imperative slogans and exhortation: *put AI to work*, *let's build*,
+  *ready to transform?*
+- The vocabulary of the AI marketing cycle: *unlock*, *leverage*, *empower*,
+  *supercharge*, *seamless*, *cutting-edge*, *game-changing*, *revolutionise*,
+  *harness the power of*, *in today's fast-paced world*, *journey*.
+- Claims with no referent: *industry-leading*, *world-class*, *bespoke
+  solutions*, *end-to-end*, *tailored to your needs*.
+- Sentences that survive deletion. If removing it changes nothing, remove it.
+- Exclamation marks. All of them.
+
+### Required
+
+- **Specifics carry the argument.** A named constraint, a real number with its
+  source, a decision that could have gone the other way.
+- **Reasoning, not assertion.** Say why the approach is right, and what it
+  costs. An argument that acknowledges its own trade-off is more persuasive
+  than one that does not.
+- **Say what is not true.** Where the evidence is thin, the limit is stated.
+  This reads as confidence, not weakness, and it is the register the large
+  firms actually use in their published work.
+- **Plain English.** Active voice. 15–25 words a sentence on average. Technical
+  vocabulary only where it is load-bearing, and defined the first time.
+- **British spelling**, consistently: organisation, prioritise, programme.
+
+### Structure of a page
+
+Every substantial page answers, in this order: what is the problem, why is it
+hard, what do we do about it, what would tell you it worked, and what are the
+limits. A page that skips the fourth and fifth is a brochure.

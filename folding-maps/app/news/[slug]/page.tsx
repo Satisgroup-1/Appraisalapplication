@@ -1,12 +1,10 @@
-import Image from 'next/image';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { ArrowLeft } from 'lucide-react';
-import { CodeExhibit } from '@/components/ConsultingExhibits';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { SystemExhibit } from '@/components/ConsultingExhibits';
 import { NarrativeOpening } from '@/components/EditorialNarrative';
 import { InteractiveEvidence } from '@/components/InteractiveEvidence';
-import { MechanicalMark } from '@/components/MechanicalVisuals';
 import { NarrativeSections, ReportActionAgenda, ReportReferences } from '@/components/NarrativeReport';
 import { ReadingModeSwitch } from '@/components/ReadingModeSwitch';
 import { JsonLd } from '@/components/JsonLd';
@@ -51,7 +49,7 @@ export default async function Article({ params }: { params: Promise<{ slug: stri
   const publishedTime = toIsoDate(article.date);
   const jsonLd = [
     breadcrumbJsonLd([
-      { name: 'News and analysis', path: '/news' },
+      { name: 'Insights', path: '/news' },
       { name: editorial.title, path: `/news/${article.slug}` },
     ]),
     {
@@ -70,32 +68,41 @@ export default async function Article({ params }: { params: Promise<{ slug: stri
   ];
   const renderExhibit = (placement: NewsExhibitPlacement) => placement.kind === 'evidence'
     ? <InteractiveEvidence key={`evidence-${placement.view}`} views={[newsEvidenceViews[article.slug][placement.view]]}/>
-    : <CodeExhibit key="system" title={article.code.title} eyebrow="Implementation pattern" lines={article.code.lines} nodes={article.code.nodes}/>;
+    : <SystemExhibit key="system" title={article.code.title} eyebrow="Implementation pattern" lines={article.code.lines} nodes={article.code.nodes}/>;
 
   return (
-    <article className="article-detail insight-report prose-first-report">
+    <article className="report">
       <JsonLd data={jsonLd} />
-      <Link className="back" href="/news"><ArrowLeft size={16}/> All analysis</Link>
+      <Link className="back" href="/news"><ArrowLeft size={15} aria-hidden="true"/> All insights</Link>
       <div className="report-meta"><span>{article.tag}</span><span>{article.date}</span><span>{article.read}</span></div>
       <h1>{editorial.title}</h1>
-      <div className="article-hero-image"><Image src={article.image} alt="" fill priority sizes="(max-width: 1000px) 100vw, 860px"/><span>{article.artLabel}</span><MechanicalMark label="Evidence briefing"/></div>
 
       <ReadingModeSwitch simplePanelId={`simple-news-${article.slug}`} advancedPanelId={`advanced-news-${article.slug}`}/>
       {(['simple', 'advanced'] as const).map((mode) => {
         const variant = variants[mode];
         return (
           <section className="report-mode-panel" id={`${mode}-news-${article.slug}`} data-report-mode={mode} aria-label={`${mode} reading level`} key={mode}>
-            <p className="mode-read-estimate">Estimated reading time: {variant.estimatedReadingTime}</p>
+            <p className="mode-read-estimate">Reading time: {variant.estimatedReadingTime}</p>
             <p className="lede">{variant.standfirst}</p>
             {variant.opening && <NarrativeOpening label={variant.opening.label} title={variant.opening.title} paragraphs={variant.opening.paragraphs} centralQuestion={variant.opening.centralQuestion}/>}
-            <section className="thesis-panel"><span>Central contention</span><p>{variant.thesis}</p></section>
+            <section className="thesis-panel"><span>The contention</span><p>{variant.thesis}</p></section>
             <NarrativeSections sections={variant.sections} className="editorial-report-sections continuous-report-sections" contentsLabel={mode === 'simple' ? 'Executive analysis' : 'Technical analysis'} idPrefix={`${mode}-news-${article.slug}`} renderExhibit={renderExhibit}/>
-            <ReportActionAgenda eyebrow="Leadership agenda" title="Decisions arising from the analysis" actions={variant.actionAgenda}/>
+            <ReportActionAgenda eyebrow="What follows" title="Decisions arising from the analysis" actions={variant.actionAgenda}/>
           </section>
         );
       })}
 
-      <ReportReferences id="news-references" title="Sources and further reading" introduction="External evidence is used for context. Quiet Gears analysis and illustrative charts are identified separately." sources={references}/>
+      <ReportReferences id="news-references" title="Sources" introduction="External evidence is used for context. Charts drawn from our own analysis are identified as such on the exhibit itself." sources={references}/>
+
+      <div className="article-foot">
+        <p>
+          Written by Quiet Gears. If your own operating data contradicts the argument
+          above, we would rather hear it than defend the piece.
+        </p>
+        <Link className="button light" href="/contact">
+          Send a challenge <ArrowRight size={16} aria-hidden="true"/>
+        </Link>
+      </div>
     </article>
   );
 }

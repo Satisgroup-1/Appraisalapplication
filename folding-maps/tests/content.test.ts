@@ -176,7 +176,9 @@ describe('editorial content', () => {
   it('preserves reduced motion, focus visibility and accessible chart state', () => {
     const styles = readFileSync('app/globals.css', 'utf8');
     const chart = readFileSync('components/InteractiveEvidence.tsx', 'utf8');
-    expect(styles).toContain('@media(prefers-reduced-motion:reduce)');
+    // Matched without regard to whitespace: the stylesheet is now formatted
+    // for reading, so an exact minified string would fail on formatting alone.
+    expect(styles.replace(/\s+/g, '')).toContain('@media(prefers-reduced-motion:reduce)');
     expect(styles).toContain(':focus-visible');
     expect(chart).toContain('aria-labelledby');
     expect(chart).toContain('aria-pressed');

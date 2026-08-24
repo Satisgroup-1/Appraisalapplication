@@ -48,10 +48,18 @@ describe('industry perspectives', () => {
     expect(Object.keys(industryServiceRecommendations)).toHaveLength(industries.length);
   });
 
-  it('provides a detailed visual system for every page', () => {
-    const visual = readFileSync('components/IndustrySignal.tsx', 'utf8');
-    expect(new Set(industries.map((industry) => industry.motif)).size).toBe(6);
-    expect(visual).toContain('role="img"');
-    expect(visual).toContain('signalLabels');
+  it('gives every sector page a navigable structure rather than a decorative one', () => {
+    // The decorative per-sector motif was removed with the 2026 institutional
+    // rebuild. What each page must now carry is a contents rail whose entries
+    // match real section anchors, so a long page stays navigable.
+    const page = readFileSync('app/industries/[slug]/page.tsx', 'utf8');
+    const navSections = [...page.matchAll(/\{ id: '([a-z-]+)', label: '[^']+' \}/g)].map(
+      ([, id]) => id,
+    );
+    expect(navSections.length).toBeGreaterThanOrEqual(6);
+    navSections.forEach((id) => {
+      expect(page).toContain(`id="${id}"`);
+    });
+    expect(page).toContain('<SectionNav sections={sections} />');
   });
 });

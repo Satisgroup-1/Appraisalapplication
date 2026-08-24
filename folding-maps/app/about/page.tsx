@@ -1,78 +1,169 @@
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
-import { PrecisionLabel } from '@/components/PrecisionLabel';
-import { Reveal } from '@/components/Reveal';
 import { createPageMetadata } from '@/lib/seo';
 import styles from './about.module.css';
 
 export const metadata = createPageMetadata({
-  title: 'About Quiet Gears',
-  description: 'Quiet Gears is a senior-led London studio that finds costly operational drag and builds focused software to remove it.',
+  title: 'About',
+  description:
+    'Quiet Gears is a small, senior-led London firm advising UK companies on where AI is worth using and building the systems that follow.',
   path: '/about',
 });
 
 const leadConsultants = ['Luc Balonwu', 'Rohan Campion'];
 
+/* What the firm will not do. Stated plainly, because a list of refusals tells a
+   prospective client more about how a firm works than a list of capabilities. */
+const refusals = [
+  {
+    title: 'We do not resell software.',
+    body: 'We take no commission or referral fee on any tool we recommend, which is the only way advice about tooling can be worth reading. Where the right answer is a product you already pay for, that is the answer you get.',
+  },
+  {
+    title: 'We do not staff projects we cannot senior-lead.',
+    body: 'A small firm scales by putting junior people on work sold by senior ones. We would rather decline than do that, which caps how much we take on and is the main reason our timelines are honest.',
+  },
+  {
+    title: 'We do not build what we cannot hand over.',
+    body: 'If a system would leave your team dependent on us to operate it, it is the wrong system. That constraint rules out some interesting architectures and rules in the ones you can still run in three years.',
+  },
+  {
+    title: 'We do not promise a number we cannot baseline.',
+    body: 'Efficiency claims made before measurement are guesses with a decimal point. If the current position cannot be measured, the first piece of work is measuring it, and we will say so rather than quote a saving.',
+  },
+];
+
 export default function About() {
   return (
     <>
-      <section className="page-hero code-waterfall">
-        <div className="code-rain" aria-hidden="true">
-          01&nbsp;&nbsp;SYSTEM.READY&nbsp;&nbsp;BUILD.BETTER<br />
-          10&nbsp;&nbsp;CONNECT → AUTOMATE → LEARN<br />
-          11&nbsp;&nbsp;HUMAN.IN.THE.LOOP&nbsp;&nbsp;01&nbsp;&nbsp;SHIP
-        </div>
-        <PrecisionLabel index="QG–AB" label="About Quiet Gears" detail="London / small team / senior-led" />
-        <h1>Find the drag.<br /><em>Fix the system.</em></h1>
-        <p>
-          Quiet Gears is a small London studio for organisations whose everyday work has outgrown its tools. We trace the friction, shape a sensible intervention and build the software needed to make the work move again.
+      <section className="page-hero container">
+        <span className="kicker">About</span>
+        <h1>A small firm, deliberately.</h1>
+        <p className="lede">
+          Quiet Gears advises UK companies on where AI is worth using and builds the systems
+          that follow. Two lead consultants, a network of specialists when a brief needs
+          them, and no layer in between.
         </p>
       </section>
 
-      <section className={styles.story}>
-        <Reveal className={styles.storyLead}>
-          <PrecisionLabel index="01" label="Why Quiet Gears" />
-          <h2>Useful change starts with the work as it is.</h2>
-        </Reveal>
-        <Reveal className={styles.storyCopy}>
+      <section className="section container" aria-labelledby="why-title">
+        <div className="page-head">
+          <div>
+            <span className="kicker">Why we exist</span>
+            <h2 id="why-title">The gap is between seeing a problem and having time to fix it.</h2>
+          </div>
+          <p className="lede">
+            Most companies we meet have already diagnosed their own problem. What they lack
+            is the time and the technical judgement to act on it without breaking something
+            else.
+          </p>
+        </div>
+
+        <div className={styles.prose}>
           <p>
-            Important processes often run through a patchwork of spreadsheets, inboxes and knowledge held by a few experienced people. The problem is rarely a lack of ideas. It is the distance between seeing the issue and having the time and technical judgement to resolve it.
+            Important work in a mid-sized company usually runs through a patchwork:
+            spreadsheets that only one person fully understands, an inbox that functions as
+            a queue, and a scheduling decision that lives in somebody&rsquo;s head. It works,
+            often for years, and it degrades quietly as volume grows. The failure is rarely
+            dramatic. It shows up as a Tuesday that takes until Thursday.
           </p>
           <p>
-            We work inside that gap. Our role is to understand the operating detail, decide what deserves to change and take responsibility for a focused release. Sometimes AI belongs in that answer. Sometimes simpler software is the better tool.
+            The obstacle to fixing it is not usually ambition or budget. It is that the
+            people who understand the operation are the same people running it, and the
+            technical judgement needed — what to automate, what to leave alone, what will
+            still be maintainable in two years — is not the judgement their day job builds.
           </p>
-        </Reveal>
+          <p>
+            That is the gap we work in. Our job is to understand the operating detail well
+            enough to decide what genuinely deserves to change, then take responsibility for
+            a focused release rather than a programme. Sometimes AI belongs in the answer.
+            Often the honest answer is simpler software, better data, or a process change
+            that costs nothing at all — and we would rather say so and be trusted next time.
+          </p>
+        </div>
       </section>
 
-      <section className={styles.people}>
-        <div className={styles.sectionHeading}>
-          <PrecisionLabel index="02" label="People" detail="Strategy / engineering / adoption" />
-          <h2>The people you meet<br /><em>do the work.</em></h2>
-          <p>Quiet Gears is led by two consultants and supported by a focused network of specialists when the brief calls for it.</p>
+      <section className="section section-surface" aria-labelledby="refusals-title">
+        <div className="container">
+          <div className="page-head">
+            <div>
+              <span className="kicker">How we work</span>
+              <h2 id="refusals-title">Four things we will not do.</h2>
+            </div>
+            <p className="lede">
+              Capability lists are interchangeable. Constraints are not — they tell you what
+              happens when the commercially convenient answer and the correct one diverge.
+            </p>
+          </div>
+
+          <div className={styles.refusals}>
+            {refusals.map((item, index) => (
+              <article key={item.title}>
+                <span>{String(index + 1).padStart(2, '0')}</span>
+                <h3>{item.title}</h3>
+                <p>{item.body}</p>
+              </article>
+            ))}
+          </div>
         </div>
-        <div className={styles.consultantList}>
+      </section>
+
+      <section className="section container" aria-labelledby="people-title">
+        <div className="page-head">
+          <div>
+            <span className="kicker">People</span>
+            <h2 id="people-title">The people you meet are the people who do the work.</h2>
+          </div>
+          <p className="lede">
+            Quiet Gears is led by two consultants, supported by a small network of
+            specialists when a brief calls for one. There is no delivery team behind the
+            pitch, because there is no pitch.
+          </p>
+        </div>
+
+        <div className={styles.people}>
           {leadConsultants.map((name, index) => (
             <article key={name}>
-              <span>0{index + 1}</span>
+              <span>{String(index + 1).padStart(2, '0')}</span>
               <h3>{name}</h3>
               <p>Lead consultant</p>
             </article>
           ))}
         </div>
-        <aside className={styles.workWithUs}>
+
+        <aside className={styles.network}>
           <div>
-            <span>Work with us</span>
-            <p>We welcome introductions from experienced specialists who value careful craft and direct client responsibility.</p>
+            <span className="fact-label">Specialist network</span>
+            <p>
+              We bring in specialists — data engineering, security review, sector regulation
+              — where a brief genuinely needs one, and we say who they are before they start.
+              Introductions from experienced practitioners who want direct client
+              responsibility are welcome.
+            </p>
           </div>
-          <a className="text-link" href="mailto:quietgearsai@gmail.com?subject=Working%20with%20Quiet%20Gears">
-            Introduce yourself <ArrowRight size={16} />
+          <a
+            className="text-link"
+            href="mailto:quietgearsai@gmail.com?subject=Working%20with%20Quiet%20Gears"
+          >
+            Introduce yourself <ArrowRight size={16} aria-hidden="true" />
           </a>
         </aside>
       </section>
 
-      <section className="cta-band">
-        <h2>Have a stubborn problem<br />worth solving?</h2>
-        <Link className="button lime" href="/contact">Start a conversation <ArrowRight size={17} /></Link>
+      <section className="contact-band">
+        <div className="container inner">
+          <div>
+            <span className="kicker">Enquiries</span>
+            <h2>Have a problem that has outlasted two attempts to fix it?</h2>
+            <p>
+              Those are the ones worth talking about. Tell us what has already been tried and
+              why it did not hold.
+            </p>
+          </div>
+          <Link className="button" href="/contact">
+            Start an enquiry <ArrowRight size={17} aria-hidden="true" />
+          </Link>
+        </div>
       </section>
     </>
   );

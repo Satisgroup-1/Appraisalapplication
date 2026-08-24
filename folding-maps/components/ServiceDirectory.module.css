@@ -1,0 +1,69 @@
+.controls {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-7);
+  margin: 0 0 var(--s-6);
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+
+.filter {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--s-2);
+  padding: 8px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: transparent;
+  font-size: 0.9375rem;
+  cursor: pointer;
+  transition: border-color var(--speed) var(--ease), background var(--speed) var(--ease), color var(--speed) var(--ease);
+}
+.filter span {
+  font-size: var(--step--1);
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+.filter:hover { border-color: var(--line-strong); }
+
+.filterActive {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper);
+}
+.filterActive span { color: rgba(255, 255, 255, 0.65); }
+.filterActive:hover { border-color: var(--ink); }
+
+.note {
+  margin: 0;
+  max-width: 46ch;
+  text-align: right;
+  font-size: var(--step--1);
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+.group {
+  display: block;
+  margin-bottom: var(--s-2);
+  font-size: var(--step--1);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.arrow {
+  color: var(--muted);
+  transition: transform var(--speed) var(--ease), color var(--speed) var(--ease);
+}
+:global(a.index-item):hover .arrow { transform: translateX(3px); color: var(--accent); }
+
+@media (max-width: 860px) {
+  .controls { flex-direction: column; gap: var(--s-4); }
+  .note { text-align: left; }
+}

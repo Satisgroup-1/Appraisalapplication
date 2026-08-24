@@ -1,9 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound, permanentRedirect } from 'next/navigation';
-import { ArrowLeft, ArrowRight, ArrowUpRight, Check, CircleDot, Cpu, Database, GitBranch, ShieldCheck } from 'lucide-react';
-import { PrecisionLabel } from '@/components/PrecisionLabel';
-import { ServiceSystemLab } from '@/components/ServiceSystemLab';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { getService, serviceAliases, services } from '@/lib/services';
 import { createPageMetadata } from '@/lib/seo';
 import styles from './service-detail.module.css';
@@ -16,6 +14,7 @@ export function generateStaticParams() {
     ...Object.keys(serviceAliases).map((slug) => ({ slug })),
   ];
 }
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const service = getService(serviceAliases[slug] ?? slug);
@@ -34,62 +33,185 @@ export default async function ServiceDetailPage({ params }: PageProps) {
   if (canonicalSlug) permanentRedirect(`/services/${canonicalSlug}`);
   const service = getService(slug);
   if (!service) notFound();
+
   const currentIndex = services.findIndex((item) => item.slug === service.slug);
   const next = services[(currentIndex + 1) % services.length];
 
-  return <>
-    <article className={`service-detail-page ${styles.corporateDetail}`}>
-      <section className="service-detail-hero">
-        <div className="service-detail-copy">
-          <Link className="back" href="/services"><ArrowLeft size={15}/> All services</Link>
-          <PrecisionLabel index={service.number} label={service.group} detail="Service specification" />
+  return (
+    <>
+      <article>
+        <header className="page-hero container">
+          <Link className="back" href="/services">
+            <ArrowLeft size={15} aria-hidden="true" /> All services
+          </Link>
+          <span className="kicker">
+            {service.group} · Service {service.number}
+          </span>
           <h1>{service.title}</h1>
-          <p className="service-promise">{service.promise}</p>
-          <p>{service.summary}</p>
-          <div className="hero-actions"><Link className="button lime" href="/contact">Discuss this service <ArrowRight size={17}/></Link><a className="text-link" href="#system-model">See how it works <ArrowUpRight size={16}/></a></div>
+          <p className="lede">{service.promise}</p>
+          <div className={styles.heroActions}>
+            <Link className="button" href="/contact">
+              Discuss this service <ArrowRight size={17} aria-hidden="true" />
+            </Link>
+            <a className="button light" href="#stages">
+              How the work runs
+            </a>
+          </div>
+        </header>
+
+        <section className="section container" aria-labelledby="what-title">
+          <div className="page-head">
+            <div>
+              <span className="kicker">What this is</span>
+              <h2 id="what-title">{service.summary}</h2>
+            </div>
+            <div>
+              <p className={styles.explanation}>{service.explanation}</p>
+            </div>
+          </div>
+
+          <div className={styles.stack}>
+            <span className="fact-label">Typical stack</span>
+            <ul className={styles.tags}>
+              {service.technologies.map((technology) => (
+                <li key={technology}>{technology}</li>
+              ))}
+            </ul>
+            <p className="small">
+              Named for transparency, not preference. The right components depend on your
+              data, your existing systems and what your team can maintain — and we will say
+              when the honest answer is a tool you already own.
+            </p>
+          </div>
+        </section>
+
+        <section className="section section-surface" id="stages" aria-labelledby="stages-title">
+          <div className="container">
+            <div className="page-head">
+              <div>
+                <span className="kicker">How the work runs</span>
+                <h2 id="stages-title">The stages, and what each one produces.</h2>
+              </div>
+              <p className="lede">
+                Each stage ends in something you can read and challenge. Nothing moves to
+                the next stage on the strength of a conversation alone.
+              </p>
+            </div>
+
+            <ol className={styles.stages}>
+              {service.stages.map((stage, index) => (
+                <li key={stage.label}>
+                  <span className={styles.stageNum}>{String(index + 1).padStart(2, '0')}</span>
+                  <h3>{stage.label}</h3>
+                  <p>{stage.detail}</p>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+
+        <section className="section container" aria-labelledby="cases-title">
+          <div className="page-head">
+            <div>
+              <span className="kicker">Applied</span>
+              <h2 id="cases-title">Where this earns its place.</h2>
+            </div>
+            <p className="lede">
+              Each pattern begins with an operating constraint rather than a technology, and
+              keeps a traceable route from source information to accountable action.
+            </p>
+          </div>
+
+          <div className={styles.useCases}>
+            {service.useCases.map((useCase, index) => (
+              <article key={useCase.title}>
+                <span className={styles.useCaseNum}>{String(index + 1).padStart(2, '0')}</span>
+                <h3>{useCase.title}</h3>
+                <div className={styles.useCaseBody}>
+                  <div>
+                    <span className="fact-label">The constraint</span>
+                    <p>{useCase.problem}</p>
+                  </div>
+                  <div>
+                    <span className="fact-label">In practice</span>
+                    <p>{useCase.example}</p>
+                  </div>
+                </div>
+                <ol className={styles.path} aria-label="How the work flows">
+                  {useCase.path.map((step, stepIndex) => (
+                    <li key={step}>
+                      <span>{stepIndex + 1}</span>
+                      {step}
+                    </li>
+                  ))}
+                </ol>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="section section-dark" aria-labelledby="scope-title">
+          <div className="container">
+            <h2 id="scope-title" className="sr-only">
+              Scope and controls
+            </h2>
+            <div className={styles.columns}>
+              <div>
+                <span className="kicker">What we provide</span>
+                <h3>Everything needed to run it, not just to demonstrate it.</h3>
+                <ul className={styles.checkList}>
+                  {service.provisions.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <span className="kicker">Controls we insist on</span>
+                <h3>The parts we will not drop to save time.</h3>
+                <ul className={styles.checkList}>
+                  {service.safeguards.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+                <p className={styles.controlNote}>
+                  These are conditions of the engagement rather than options within it. A
+                  system without them is cheaper to build and considerably more expensive to
+                  own.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+      </article>
+
+      <section className="section-tight container" aria-labelledby="next-title">
+        <div className={styles.next}>
+          <div>
+            <span className="kicker">Next service</span>
+            <h2 id="next-title">{next.title}</h2>
+            <p>{next.promise}</p>
+          </div>
+          <Link className="button light" href={`/services/${next.slug}`}>
+            Read it <ArrowRight size={17} aria-hidden="true" />
+          </Link>
         </div>
-        <div className="service-tech-orbit" aria-hidden="true">
-          <div className="tech-core"><Cpu/><span>{service.shortTitle}</span></div>
-          {service.technologies.map((technology, index) => <div className={`tech-satellite satellite-${index + 1}`} key={technology}><i/><span>{technology}</span></div>)}
-          <div className="tech-orbit-line orbit-a"/><div className="tech-orbit-line orbit-b"/>
+      </section>
+
+      <section className="contact-band">
+        <div className="container inner">
+          <div>
+            <span className="kicker">Enquiries</span>
+            <h2>Have a constraint that looks like this?</h2>
+            <p>
+              Send the situation rather than a specification. The first response will tell
+              you what we would need to know to scope it properly.
+            </p>
+          </div>
+          <Link className="button" href="/contact">
+            Start an enquiry <ArrowRight size={17} aria-hidden="true" />
+          </Link>
         </div>
       </section>
-
-      <section className="service-explainer">
-        <div><span className="kicker">Technical view</span><h2>How the service<br/><em>functions.</em></h2></div>
-        <div><p>{service.explanation}</p><div className="technical-tags">{service.technologies.map((technology) => <span key={technology}>{technology}</span>)}</div></div>
-      </section>
-
-      <div id="system-model"><ServiceSystemLab stages={service.stages} useCases={service.useCases}/></div>
-
-      <section className="use-case-section">
-        <div className="use-case-heading"><span className="kicker">Use cases</span><h2>Where the system<br/><em>earns its place.</em></h2><p>Each pattern starts with a real operating constraint and preserves a clear route from source information to accountable action.</p></div>
-        <div className="use-case-grid">{service.useCases.map((useCase, index) => <article key={useCase.title}>
-          <div className="use-case-number"><span>0{index + 1}</span><GitBranch/></div>
-          <h3>{useCase.title}</h3>
-          <div><b>The constraint</b><p>{useCase.problem}</p></div>
-          <div><b>Example</b><p>{useCase.example}</p></div>
-          <ol>{useCase.path.map((step, stepIndex) => <li key={step}><i>{stepIndex + 1}</i><span>{step}</span>{stepIndex < useCase.path.length - 1 && <ArrowRight size={13}/>}</li>)}</ol>
-        </article>)}</div>
-      </section>
-
-      <section className="service-provision-section">
-        <div className="provision-column"><span className="kicker">What we provide</span><h2>A complete route<br/>to a working result.</h2><ul>{service.provisions.map((item) => <li key={item}><Check/><span>{item}</span></li>)}</ul></div>
-        <div className="provision-column safeguard-column"><span className="kicker">Control model</span><h2>Designed to remain<br/>under accountable control.</h2><ul>{service.safeguards.map((item) => <li key={item}><ShieldCheck/><span>{item}</span></li>)}</ul></div>
-      </section>
-
-      <section className="technical-blueprint">
-        <div className="technical-blueprint-heading"><span className="kicker">Delivery blueprint</span><h2>Four layers.<br/><em>One operating system.</em></h2></div>
-        <div className="blueprint-stack">
-          <article><span>04</span><CircleDot/><div><b>Experience and action</b><p>User interface, workflow decisions, approvals and system updates.</p></div></article>
-          <article><span>03</span><ShieldCheck/><div><b>Control and assurance</b><p>Identity, policy, evaluation, observability and exception ownership.</p></div></article>
-          <article><span>02</span><Cpu/><div><b>Reasoning and orchestration</b><p>Models, deterministic rules, tools, state and routing logic.</p></div></article>
-          <article><span>01</span><Database/><div><b>Data and integration</b><p>Sources, permissions, retrieval, schemas and business-system interfaces.</p></div></article>
-        </div>
-      </section>
-    </article>
-
-    <section className="next-service"><span>Next service / {next.number}</span><h2>{next.title}</h2><p>{next.promise}</p><Link className="button outline" href={`/services/${next.slug}`}>Explore next service <ArrowRight size={17}/></Link></section>
-    <section className="cta-band"><span className="kicker">Start with the work</span><h2>Have a similar constraint?</h2><p>We will help you frame the smallest useful decision or release.</p><Link className="button lime" href="/contact">Start a conversation <ArrowRight size={17}/></Link></section>
-  </>;
+    </>
+  );
 }
