@@ -254,4 +254,41 @@ describe('conversion option generator', () => {
       expect(o.allCompliant).toBe(true);
     }
   });
+
+  // C3: a floor too small/shallow to place any residential unit produces a
+  // full_* option with an EMPTY units array. validateFloor's allPass is
+  // vacuously true over no units, so `compliance.every(allPass)` reported these
+  // empty, £0-GDV options as fully NDSS-compliant. A conversion that builds no
+  // dwelling is the status quo, not a compliant choice.
+  it('zero-dwelling options are not reported as NDSS compliant', () => {
+    const shallow: Envelope = {
+      id: 's',
+      floor: 'G',
+      use: 'commercial',
+      envelope: [[0, 0], [8, 0], [8, 3], [0, 3]],
+      cores: [{ type: 'stair', poly: [[0, 0], [1.5, 0], [1.5, 3], [0, 3]] }],
+      windows: [{ x: 4, side: 'front' }, { x: 4, side: 'rear' }],
+    };
+    const opts = generateOptions([shallow], DEFAULT_RULES, DEFAULT_PRICING);
+    for (const id of ['full_max_units', 'full_balanced', 'full_family']) {
+      const o = opts.find((x) => x.id === id)!;
+      expect(o, id).toBeDefined();
+      expect(o.totals.residentialUnits, id).toBe(0);
+      // Fails against pre-fix code, where this was vacuously true.
+      expect(o.allCompliant, id).toBe(false);
+      // Marked, not dropped: the reason must be visible in the warning box.
+      expect(o.warnings.some((w) => /no residential dwelling/i.test(w)), id).toBe(true);
+    }
+  });
+
+  // Regression: the fix must be a no-op on any building that actually yields
+  // dwellings. Every demo option has residentialUnits > 0, so allCompliant is
+  // bit-identical to the pre-fix values (all full_* remain true).
+  it('demo options keep their allCompliant flags and count', () => {
+    expect(options.length).toBeGreaterThanOrEqual(8);
+    for (const o of options) expect(o.totals.residentialUnits).toBeGreaterThan(0);
+    expect(options.map((o) => o.allCompliant)).toEqual([
+      true, true, true, true, true, true, true, true,
+    ]);
+  });
 });

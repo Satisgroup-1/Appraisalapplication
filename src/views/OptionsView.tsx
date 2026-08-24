@@ -122,7 +122,11 @@ function OptionCard({
       <div className="plan-thumb" dangerouslySetInnerHTML={{ __html: thumbSvg }} />
       <div className="body">
         <span className={`badge ${option.allCompliant ? 'pass' : 'fail'}`}>
-          {option.allCompliant ? 'NDSS compliant' : 'Non-compliant units'}
+          {option.allCompliant
+            ? 'NDSS compliant'
+            : option.totals.residentialUnits === 0
+              ? 'Not viable - no dwellings'
+              : 'Non-compliant units'}
         </span>
         <h4>{option.title}</h4>
         <div className="desc">{option.description}</div>
