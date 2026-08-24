@@ -59,7 +59,7 @@ export default async function CaseDetail({ params }: { params: Promise<{ slug: s
         label: bar.label,
         value: bar.value,
         display: bar.display,
-        detail: 'A design priority agreed in discovery, not a measured operating result.',
+        detail: 'A priority agreed in discovery. It is a design target, not a measured operating result.',
       })),
     },
   ];

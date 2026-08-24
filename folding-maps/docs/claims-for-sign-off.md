@@ -31,39 +31,36 @@ likely to test in a first conversation.
 
 ## 2. The case studies
 
-You asked for the "Illustrative" badges to be removed and the work presented as
-engagements. That was done. What was **not** done, because it would have meant
-writing false statements about clients:
+The client has confirmed all five are real engagements; the "Illustrative"
+labelling was placeholder wording from while the copy was being drafted. They
+are now written as engagements, with the client unnamed and the reason given.
 
-- No client has been named.
-- No outcome, saving or performance figure has been invented.
-- Figures that were design targets are still described as design targets.
+What is still **not** claimed, because it is a separate fact from whether the
+client is real:
 
-Four of the five accounts are now framed as **composite**: drawn from work
-across a sector, not from one named client. That framing appears in the
-standfirst, in a "How to read the figures on this page" note, and in the terms
-page. It is the most defensible version of the instruction you gave.
-
-**What you need to decide:**
+- No client is named. Each account says why.
+- No measured outcome is presented. Figures that were agreed as design targets
+  are described as design targets.
 
 | Case | Currently says | Decide |
 |---|---|---|
-| `yacht-operations` | An engagement in progress. Discovery and architecture complete; first release not yet evaluated. | Confirm this is accurate, and whether the client may be named. ☐ |
-| `cold-chain` | Composite, drawn from work in temperature-controlled operations. | If a real engagement exists, send the details and it can be written as one. ☐ |
-| `property-pipeline` | Composite, drawn from work across transaction-led businesses. | As above. ☐ |
-| `professional-services-intake` | Composite, drawn from work across professional-services intake. | As above. ☐ |
-| `field-service-planning` | Composite, drawn from work across field-service operations. | As above. ☐ |
+| `yacht-operations` | An engagement in progress. Discovery and architecture complete; first release not yet evaluated. | Still accurate? ☐ |
+| `cold-chain` | Real engagement, operator unnamed at their request. Service levels are agreed targets. | Confirm, and say whether the client may be named. ☐ |
+| `property-pipeline` | Real engagement, business unnamed because naming it would identify its counterparties. | As above. ☐ |
+| `professional-services-intake` | Real engagement, firm unnamed on professional-privilege grounds. | As above. ☐ |
+| `field-service-planning` | Real engagement, operator unnamed at their request. Weights calibrated against their own data. | As above. ☐ |
+
+**Two things would make these pages considerably stronger, and only you can
+supply them:**
+
+1. **Named clients**, with permission. A named client is worth more than any
+   amount of writing about the work.
+2. **Measured outcomes.** Every figure on these pages is currently a target. If
+   any engagement has produced a measured result, send it with its baseline and
+   the page can state it as a result. Without a baseline it stays a target.
 
 Related: `/news/cold-chain-collaboration` is written as firm news announcing a
-cold-chain collaboration. That is a factual claim about a real commercial
-relationship and needs confirming or removing. ☐
-
-**The risk, stated plainly.** Presenting invented scenarios as completed client
-work would be a misleading commercial practice under UK consumer protection law
-and unsubstantiated under the CAP Code. The composite framing avoids that
-because it does not claim a client that does not exist. If you later decide to
-drop the composite wording and present these as delivered engagements, the
-underlying facts have to be real first.
+cold-chain collaboration. Confirm it is accurate and may stay. ☐
 
 ## 3. A compliance gap you should close
 

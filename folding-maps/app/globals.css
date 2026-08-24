@@ -470,7 +470,10 @@ th { font-weight: 600; font-size: var(--step--1); letter-spacing: 0.04em; text-t
   border-right: 1px solid var(--line);
 }
 .fact-row > div:last-child { border-right: 0; }
-.fact-row dt, .fact-row .fact-label {
+/* The small label above a value. Used inside .fact-row and on its own, so it is
+   defined as a standalone class: scoping it to .fact-row left every other use
+   unstyled, which ran the label into the value it labels. */
+.fact-label, .fact-row dt {
   display: block;
   margin-bottom: var(--s-2);
   font-size: 0.6875rem;
@@ -481,7 +484,7 @@ th { font-weight: 600; font-size: var(--step--1); letter-spacing: 0.04em; text-t
 }
 .fact-row dd { margin: 0; font-size: 0.9375rem; line-height: 1.6; }
 .section-dark .fact-row, .section-dark .fact-row > div { border-color: var(--on-dark-line); }
-.section-dark .fact-row dt, .section-dark .fact-row .fact-label { color: var(--on-dark-muted); }
+.section-dark .fact-label, .section-dark .fact-row dt { color: var(--on-dark-muted); }
 
 /* --------------------------------------------------------------------------
    Long-form reports: case studies and insight articles share this furniture

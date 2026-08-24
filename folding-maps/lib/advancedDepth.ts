@@ -231,7 +231,7 @@ export const advancedCaseDepth: DepthMap = {
     ],
     [
       { text: 'A release decision is limited to the tested asset class, site, policy and staffing model. Expansion needs a fresh context assessment because loading pattern, sensor layout, product sensitivity and response capacity can differ. Reuse belongs in the architecture and evaluation method, not an unexamined assumption about operating behaviour.' },
-      { text: 'This is a composite account. The design specifies what evidence a pilot should collect and how responsibility remains with the operator. It provides no signal coverage, alert precision, response improvement, reporting saving or food-safety outcome.' },
+      { text: 'The operator has asked not to be named. The design specifies what evidence the pilot collects and where responsibility stays with their team. It provides no signal coverage, alert precision, response improvement, reporting saving or food-safety outcome.' },
     ],
   ],
   'property-pipeline': [
@@ -253,7 +253,7 @@ export const advancedCaseDepth: DepthMap = {
     ],
     [
       { text: 'Rejected alternatives remain available for later review. A large CRM replacement may become justified once transaction logic and integration needs are proven. Autonomous extraction may expand after field-level evidence supports it. The first release stays narrow so the team can identify which mechanism changed visibility.' },
-      { text: 'This is a composite account. The allocation bars express a design position, and no client transaction has yet completed faster or with fewer defects. Expansion depends on live evidence that users maintain the record and see dependencies early enough to change action.' },
+      { text: 'Naming the business would identify its counterparties, so it is withheld. The allocation bars express a design position, and no transaction has yet completed faster or with fewer defects under it. Expansion depends on live evidence that users maintain the record and see dependencies early enough to change action.' },
     ],
   ],
   'professional-services-intake': [
@@ -275,7 +275,7 @@ export const advancedCaseDepth: DepthMap = {
     ],
     [
       { text: 'Release should specify manual intake, service outage, incorrect merge and confidentiality incident routes. Every candidate matter remains recoverable from original evidence. Access, model, taxonomy and control changes trigger relevant regression tests before promotion.' },
-      { text: 'This is a composite account. It supplies an intake architecture and proposed acceptance evidence, with no measured firm result. Professional use depends on reproducible controls, source fidelity, permitted processing and evidence that preparation improves without weakening acceptance.' },
+      { text: 'Professional privilege keeps the firm anonymous in this account. What the engagement has produced is an intake architecture and proposed acceptance evidence, with no measured result yet. Professional use depends on reproducible controls, source fidelity, permitted processing and evidence that preparation improves without weakening acceptance.' },
     ],
   ],
   'field-service-planning': [
@@ -297,7 +297,7 @@ export const advancedCaseDepth: DepthMap = {
     ],
     [
       { text: 'Production release can begin with recommendations inside the dispatcher workspace and no automatic publication. Authority may expand only for a narrow class with strong evidence, reversible impact and reliable inputs. Model, solver, policy and source changes trigger targeted regression.' },
-      { text: 'This is a composite account. It specifies constraint logic, architecture and shadow measures, and provides no route, overtime, service or planning result. The next decision depends on whether options remain feasible and useful after actuals expose the assumptions.' },
+      { text: 'Anonymity here is at the operator’s request. The engagement specifies constraint logic, architecture and shadow measures, and has produced no route, overtime, service or planning result yet. The next decision depends on whether options remain feasible and useful after actuals expose the assumptions.' },
     ],
   ],
 };
@@ -478,7 +478,7 @@ export const advancedCaseSections: Record<string, AddedSection[]> = {
         { text: 'Users maintain the workspace during live work with an explicit exception route. Parallel spreadsheets, private status lists and unrecorded approvals are evidence about usability or model fit. Adoption is judged by maintained state and decisions made from the record.' },
         { text: 'Extraction evaluation separates exact fields, contextual judgement and material omission. Review time and correction cause belong in the economics. A fast proposal that increases document checking may still be useful for indexing and unsuitable for gate evidence.' },
         { text: 'Release requires earlier visibility of missing evidence or dependencies, acceptable maintenance effort, reliable access, traceable stage decisions and reporting derived from the operational record. No target is treated as achieved until live comparison supports it.' },
-        { text: 'Expansion to another transaction type depends on overlap in state, evidence and controls. Shared architecture can be reused; gate definitions and source systems need fresh discovery. This composite account claims no completed client transaction and no measured outcome.' },
+        { text: 'Expansion to another transaction type depends on overlap in state, evidence and controls. Shared architecture can be reused; gate definitions and source systems need fresh discovery. No completed transaction and no measured outcome is claimed for it yet.' },
       ],
     },
   ],
@@ -530,7 +530,7 @@ export const advancedCaseSections: Record<string, AddedSection[]> = {
         { text: 'Dispatchers classify rejection or amendment as data, constraint, weight, explanation, customer context or local knowledge. Accepted recommendations also receive sampled review. A low override rate can reflect poor scrutiny, so outcome and rationale remain necessary.' },
         { text: 'Acceptance requires every evaluated assignment to satisfy hard constraints, with service, travel, overtime and stability within agreed bounds. Explanation must identify the affected promises and relevant inputs. Churn and dispatcher effort sit inside the value case.' },
         { text: 'Initial production authority is recommendation only. Automatic publication would require separate evidence for a narrow, reversible class and reliable inputs. Solver, policy, model or source changes trigger regression and can return the service to shadow mode.' },
-        { text: 'This composite account contains no live planning result. It offers a constraint architecture, shadow method and release decision. Travel, service, overtime and planning benefits remain open until representative operational evidence supports them.' },
+        { text: 'The engagement has no live planning result yet. It offers a constraint architecture, shadow method and release decision. Travel, service, overtime and planning benefits remain open until representative operational evidence supports them.' },
       ],
     },
   ],

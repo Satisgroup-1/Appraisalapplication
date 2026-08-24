@@ -87,6 +87,7 @@ export function IndustryDirectory({
                     <ArrowRight size={16} aria-hidden="true" />
                   </Link>
                 ))}
+                {inFamily.length % 2 === 1 && <span className={styles.filler} aria-hidden="true" />}
               </div>
             </section>
           );

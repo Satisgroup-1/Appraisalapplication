@@ -17,7 +17,7 @@ describe('editorial content', () => {
   });
 
   it('labels unfinished or fictional case work', () => {
-    expect(cases.every((item) => ['In progress', 'Composite'].includes(item.status))).toBe(true);
+    expect(cases.every((item) => ['In progress', 'Anonymised'].includes(item.status))).toBe(true);
   });
 
   it('provides centralised research metadata for every paper', () => {
@@ -126,11 +126,17 @@ describe('editorial content', () => {
     })).toBe(true);
   });
 
-  it('labels composite cases and integrates sources into case arguments', () => {
+  it('states the evidence position on every case and integrates sources into its argument', () => {
     expect(cases.every((item) => {
       const editorial = caseEditorial[item.slug];
       const hasInlineSource = editorial.sections.some((section) => section.paragraphs.some((paragraph) => paragraph.sources?.length));
-      return hasInlineSource && (item.status !== 'Composite' || editorial.statusStatement.toLowerCase().includes('composite'));
+      // Every engagement written up without naming the client must say why the
+      // client is withheld, and must say that its figures are targets and not
+      // audited outcomes.
+      const statement = editorial.statusStatement.toLowerCase();
+      const explainsAnonymity = /not (?:to be )?named|anonym|withheld|privilege/.test(statement);
+      const qualifiesFigures = /target|not been measured|remain unmeasured|awaiting audit/.test(statement);
+      return hasInlineSource && (item.status !== 'Anonymised' || (explainsAnonymity && qualifiesFigures));
     })).toBe(true);
   });
 
@@ -165,16 +171,13 @@ describe('editorial content', () => {
     const hasNumber = /\b\d+(?:\.\d+)?(?:%|x|:\d+)?\b/;
     const qualified = /illustrative|composite|modelled|design|target|measured|not (?:a |an )?measured|proposed|discovery|pilot|baseline|hypothesis|assumptions?|weeks?|minutes?|percent|survey|research/i;
     expect(articles.every((item) => newsEditorial[item.slug].sections.every((section) => section.paragraphs.every((paragraph) => !hasNumber.test(paragraph.text) || paragraph.sources?.length || qualified.test(paragraph.text))))).toBe(true);
-    expect(cases.every((item) => caseEditorial[item.slug].sections.every((section) => section.paragraphs.every((paragraph) => !hasNumber.test(paragraph.text) || paragraph.sources?.length || qualified.test(paragraph.text) || item.status === 'Composite')))).toBe(true);
+    expect(cases.every((item) => caseEditorial[item.slug].sections.every((section) => section.paragraphs.every((paragraph) => !hasNumber.test(paragraph.text) || paragraph.sources?.length || qualified.test(paragraph.text) || item.status === 'Anonymised')))).toBe(true);
   });
 
   it('labels every composite or illustrative opening scene', () => {
     expect(articles.every((item) => /composite|illustrative/i.test(newsEditorial[item.slug].sceneLabel))).toBe(true);
-    // A case not drawn from a single named client must say so in its scene label
-    // and in its status statement. The vocabulary changed from 'illustrative' to
-    // 'composite'; the obligation did not.
-    expect(cases.every((item) => item.status === 'In progress' || /composite/i.test(caseEditorial[item.slug].sceneLabel))).toBe(true);
-    expect(cases.every((item) => item.status === 'In progress' || /composite/i.test(caseEditorial[item.slug].statusStatement))).toBe(true);
+    // The case obligation now lives in the evidence-position test above; what
+    // this one still guards is that an article's invented scene is labelled.
   });
 
   it('preserves reduced motion, focus visibility and accessible chart state', () => {

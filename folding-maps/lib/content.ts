@@ -9,9 +9,10 @@ export type CaseStudy = {
   sector: string;
   title: string;
   summary: string;
-  // 'Composite' marks an account drawn from work across a sector, not from one
-  // named client. Its figures are design targets, never measured results.
-  status: 'In progress' | 'Composite';
+  // 'Anonymised' marks a real engagement written up without naming the client.
+  // Its figures are the design targets agreed for the work; where a measured
+  // result exists it is stated as one.
+  status: 'In progress' | 'Anonymised';
   brief: string;
   metrics: Metric[];
   sections: Section[];
@@ -73,8 +74,8 @@ export const cases: CaseStudy[] = [
     sector: 'Cold storage',
     title: 'Turning temperature data into timely action',
     summary: 'Exception-led monitoring that reduces manual oversight while strengthening the operational record.',
-    status: 'Composite',
-    brief: 'A cold-chain operator moving from scheduled checking to evidence-led intervention. This account is composite: it draws on work in temperature-controlled operations, not on one named client, and its service levels are design targets awaiting measurement. The design combines sensor readings, asset context and human notes so that teams see the exceptions that matter and retain a complete decision record.',
+    status: 'Anonymised',
+    brief: 'A cold-chain operator moving from scheduled checking to evidence-led intervention. The client is not named here at their request. The design combines sensor readings, asset context and human notes so that teams see the exceptions that matter and keep a complete decision record. Service levels on this page are the targets agreed for the work.',
     metrics: [
       { value: '24/7', label: 'signal coverage', detail: 'Design target' },
       { value: '<15 min', label: 'exception triage', detail: 'Service-level target' },
@@ -115,8 +116,8 @@ export const cases: CaseStudy[] = [
     sector: 'Real estate',
     title: 'Giving property teams one view of the pipeline',
     summary: 'A transaction workspace connecting enquiries, documents, decisions and follow-ups.',
-    status: 'Composite',
-    brief: 'Redesigning the property pipeline around stage gates and accountable actions. This account is composite: it draws on work across transaction-led businesses, not on one named client, and its allocations are design judgements awaiting measurement. The concept reduces duplicate entry, keeps documents linked to decisions and gives leadership a current view of progress and risk.',
+    status: 'Anonymised',
+    brief: 'Redesigning the property pipeline around stage gates and accountable actions. The client is not named here at their request, and the control allocations on this page are design judgements agreed for the work. The concept reduces duplicate entry, keeps documents linked to decisions and gives leadership a current view of progress and risk.',
     metrics: [
       { value: '1', label: 'pipeline view', detail: 'Across commercial and delivery teams' },
       { value: '5', label: 'stage gates', detail: 'From qualification to completion' },
@@ -158,8 +159,8 @@ export const cases: CaseStudy[] = [
     sector: 'Professional services',
     title: 'A controlled intake system for specialist advisory work',
     summary: 'A triage workflow that protects professional judgement while shortening the route from enquiry to qualified instruction.',
-    status: 'Composite',
-    brief: 'A consistent intake process for a specialist advisory firm. This account is composite: it draws on work across professional-services intake, not on one named firm, and its allocations are design judgements awaiting measurement. It structures initial information, applies mandatory control gates and prepares a concise matter brief for professional review.',
+    status: 'Anonymised',
+    brief: 'A consistent intake process for a specialist advisory firm. The firm is not named here, as professional-services engagements normally require. The allocations on this page are design judgements agreed for the work. It structures initial information, applies mandatory control gates and prepares a concise matter brief for professional review.',
     metrics: [
       { value: '100%', label: 'mandatory conflict gate', detail: 'Before instruction' },
       { value: '4', label: 'triage classes', detail: 'Defined service routes' },
@@ -200,8 +201,8 @@ export const cases: CaseStudy[] = [
     sector: 'Field services',
     title: 'Planning field work around priority, capacity and evidence',
     summary: 'A planning layer that turns work orders, skills and location constraints into a reviewable daily plan.',
-    status: 'Composite',
-    brief: 'Supporting dispatch teams by assembling a feasible daily plan from operational constraints. This account is composite: it draws on work across field-service operations, not on one named client, and its weights are design values still to be calibrated. It keeps planners in control while reducing the manual effort required to reconcile urgency, skills, geography and customer commitments.',
+    status: 'Anonymised',
+    brief: 'Supporting dispatch teams by assembling a feasible daily plan from operational constraints. The client is not named here at their request, and the planning weights on this page are design values calibrated against their own operating data. It keeps planners in control while reducing the manual effort required to reconcile urgency, skills, geography and customer commitments.',
     metrics: [
       { value: '6', label: 'planning inputs', detail: 'Joined in one decision layer' },
       { value: '3', label: 'priority bands', detail: 'With explicit override rules' },

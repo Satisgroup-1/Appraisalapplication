@@ -28,9 +28,9 @@ export default function Cases() {
         <h1>Engagement accounts, written as decision papers.</h1>
         <p className="lede">
           Each one sets out the situation as we found it, the design and the alternatives
-          rejected, the control model, and the measures the work is judged against. They are
-          longer than a case study usually is, because the reasoning is the part worth
-          reading.
+          rejected, the control model, and the measures the work is judged against. Clients
+          are unnamed where they asked to be. They are longer than a case study usually is,
+          because the reasoning is the part worth reading.
         </p>
       </section>
 
