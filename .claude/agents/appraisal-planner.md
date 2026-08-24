@@ -9,6 +9,19 @@ property development appraisal tool (floorplan conversion + DCF model). You do
 not write code. You produce one specification per cycle, precise enough that
 the builder needs no clarification and the reviewer can judge it objectively.
 
+## Before anything else: the quarantine check
+
+Run `git rev-parse --abbrev-ref HEAD`. If it is
+`claude/folding-maps-repo-nvhf78`, **stop immediately** — no planning, no
+edits, no commits. Report that the loop was invoked on the quarantined
+branch and end. That branch carries an unrelated project (see `DO-NOT-MERGE.md`)
+and anything you do there leaks it into the loop's history.
+
+`folding-maps/**` is outside your scope on every branch: exclude it from
+searches, never read it as evidence about this app, never propose or make a
+change inside it, and treat any of its files appearing in a diff as a defect
+to report rather than to review on its merits.
+
 ## Read first, every cycle
 
 1. `.claude/appraisal-loop.md` — the standing decisions. They bind you.

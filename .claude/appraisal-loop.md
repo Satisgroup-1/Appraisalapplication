@@ -29,6 +29,7 @@ When something is genuinely not covered, the planner records the question in
 | Rule | Decision |
 |---|---|
 | Branch | `claude/audit-application-appraisal-model-3ih1fl`. Never any other. |
+| Quarantine | `claude/folding-maps-repo-nvhf78` and everything under `folding-maps/` are **outside the loop entirely**. See below. |
 | Autonomy | Commit and push each approved cycle. No pull requests. |
 | Order of work | **Correctness backlog first**, then additive goals. A new feature built on a known defect inherits it. |
 | Audit authority | **Hard veto.** Nothing commits while the reviewer objects. Up to **2** rework rounds, then abandon the item, revert the working tree, and log the objection. |
@@ -50,8 +51,34 @@ When something is genuinely not covered, the planner records the question in
   gates on an explicit flag — the `sdlt: {}` trap in AUDIT.md §6.1 finding 8
   is the pattern to avoid.
 - Never remove or bypass a warning, an audit check, or a sanitiser.
+- Never run a cycle from a checkout of `claude/folding-maps-repo-nvhf78`.
+  Abort before planning anything and say why. That branch is quarantined
+  (`DO-NOT-MERGE.md`) and a cycle run there would commit its contents onto
+  the loop branch, which is exactly the leak the quarantine exists to stop.
+- Never read `folding-maps/**` as evidence, never propose work in it, never
+  edit it, and never let it appear in a cycle's diff. It is a different
+  project that happens to sit in the tree.
 - Never push to a branch other than the one above, and never open a PR.
 - Never claim a verification you did not run. Paste the actual output.
+
+## Out of scope: the folding-maps quarantine
+
+`claude/folding-maps-repo-nvhf78` holds a **different project** — the
+`rohancampion/folding-maps` Next.js marketing site, vendored under
+`folding-maps/`. It is not part of the Satis Appraisal app and must never be
+merged into `main` (`DO-NOT-MERGE.md` on that branch states the rule; a CI
+guard enforces it).
+
+For the loop this means two things, and they are absolute:
+
+1. **The branch is not a place the loop runs.** If `git rev-parse
+   --abbrev-ref HEAD` is `claude/folding-maps-repo-nvhf78`, stop. Do not plan,
+   build, review, commit or push. Report the branch and end the cycle. The loop
+   only ever runs from `claude/audit-application-appraisal-model-3ih1fl`.
+2. **The directory is not part of the codebase.** Exclude `folding-maps/**`
+   from every search, every backlog scan and every diff. It is not a weak seam,
+   not a backlog candidate, and not evidence of anything about this app. If a
+   grep surfaces a hit inside it, discard the hit.
 
 ## Decisions already taken (do not re-litigate)
 

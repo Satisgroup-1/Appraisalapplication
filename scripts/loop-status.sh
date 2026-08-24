@@ -14,6 +14,16 @@ FULL=0
 [[ "${1:-}" == "--full" || "${1:-}" == "-f" ]] && FULL=1
 
 BRANCH=claude/audit-application-appraisal-model-3ih1fl
+QUARANTINE_BRANCH=claude/folding-maps-repo-nvhf78
+
+# The quarantine branch (see DO-NOT-MERGE.md) carries an unrelated project.
+# The loop must never run there, so neither does its status view.
+if [[ "$(git rev-parse --abbrev-ref HEAD 2>/dev/null)" == "$QUARANTINE_BRANCH" ]]; then
+  printf '\033[1mQuarantined branch — the improvement loop does not run here.\033[0m\n'
+  echo "  $QUARANTINE_BRANCH holds the folding-maps project, not the appraisal app."
+  echo "  See DO-NOT-MERGE.md. For loop status: git checkout $BRANCH && ./scripts/loop-status.sh"
+  exit 2
+fi
 b()  { printf '\033[1m%s\033[0m\n' "$1"; }
 dim(){ printf '\033[2m%s\033[0m\n' "$1"; }
 rule(){ printf '\033[2m%s\033[0m\n' "────────────────────────────────────────────────────────────────"; }

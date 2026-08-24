@@ -4,6 +4,7 @@ export const meta = {
   whenToUse:
     'The recurring Satis Appraisal improvement loop. Runs planner -> builder -> reviewer with up to 2 rework rounds; commits and pushes only on APPROVE.',
   phases: [
+    { title: 'Preflight', detail: 'refuse to run on the quarantined folding-maps branch' },
     { title: 'Plan', detail: 'pick and specify one item from the backlog or the three goals' },
     { title: 'Build', detail: 'implement it with failing-first tests' },
     { title: 'Review', detail: 'audit on property/accounting/modelling/UX axes; hard veto' },
@@ -12,6 +13,21 @@ export const meta = {
 };
 
 const MAX_REWORKS = 2;
+
+// The loop's own branch, and the branch it must never run on. See
+// DO-NOT-MERGE.md and .claude/appraisal-loop.md § Out of scope.
+const LOOP_BRANCH = 'claude/audit-application-appraisal-model-3ih1fl';
+const QUARANTINE_BRANCH = 'claude/folding-maps-repo-nvhf78';
+
+const PREFLIGHT_SCHEMA = {
+  type: 'object',
+  properties: {
+    branch: { type: 'string', description: 'Output of `git rev-parse --abbrev-ref HEAD`, verbatim.' },
+    foldingMapsPresent: { type: 'boolean', description: 'True if a folding-maps/ directory exists at the repo root.' },
+  },
+  required: ['branch', 'foldingMapsPresent'],
+  additionalProperties: false,
+};
 
 const PLAN_SCHEMA = {
   type: 'object',
@@ -60,9 +76,49 @@ const REVIEW_SCHEMA = {
 
 const CONTEXT = `Repo: /home/user/Appraisalapplication (Satis Appraisal — UK property development
 appraisal desktop app). Read .claude/appraisal-loop.md FIRST; its standing
-decisions and hard limits bind you. Branch: claude/audit-application-appraisal-model-3ih1fl.`;
+decisions and hard limits bind you. Branch: claude/audit-application-appraisal-model-3ih1fl.
+
+Out of scope, absolutely: the folding-maps/ directory, if it exists in this
+tree. It is a separate vendored project, not part of this app. Exclude it from
+every search and every diff, and never edit it.`;
 
 // ---------------------------------------------------------------------------
+
+phase('Preflight');
+const pre = await agent(
+  `Report this repo's state. Run exactly these two commands in
+/home/user/Appraisalapplication and report what they print — nothing else. Make
+no edits, no commits, no pushes.
+
+1. \`git rev-parse --abbrev-ref HEAD\`
+2. \`test -d folding-maps && echo yes || echo no\``,
+  { label: 'branch-check', phase: 'Preflight', agentType: 'appraisal-planner', schema: PREFLIGHT_SCHEMA, effort: 'low' },
+);
+
+// Fail closed: an unreadable branch is as disqualifying as the wrong one.
+if (!pre) {
+  log('Preflight could not determine the current branch — refusing to run.');
+  return { landed: false, refused: true, reason: 'preflight failed to read the current branch' };
+}
+if (pre.branch === QUARANTINE_BRANCH) {
+  log(`On ${QUARANTINE_BRANCH} — quarantined. See DO-NOT-MERGE.md. Nothing will run.`);
+  return {
+    landed: false,
+    refused: true,
+    reason: `the improvement loop must never run on ${QUARANTINE_BRANCH}: it holds the unrelated folding-maps project, and a cycle here would commit it onto ${LOOP_BRANCH}. Check out ${LOOP_BRANCH} and start again.`,
+  };
+}
+if (pre.branch !== LOOP_BRANCH) {
+  log(`On '${pre.branch}', not ${LOOP_BRANCH} — refusing to run.`);
+  return {
+    landed: false,
+    refused: true,
+    reason: `the loop only runs on ${LOOP_BRANCH}; HEAD is '${pre.branch}'`,
+  };
+}
+if (pre.foldingMapsPresent) {
+  log('A folding-maps/ directory is present in the tree — it is out of scope for every agent this cycle.');
+}
 
 phase('Plan');
 const plan = await agent(
