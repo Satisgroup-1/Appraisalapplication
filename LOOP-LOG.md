@@ -12,6 +12,43 @@ Columns: when (UTC) · outcome · item · title · rework rounds · what happene
 | 2026-08-24 03:25 | LANDED | 5 | Guard rails on degenerate inputs, and the plausibility checks that catch them (A4, A6, A8, A9 + E3) | 1 | 228→251 tests, 53→61 audit checks. 18 tests confirmed failing first. One rework round: `plaus-icr` initially failed on the demo's real ICR of 0.87, which broke five existing "audit is clean" tests and showed the check was conflating a weak deal with a model defect — recast as "below cover is never unflagged". No golden pin moved. |
 | 2026-08-24 03:51 | ABANDONED | A4+A8 | Floor the development facility at zero, and disclose pre-construction spend that nothing funds | 0 | Reviewer APPROVED, but the work collided: origin advanced 6 commits mid-cycle and the 03:25 guard-rails cycle had already landed both fixes. Rebase conflicted in 5 files and would have deleted `tests/guardrails.test.ts`. Reset to `f786ce2` rather than force-push over another cycle's work. Base verified green: tsc clean, 251 tests. |
 | 2026-08-24 04:33 | LANDED | C3 | Zero-dwelling conversion options must not report as NDSS-compliant | 0 | 251→253 tests. allCompliant was `compliance.every(allPass)`, vacuously true over the empty units array of an unplannable envelope, so a £0-GDV option that builds nothing showed a green "NDSS compliant" badge. Now `residentialUnits > 0 && every(allPass)`; zero-dwelling options carry a warning and read "Not viable - no dwellings". Confirmed failing-first on a 3m-deep shallow floor. No-op on the demo: all 8 options keep bit-identical flags. No golden pin moved. |
+| 2026-08-24 06:30 | ABANDONED | D3 | Validate cost-line discriminants in sanitizeSpec, and stop swallowing engine failures on the Appraisal page | 3 | Reviewer withheld approval after 3 rounds: runAppraisalForView drops the repairs it had already collected when a later stage throws, sanitizeSpec still throws outright on a non-array devCosts, the new test carries a false comment about H01's position, and the incidence rule's forward-compatibility hazard was left undocumented. Working tree reverted to 41d6e58; nothing committed. |
+
+## Abandoned: D3
+
+The reviewer's required changes, verbatim, for whoever picks D3 up next. The
+work itself was reverted — `git checkout -- . && git clean -fd` against
+`41d6e58` — so the next attempt starts from the same base this one did, not
+from a half-landed version of it. The remaining observations from the same
+review are recorded under **Candidate backlog** below; these four are the ones
+that blocked the landing.
+
+- `sanitizeSpec` still throws outright if `devCosts` is not an array: setting
+  `spec.devCosts = {}` gives `spec.devCosts.forEach is not a function`. It is
+  now caught by `runAppraisalForView` and shown in the new error panel rather
+  than swallowed, which is a strict improvement, but repairing a non-array
+  `devCosts` to `[]` with a repair note is the natural companion to D4.
+- `runAppraisalForView` discards the repairs it had already collected when a
+  later stage throws — `empty(error)` returns `repairs: []`. On the narrow path
+  where `sanitizeSpec` repairs 17 inputs and then `runAppraisal` throws, the
+  error panel cannot say so, and the repairs disclosure is the most useful
+  diagnostic available at that moment. Returning the partial repair list
+  alongside `error` would cost nothing.
+- Test comment inaccuracy in `tests/inputvalidation.test.ts:245` — "H01 is the
+  69th line of the default schedule". `DEFAULT_PRICING.devCosts` has 61 lines
+  (61 distinct codes) and H01 is the 49th; the repair my probe observed is
+  `cost line #49 code: ->LINE49`. The assertion itself is positional
+  (`/^LINE\d+$/`) so nothing fails.
+- Forward-compatibility of the incidence rule: because a shipped code's
+  `whenIncurred` is now pinned to the standard line (only an explicit
+  `'always'` is exempt), the day the UI lets a user edit incidence — or a
+  `.pricing` preset written by another build carries a deliberate lateral tag
+  through `loadPreset` at `src/views/PricingView.tsx:187` — the sanitiser will
+  silently overwrite that choice. The code comment states the dependency
+  ("nothing in this app can edit a line's incidence"), which is currently true;
+  it is worth a note in IMPROVEMENTS.md so the validator is revisited if that
+  stops being true.
+
 
 ## Candidate backlog (reviewer observations)
 
@@ -67,6 +104,53 @@ observations that applied only to the abandoned local branch were discarded.
   array.** If the demo building ever yields a 9th option the assertion breaks.
   Acceptable brittleness for a pin, but a length-scoped assertion would be more
   robust.
+
+**From the abandoned D3 cycle (2026-08-24 06:30). The change was not approved
+and was reverted; these are the reviewer's observations against it, recorded
+but not acted on:**
+
+- `value` coercion (pre-existing, backlog): a numeric string in a stored file
+  is not finite, so the sanitiser zeroes it. `"40000"` on D02 deletes £40,000
+  and lifts S1 to 822,129.49 with 61/0 and one repair reading
+  `cost line D02: 40000->0`. Coercing a parseable numeric string before zeroing
+  would make the value repair obey the same charge-the-cost principle the
+  discriminant repairs now follow.
+- `sanitizeSpec` still throws outright if `devCosts` is not an array: setting
+  `spec.devCosts = {}` gives `spec.devCosts.forEach is not a function`. It is
+  now caught by `runAppraisalForView` and shown in the new error panel rather
+  than swallowed, which is a strict improvement, but repairing a non-array
+  `devCosts` to `[]` with a repair note is the natural companion to D4.
+- `runAppraisalForView` discards the repairs it had already collected when a
+  later stage throws — `empty(error)` returns `repairs: []`. On the narrow path
+  where `sanitizeSpec` repairs 17 inputs and then `runAppraisal` throws, the
+  error panel cannot say so, and the repairs disclosure is the most useful
+  diagnostic available at that moment. Returning the partial repair list
+  alongside `error` would cost nothing.
+- Test comment inaccuracy in `tests/inputvalidation.test.ts:245` — "H01 is the
+  69th line of the default schedule". `DEFAULT_PRICING.devCosts` has 61 lines
+  (61 distinct codes) and H01 is the 49th; the repair my probe observed is
+  `cost line #49 code: ->LINE49`. The assertion itself is positional
+  (`/^LINE\d+$/`) so nothing fails.
+- Forward-compatibility of the incidence rule: because a shipped code's
+  `whenIncurred` is now pinned to the standard line (only an explicit
+  `'always'` is exempt), the day the UI lets a user edit incidence — or a
+  `.pricing` preset written by another build carries a deliberate lateral tag
+  through `loadPreset` at `src/views/PricingView.tsx:187` — the sanitiser will
+  silently overwrite that choice. The code comment states the dependency
+  ("nothing in this app can edit a line's incidence"), which is currently true;
+  it is worth a note in IMPROVEMENTS.md so the validator is revisited if that
+  stops being true.
+- A repaired empty code becomes a synthetic `LINE49`, which `DEV_COST_CELLS` in
+  `electron/xlsxExport.ts` cannot map, so that line's cost is in the engine but
+  absent from its workbook cell. Equivalent to the pre-fix behaviour (an empty
+  code did not map either), so not a regression — but it is another instance of
+  the standing `DEV_COST_CELLS` weak seam.
+- UX: the error panel shows the engine's raw message verbatim, e.g. "Cannot
+  read properties of undefined (reading 'purchasePrice')". That is exactly what
+  the specification asked for and the surrounding prose is plain English, but a
+  JS TypeError is developer-speak for a QS audience; a future cycle could map
+  the common shapes to a sentence naming the input.
+
 
 ## Awaiting the client
 
