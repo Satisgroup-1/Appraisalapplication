@@ -705,3 +705,13 @@ Question 3 above is decided in principle but needs one number (5). The rest are 
     drawn. A time-weighted average drawn balance would give a higher figure again for a scheme
     whose equity is called down late. Peak is the convention adopted because it is the exposure
     the investor underwrites; confirm it is yours.
+15. **Malformed opted-to-tax flag (`vat.optedToTax`).** The flag is read as a bare truthiness
+    test, so a stored `"false"` (the string) opts the SPV IN: VAT is charged on the purchase and
+    the SDLT chargeable consideration rises with it (`sdlt.ts:74`). Measured on the demo, a
+    string `"false"` moves S1 net profit from £779,614.9968750654 to £758,379.4267258961 —
+    £21,235.57 — with **0 repairs** and a green **66 checks / 0 fails**. Repairing a non-boolean
+    to `true` preserves today's figures but contradicts the file's own word; repairing it to
+    `false` honours the word and hands back the £21,235.57. Which reading do you want? Deferred
+    out of the D4 cycles rather than guessed, so the flag is still unvalidated: the sanitiser
+    repairs neither reading and the `inputs-enums` tripwire deliberately excludes it, because a
+    check no repair can clear would leave the audit permanently red with no route out.

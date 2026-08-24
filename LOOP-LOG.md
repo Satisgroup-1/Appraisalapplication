@@ -20,6 +20,8 @@ Columns: when (UTC) · outcome · item · title · rework rounds · what happene
 
 | 2026-08-24 11:32 | LANDED | D4 | Validate the three unchecked enum inputs in sanitizeSpec, and stop the auditor losing checks to a bad one | 0 | `sanitizeSpec` validated only `sdlt.regime`; `buildCostMode`, `vat.fundedBy` and `waterfall.mode` are each read in dcf.ts as `=== 'literal'`, so a corrupt value silently took the else-branch and every one of the three flattered the deal. On `full_balanced` of DEMO_BUILDING against a 0-repair / 65-check / S1 2,079,630.1602789517 baseline: `buildCostMode: 'typo'` gave 0 repairs, 65/0 and S1 2,331,378.373762631 (+GBP251,748.21, D01 falling back to the fixed 2,305,099 instead of the room-rate build-up, -GBP221,661.94 of build cost); `waterfall.mode: 'typo'` gave 62/0 - three checks FEWER - paying the simple 1,039,815.08 while the result carried 'typo' back out, so WaterfallTable rendered nothing (a real waterfall pays 1,072,525.53); `vat.fundedBy: 'typo'` gave S1 2,058,321.90 against 2,041,265.01 on a real 'vatLoan', GBP17,056.89 of fee and interest nobody was charged for a facility the file claimed. `fixEnum` now resolves all four with a reported repair; for the three new ones the fallback IS the branch the engine already took, so no stored figure moves - disclosure, not a re-price. `sdlt.regime` is the exception and is documented as such: an unrecognised regime takes the AUTOMATIC arm, `computeSdlt` has no default case and the appraisal goes NaN (raw NaN vs sanitised 2,079,630.1602789517), so 'manual' is justified by keeping the solicitor's typed B04. Second hole, same instrument: the auditor's simple-split gate was `mode === 'simple'` while the engine's is `mode === 'waterfall' && netProfit > 0`, so a LOSS-MAKING waterfall - shared pro rata because no pref is payable out of a negative number - also lost wf-s1/s2/s4-simple; at priceAdjust -0.5 with pref 0.08 / residual 0.7, S1 -1,795,885.48 and investor -897,942.74 = netProfit x 0.5, reported 62 against 65 for the identical loss papered as a simple split. The gate is now the literal negation of the engine's. New `inputs-enums` tripwire (D11 mould) fails on any spec still carrying a bad discriminant - defence in depth, not a live catch: D12 landed mid-cycle so every screen now audits a sanitised spec, and the code comments say so rather than repeating the closed OptionsView/PricingView rationale. Incidental: the auditor THREW on a raw bad SDLT regime because B04 was undefined and `gbp()` died on `undefined.toLocaleString()`; `gbp()` is now total, byte-identical for every finite value and for NaN. Exact count pins 65 -> 66 in two suites - appaudit.test.ts's clean-spec pin and both of D12's appraise.test.ts pins, re-measured after the merge - the +1 being the new tripwire passing, failCount still 0, no existing check changed verdict. 293 -> 300 tests; tests/enums.test.ts, 6 of its 7 confirmed failing at 2dfdf20 (F2 passes both sides by design, pinning that a PROFITABLE waterfall is still not reconciled as a simple split). No golden pin in tests/dcf.test.ts moved and no financial default changed. AUDIT.md 6.10. |
 
+| 2026-08-24 12:36 | ABANDONED | D4 | Validate the spec's discriminant flags: an unrecognised enum or a non-boolean HPI switch silently reprices the scheme | 3 | Reviewer withheld approval after 3 rework rounds. Its required-changes text was NOT relayed to this land step, so the objections could not be recorded verbatim as the abandon procedure asks - what the rejected attempt contained is described below instead, plainly labelled as description and not as reviewer objections. Working tree reverted with `git checkout -- . && git clean -fd`: clean, and HEAD not moved by this cycle - it was ada614e at the revert, then fast-forwarded to origin's docs-only 414f46d before this row was written. Nothing committed but this documentation. The FIRST-pass D4 row above (11:32) is landed, pushed and untouched by this. |
+
 ## Abandoned: D3
 
 The work itself was reverted — `git checkout -- . && git clean -fd` against
@@ -70,6 +72,77 @@ narrows an explicit `'always'` and *invents* profit — `I01 = 'always'` priced
 this cycle ran **3**. `.claude/workflows/appraisal-improve.js` and the contract
 disagree on the bound. Worth reconciling — the extra round is why the row above
 reads 3.
+
+## Abandoned: D4
+
+This is the SECOND pass at D4. The first (`9a44f1a`, logged LANDED at 11:32) is
+on origin and is not affected by this revert: it validated the four string
+discriminants and added the `inputs-enums` tripwire. The second pass went after
+what that one left open — the BOOLEAN switches — and was not approved. The work
+was reverted (`git checkout -- . && git clean -fd` against `ada614e`), so the
+next attempt starts from the same base this one did. The branch was then
+fast-forwarded to origin's `414f46d`, which landed while this cycle ran and is
+documentation only (the A12 finding and the manual A4 cycle's ABANDONED row), so
+the code base is byte-identical to the one described here.
+
+**The reviewer's required changes are not quoted here, because they were not
+available to quote.** The abandon procedure asks for them verbatim; the land
+step of `.claude/workflows/appraisal-improve.js` interpolates the plan, the
+round count, the reviewer's *observations* and the planner's blocked questions,
+but not `review.requiredChanges` — which the same file's return value does
+carry. So the objections exist upstream and reached the cycle's caller; they did
+not reach this file. Recording invented objections would be worse than
+recording none, so what follows is a factual description of the rejected change,
+taken from the diff before it was reverted. Whoever picks D4 up next should
+treat it as "what was tried", not as "what was wrong with it".
+
+**What the rejected second pass did** (`src/core/audit.ts`, +173/−41; new
+`tests/discriminants.test.ts`; edits to `tests/enums.test.ts`, the two exact
+count pins in `tests/appaudit.test.ts` and `tests/appraise.test.ts`; AUDIT.md
+§6.11 and an IMPROVEMENTS.md update):
+
+1. **A `fixFlag` helper** beside `fixEnum`, resolving a non-boolean
+   `finance.hpi.enabled` to `false` with a reported repair. Measured on
+   `DEMO_SCHEDULE` + `DEFAULT_PRICING` with `enabled: 1`: gdvAdjusted
+   6,483,409.40 → 6,248,228.67 and S1 net profit 1,011,174.9766483428 →
+   779,614.9968750654, i.e. £231,559.98 of profit that a truthy non-boolean
+   indexes onto a file whose own text says the index is off.
+2. **Documented, and deliberately did not change, the mirror-image asymmetry on
+   `buildInflation.enabled`** — the same repair there STRIPS cost and so
+   manufactures £82,021.59 of profit (build cost 2,377,886.9410657566 →
+   2,305,099, S1 697,593.4051212473 → 779,614.9968750654). Left as it has been
+   since §6.4, recorded as a residual rather than asserted away.
+3. **Renamed the tripwire `inputs-enums` → `spec-discriminants`** and widened it
+   from four fields to six (adding the two boolean switches), with the field
+   path printed beside the English name. No new check: the count pin stayed at
+   66.
+4. **Split the `buildCostMode` repair by HOW the value is wrong** — absent/null
+   keeps `normalizePricing`'s legacy `'fixed'` convention so a pre-field file is
+   not re-priced on load, while a *misspelt* value resolved to `'roomRates'`
+   instead of `'fixed'`, on the stated rule that an ambiguity is not resolved in
+   the direction that manufactures profit (on `full_max_units`, `'fixed'` keeps a
+   typed D01 of 2,305,099 against 2,526,760.9416 built up from the option's own
+   measured room areas: £221,661.94 of absent cost, £251,748.21 of absent
+   profit). This is the one behaviour change that moved a corrupt spec's figures
+   relative to the first pass, and the one the relayed observations question — see
+   "Direction rule vs evidence quality" in the Candidate backlog below.
+5. **Left `vat.optedToTax` unvalidated and outside the tripwire**, on the
+   grounds that its two readings disagree and neither can be picked without the
+   client, and a check no repair can clear would leave the audit permanently
+   red. The question is in IMPROVEMENTS.md Open questions 15 and under Awaiting
+   the client below.
+
+**Re-measured at `ada614e` after the revert, so the next attempt can trust the
+number without re-deriving it:** `finance.vat.optedToTax = "false"` (the string)
+on `DEMO_SCHEDULE` + `clonePricing(DEFAULT_PRICING)` gives S1 net profit
+**758,379.4267258961** against **779,614.9968750654** clean — £21,235.57 charged
+as purchase VAT — with **0 repairs** and a green **66 checks / 0 fails**. The
+truthy-string hole this pass existed to close is therefore still open on the
+branch as it stands.
+
+**Process note, same as D3's.** `.claude/appraisal-loop.md` allows up to **2**
+rework rounds; this cycle ran **3**, which is why the row reads 3. The contract
+and `.claude/workflows/appraisal-improve.js` still disagree on the bound.
 
 ## Candidate backlog (reviewer observations)
 
@@ -229,6 +302,20 @@ but not acted on:**
   moved 65 -> 66 at landing.)*
 
 
+**Raised 2026-08-24 by the D4 second-pass reviewer (spec discriminant flags).
+Not acted on, and recorded verbatim as relayed. Note that items referring to the
+second pass's own code (the `spec-discriminants` rename, the second-pass
+IMPROVEMENTS.md block) describe a change that was reverted with the cycle; they
+are kept because each names something a future attempt will meet again.**
+
+- Direction rule vs evidence quality (out of scope, spec-mandated): resolving a corrupt `buildCostMode` to 'roomRates' discards a D01 line that on a real project may be a builder's tender or contract sum - better evidence than GBP/sqft room rates - in favour of the rate build-up. AUDIT.md 6.11 states "which basis is evidenced is not [scheme-dependent]", which is arguable in that case. Worth an explicit convention in a later cycle (e.g. warn when the repair displaces a D01 that differs from the room-rate build-up by more than x%).
+- IMPROVEMENTS.md line 365 still reads "a new `inputs-enums` tripwire" in the first-pass D4 paragraph while the second-pass block below says it is renamed `spec-discriminants`. Historically accurate but confusing for a reader searching the id; a one-clause "(renamed below)" would close it. LOOP-LOG.md line 185 has the same stale id in a landed row, which should stay as history.
+- src/views/OptionsView.tsx line 33 comment says "65 re-derivations per card is not free" - now 66. Cosmetic, pre-existing wording from D12.
+- A11 (whole_house, pcMonth 112 vs MONTHS 60) is the only clean-spec audit failure in the app and the builder correctly entered it as a new backlog item rather than touching it here. Confirmed independently: 65 checks, 1 fail, cf-conservation not assessed. It deserves a cycle - the grid prices and offers an option whose retention is never released.
+- `vat.optedToTax` remains unvalidated and deliberately outside the tripwire; measured, `optedToTax: "false"` still charges purchase VAT and moves S1 from 779,614.9968750654 to 758,379.4267258961 with 0 repairs and a green 66/0. The residual is recorded in both documents with the right numbers; the convention question is a genuine next item.
+- sanitizeSpec is idempotent on a repaired spec (second pass: 0 repairs, byte-identical JSON), and `buildCostMode: null` and `0` both route correctly (null -> 'fixed' legacy branch, 0 -> 'roomRates'). No issue; noted because neither is covered by a test.
+
+
 ## Awaiting the client
 
 Four open (11 and 12 below, plus A10 and the D4 cycle's restatement of 12).
@@ -284,6 +371,19 @@ client and neither will be picked by the loop:**
   over-equitised probe) and the reviewer's "cliff, not a threshold" observation
   on the `devFacilityNil` warning. Is the fee priced on the facility committed at
   signing, or on the facility actually drawn?
+
+**Raised 2026-08-24 by the abandoned D4 second pass. Mirrored from
+IMPROVEMENTS.md "Open questions" 15; deferred out of that cycle rather than
+guessed, and the loop will not pick it:**
+
+- **`vat.optedToTax` accepts any truthy value.** A stored `"false"` (string)
+  charges VAT on the purchase and moves demo S1 profit from 779,614.9968750654
+  to 758,379.4267258961 (re-measured at `ada614e`: 0 repairs, 66 checks / 0
+  fails). Repairing a non-boolean to `true` preserves today's figures but
+  contradicts the file's own word; repairing it to `false` honours the word and
+  hands back GBP21,235.57 of profit. Which reading do you want for a malformed
+  opted-to-tax flag?
+
 
 **From the A5 cycle (2026-08-24 08:51), recorded by the reviewer and not acted
 on in that change:**
