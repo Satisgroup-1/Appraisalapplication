@@ -496,3 +496,14 @@ Question 3 above is decided in principle but needs one number (5). The rest are 
 10. **Tax (B2).** Left undecided: should the model carry corporation tax on SPV profit and show
     post-tax investor returns, or is pre-tax the house convention? And is the 5% reduced-rate
     VAT on qualifying conversion works worth modelling as a cashflow item?
+11. **Stretch / mezzanine funding terms (A8's full fix).** The engine now warns when
+    pre-construction spend exceeds bridge + equity, but it cannot finance the gap — the money
+    is flagged as having no source and is charged no interest. If a scheme's bridge and equity
+    do not cover pre-construction spend, what facility fills it and on what terms: rate pa,
+    arrangement fee, exit fee, and does it rank behind the senior development loan?
+12. **Basis of the development-loan arrangement fee.** Is the fee priced on the facility
+    committed at signing (the current E29 estimate) or on the facility actually drawn? On the
+    demo the fee is charged on £3,787,282 against a cashflow peak of £3,982,955 — a £195,674
+    gap understating the fee by ~£2,935 plus rolled interest. In the over-equitised probe it
+    errs the other way, levying ~£12,612 on £591,694 of facility that is never drawn.
+    Repricing would move golden pins, so it needs the client's own lending convention.
