@@ -11,6 +11,7 @@ Columns: when (UTC) · outcome · item · title · rework rounds · what happene
 | 2026-08-24 02:24 | SETUP | — | Loop established: planner, builder, reviewer; hourly Routine | 0 | Baseline before the first cycle: 228 tests, 53 audit checks, 9 of 37 findings closed |
 | 2026-08-24 03:25 | LANDED | 5 | Guard rails on degenerate inputs, and the plausibility checks that catch them (A4, A6, A8, A9 + E3) | 1 | 228→251 tests, 53→61 audit checks. 18 tests confirmed failing first. One rework round: `plaus-icr` initially failed on the demo's real ICR of 0.87, which broke five existing "audit is clean" tests and showed the check was conflating a weak deal with a model defect — recast as "below cover is never unflagged". No golden pin moved. |
 | 2026-08-24 03:51 | ABANDONED | A4+A8 | Floor the development facility at zero, and disclose pre-construction spend that nothing funds | 0 | Reviewer APPROVED, but the work collided: origin advanced 6 commits mid-cycle and the 03:25 guard-rails cycle had already landed both fixes. Rebase conflicted in 5 files and would have deleted `tests/guardrails.test.ts`. Reset to `f786ce2` rather than force-push over another cycle's work. Base verified green: tsc clean, 251 tests. |
+| 2026-08-24 04:33 | LANDED | C3 | Zero-dwelling conversion options must not report as NDSS-compliant | 0 | 251→253 tests. allCompliant was `compliance.every(allPass)`, vacuously true over the empty units array of an unplannable envelope, so a £0-GDV option that builds nothing showed a green "NDSS compliant" badge. Now `residentialUnits > 0 && every(allPass)`; zero-dwelling options carry a warning and read "Not viable - no dwellings". Confirmed failing-first on a 3m-deep shallow floor. No-op on the demo: all 8 options keep bit-identical flags. No golden pin moved. |
 
 ## Candidate backlog (reviewer observations)
 
@@ -48,6 +49,24 @@ observations that applied only to the abandoned local branch were discarded.
   exported '7. App Model v2' cashflow block. The sheet is written sequentially,
   so the column is cheap — a candidate for the export backlog alongside the
   standing `DEV_COST_CELLS` seam.
+
+**From the C3 cycle (2026-08-24 04:33), out of scope for that fix:**
+
+- **The C3 spec's illustrative GDV figures are stale.** The shallow-floor
+  `floor_through`/`whole_house` options are quoted at 124000 / 116250 in the
+  spec's evidence block, but the actual engine output is 134333.47 / 125937.63.
+  This is only in the spec's prose, not asserted anywhere, and both options are
+  non-compliant with or without the fix, so it does not affect correctness.
+  Noted so a future reader does not trust those spec numbers.
+- **`generateOptions`' whole_house branch dereferences `plans[0].units[0]`**
+  (`conversions.ts:329`) with no guard. On the shallow floor `planFloorThrough`
+  still yields one unit so it survives, but a truly unplannable envelope (zero
+  units on floor 0) would throw here. The `full_*` loop is wrapped in try/catch
+  but the `whole_house` block is not. Pre-existing, not introduced by C3.
+- **The C3 demo regression test hardcodes an exact 8-element `[true x8]`
+  array.** If the demo building ever yields a 9th option the assertion breaks.
+  Acceptable brittleness for a pin, but a length-scoped assertion would be more
+  robust.
 
 ## Awaiting the client
 
