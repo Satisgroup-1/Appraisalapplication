@@ -15,6 +15,7 @@
 import type {
   AppraisalResult,
   DevCostGroup,
+  MonthRow,
   PricingSpec,
   ScheduleRow,
   WaterfallResult,
@@ -569,16 +570,45 @@ export function auditAppraisal(r: AppraisalResult, spec: PricingSpec, schedule: 
   );
 
   // --- distributions: complete and internally consistent in every scenario ---
-  const wfCheck = (name: string, wf: WaterfallResult, netProfit: number) => {
+  const wfCheck = (name: string, wf: WaterfallResult, netProfit: number, cf: MonthRow[]) => {
     ok(`wf-${name}-sum`, `${name.toUpperCase()} investor + developer = net profit`, closeAbs(wf.investorProfit + wf.developerProfit, netProfit), `${gbp(wf.investorProfit + wf.developerProfit)} vs ${gbp(netProfit)}`);
     ok(`wf-${name}-pref`, `${name.toUpperCase()} pref paid ≤ accrued and ≤ profit`, wf.prefPaid <= wf.prefAccrued + 0.005 && wf.prefPaid <= Math.max(0, netProfit) + 0.005, '');
     if (wf.mode === 'simple') {
       ok(`wf-${name}-simple`, `${name.toUpperCase()} simple split = profit × investor share`, closeAbs(wf.investorProfit, netProfit * f.equity.investorShare), '');
     }
+    // A5: the two capital bases are reported side by side, so each must add up
+    // to a real quantity and each ROI must divide by its OWN base. The defect
+    // this catches is a stack that reconciles to neither the equity committed
+    // nor the equity ever drawn — which is what a mode-dependent denominator
+    // beside a fixed one produced.
+    let peakDrawn = 0;
+    for (let m = 1; m <= Math.min(wf.exitMonth, cf.length); m++) peakDrawn = Math.max(peakDrawn, cf[m - 1].equityCum);
+    const roiLimb = (roi: number | null, base: number) =>
+      roi === null ? base === 0 : Math.abs(roi * base - wf.investorProfit) <= 0.01;
+    const committedOk = closeAbs(wf.investorCommitted + wf.developerCommitted, f.equity.total, 0.01);
+    const drawnOk = closeAbs(wf.investorDrawnPeak + wf.developerDrawnPeak, peakDrawn, 0.02);
+    const withinOk = wf.investorDrawnPeak <= wf.investorCommitted + 0.01;
+    const committedRoiOk = roiLimb(wf.investorRoiOnCommitted, wf.investorCommitted);
+    const drawnRoiOk = roiLimb(wf.investorRoiOnDrawn, wf.investorDrawnPeak);
+    const detail = !committedOk
+      ? `committed ${gbp(wf.investorCommitted + wf.developerCommitted)} vs equity ${gbp(f.equity.total)}`
+      : !drawnOk
+        ? `drawn ${gbp(wf.investorDrawnPeak + wf.developerDrawnPeak)} vs peak equity drawn ${gbp(peakDrawn)}`
+        : !withinOk
+          ? `investor drawn ${gbp(wf.investorDrawnPeak)} exceeds committed ${gbp(wf.investorCommitted)}`
+          : !committedRoiOk
+            ? `ROI on committed × ${gbp(wf.investorCommitted)} vs investor profit ${gbp(wf.investorProfit)}`
+            : `ROI on drawn × ${gbp(wf.investorDrawnPeak)} vs investor profit ${gbp(wf.investorProfit)}`;
+    ok(
+      `wf-${name}-capital`,
+      `${name.toUpperCase()} capital reconciles on both bases and each ROI is profit ÷ its own base`,
+      committedOk && drawnOk && withinOk && committedRoiOk && drawnRoiOk,
+      detail,
+    );
   };
-  wfCheck('s1', s.s1.waterfall, s.s1.netProfit);
-  wfCheck('s2', s.s2.waterfall, s.s2.netProfit);
-  wfCheck('s4', s.s4.waterfall, s.s4.netProfit);
+  wfCheck('s1', s.s1.waterfall, s.s1.netProfit, r.cashflow);
+  wfCheck('s2', s.s2.waterfall, s.s2.netProfit, r.cashflow);
+  wfCheck('s4', s.s4.waterfall, s.s4.netProfit, r.cashflow);
 
   // --- plausibility (E3) ---
   // Everything above re-derives the model and compares it against itself, so a

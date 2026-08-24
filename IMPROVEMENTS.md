@@ -92,7 +92,7 @@ bridge, so a real facility exists while E29 reads nil. **Residual:** that draw i
 £0 arrangement fee. It now warns rather than being silent, but sizing the facility from the
 cashflow instead of from E29 is the actual fix and is a change to how the fee is charged.
 
-### A5 — MEDIUM · Investor ROI changes 6 points when you switch profit mode, with no change in economics
+### A5 — MEDIUM · ~~Investor ROI changes 6 points when you switch profit mode, with no change in economics~~ · **FIXED 2026-08-24**
 `src/core/dcf.ts:569` uses **drawn peak** capital in waterfall mode and **committed** capital in
 simple mode. Demo with £5m committed (more than the scheme can absorb), pref 0%, residual 50/50
 — economically identical to the simple 50/50 split:
@@ -106,6 +106,18 @@ Same profit, same deal, 5.9 points apart. (Where equity is fully drawn — the d
 the two agree, which is why the existing tests don't catch it.)
 
 Fix: one denominator for both modes. See question 4.
+
+**Done** — both denominators, always, in both modes. `WaterfallResult` gained
+`investorCommitted` / `investorDrawnPeak` / `developerCommitted` / `developerDrawnPeak` and
+`investorRoiOnCommitted` / `investorRoiOnDrawn` (plus the per-annum pair), each `null` where its
+base is zero; the probe above now reads **18.75% committed and 24.67% drawn in both modes**, and
+the distribution stack reconciles (1,900,218.69 + 1,900,218.69 = 3,800,437.38 = `equityUsed`).
+No money moved: profits, pref and the legacy fields are byte-identical, no `tests/dcf.test.ts`
+pin shifted, and the audit went 62 → 65 checks / 0 fails (`wf-s1/s2/s4-capital`). Recorded in
+AUDIT.md §6.8. **Residual:** the legacy `investorCapital` / `investorRoi` / `investorRoiPa` are
+still mode-dependent in the engine's return value — documented as such and no longer what the UI
+reads, but a consumer that reaches for `investorRoi` still gets a mode-dependent denominator.
+Retiring them is a separate, wider change.
 
 ### A6 — MEDIUM · ~~`velocityPerMonth = 0` reports a sell-out that never happens~~ · **FIXED 2026-08-24**
 `src/core/dcf.ts:643` returns `monthsToSellOut = 0` for zero velocity, so S2 shows:
@@ -551,3 +563,7 @@ Question 3 above is decided in principle but needs one number (5). The rest are 
     gap understating the fee by ~£2,935 plus rolled interest. In the over-equitised probe it
     errs the other way, levying ~£12,612 on £591,694 of facility that is never drawn.
     Repricing would move golden pins, so it needs the client's own lending convention.
+13. **Basis of "capital drawn" in the investor ROI.** The model reports ROI on **peak** capital
+    drawn. A time-weighted average drawn balance would give a higher figure again for a scheme
+    whose equity is called down late. Peak is the convention adopted because it is the exposure
+    the investor underwrites; confirm it is yours.

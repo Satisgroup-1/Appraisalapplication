@@ -508,8 +508,13 @@ export interface FinanceSummary {
 export interface WaterfallResult {
   mode: 'simple' | 'waterfall';
   exitMonth: number;
-  /** Peak investor capital drawn (pref accrues on the drawn balance). */
+  /** LEGACY, mode-dependent: peak capital DRAWN in 'waterfall' mode (pref
+   *  accrues on the drawn balance) but capital COMMITTED in 'simple'. Retained
+   *  so stored appraisals read unchanged; the reportable figures are
+   *  `investorCommitted` / `investorDrawnPeak` below, which state their basis. */
   investorCapital: number;
+  /** LEGACY: always the developer's COMMITTED share, so it does not pair with
+   *  `investorCapital` above in waterfall mode. Use the explicit fields. */
   developerCapital: number;
   prefAccrued: number;
   prefPaid: number;
@@ -518,8 +523,40 @@ export interface WaterfallResult {
   residualProfit: number;
   investorProfit: number;
   developerProfit: number;
+  /** LEGACY, mode-dependent denominator: profit ÷ `investorCapital`, so the
+   *  same deal reads ~6 points higher in 'waterfall' than in 'simple' with no
+   *  change in economics. Report `investorRoiOnCommitted` and
+   *  `investorRoiOnDrawn` instead — quoting one basis without naming it is the
+   *  defect this pair exists to close. */
   investorRoi: number;
+  /** LEGACY: `investorRoi` annualised over `exitMonth`, same mode dependence. */
   investorRoiPa: number;
+
+  // --- the reportable pair: both bases, always, in both modes (A5) ---
+  // Committed is the money the investor put at the scheme's disposal for the
+  // duration whether or not it was called down — the conservative denominator.
+  // Drawn peak is the most the cashflow actually took, which flatters the
+  // return by ignoring the idle commitment. Neither is wrong on its own;
+  // quoting one without saying which is.
+  /** Basis: capital COMMITTED = `equity.total × investorShare`. */
+  investorCommitted: number;
+  /** Basis: peak capital DRAWN = `investorShare ×` peak cumulative equity over
+   *  this scenario's horizon. Never exceeds `investorCommitted`. */
+  investorDrawnPeak: number;
+  /** Basis: capital COMMITTED = `equity.total × (1 - investorShare)`. */
+  developerCommitted: number;
+  /** Basis: peak capital DRAWN, complementary share, same traversal as the
+   *  investor's, so investor + developer drawn = peak equity drawn. */
+  developerDrawnPeak: number;
+  /** `investorProfit ÷ investorCommitted`. `null` when nothing is committed —
+   *  a not-applicable ratio, never a confident zero. */
+  investorRoiOnCommitted: number | null;
+  /** `investorProfit ÷ investorDrawnPeak`. `null` when nothing was drawn. */
+  investorRoiOnDrawn: number | null;
+  /** The committed-basis ROI annualised over `exitMonth`. `null` with its ROI. */
+  investorRoiPaOnCommitted: number | null;
+  /** The drawn-basis ROI annualised over `exitMonth`. `null` with its ROI. */
+  investorRoiPaOnDrawn: number | null;
 }
 
 export interface ScenarioResults {

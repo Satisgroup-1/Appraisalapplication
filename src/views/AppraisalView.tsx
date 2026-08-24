@@ -250,7 +250,8 @@ function SummaryTab({ result }: { result: AppraisalResult }) {
               <th>Scenario</th>
               <th className="num">Net profit</th>
               <th className="num">Profit on GDV</th>
-              <th className="num">Investor ROI</th>
+              <th className="num">Investor ROI (committed)</th>
+              <th className="num">Investor ROI (drawn)</th>
               <th className="num">Months</th>
             </tr>
           </thead>
@@ -259,28 +260,37 @@ function SummaryTab({ result }: { result: AppraisalResult }) {
               <td>S1: Immediate sale at PC</td>
               <td className="num">{fmtGBP(scenarios.s1.netProfit)}</td>
               <td className="num">{fmtPctOr(scenarios.s1.profitOnGdv)}</td>
-              <td className="num">{fmtPct(scenarios.s1.investorRoi)}</td>
+              <td className="num">{fmtPctOr(scenarios.s1.waterfall.investorRoiOnCommitted)}</td>
+              <td className="num">{fmtPctOr(scenarios.s1.waterfall.investorRoiOnDrawn)}</td>
               <td className="num">{scenarios.s1.durationMonths}</td>
             </tr>
             <tr>
               <td>S2: Delayed sales (dev loan)</td>
               <td className="num">{fmtGBP(scenarios.s2.netProfit)}</td>
               <td className="num">{fmtPctOr(scenarios.s1.gdvAdjusted === 0 ? null : scenarios.s2.netProfit / scenarios.s1.gdvAdjusted)}</td>
-              <td className="num">{fmtPct(scenarios.s2.investorRoi)}</td>
+              <td className="num">{fmtPctOr(scenarios.s2.waterfall.investorRoiOnCommitted)}</td>
+              <td className="num">{fmtPctOr(scenarios.s2.waterfall.investorRoiOnDrawn)}</td>
               <td className="num">{fmtMonthsOr(scenarios.s2.totalDurationMonths)}</td>
             </tr>
             <tr>
               <td>S3: Refinance &amp; rent (pa cashflow)</td>
               <td className="num">{fmtGBP(scenarios.s3.netAnnualCashflow)}</td>
               <td className="num">-</td>
+              {/* S3 is a hold, not a distribution: it has no waterfall at all,
+                  so the figure shown is cash-on-cash — annual cashflow against
+                  the equity LEFT in the deal after refinance. That is a
+                  committed-capital measure, so it sits in the committed column
+                  and the drawn column stays blank rather than repeating it. */}
               <td className="num">{fmtPctOr(scenarios.s3.cashOnCash)}</td>
+              <td className="num">-</td>
               <td className="num">hold</td>
             </tr>
             <tr>
               <td>S4: Refinance then delayed sales</td>
               <td className="num">{fmtGBP(scenarios.s4.netProfit)}</td>
               <td className="num">{fmtPctOr(scenarios.s1.gdvAdjusted === 0 ? null : scenarios.s4.netProfit / scenarios.s1.gdvAdjusted)}</td>
-              <td className="num">{fmtPct(scenarios.s4.investorRoi)}</td>
+              <td className="num">{fmtPctOr(scenarios.s4.waterfall.investorRoiOnCommitted)}</td>
+              <td className="num">{fmtPctOr(scenarios.s4.waterfall.investorRoiOnDrawn)}</td>
               <td className="num">{fmtMonthsOr(scenarios.s2.totalDurationMonths)}</td>
             </tr>
           </tbody>
@@ -354,7 +364,13 @@ function WaterfallTable({ w }: { w: import('../core/types').WaterfallResult }) {
         </tr>
       </thead>
       <tbody>
-        <Row k="Investor capital drawn (peak)" v={fmtGBP(w.investorCapital)} />
+        {/* Both bases, both parties, so the stack on screen reconciles: the
+            committed pair sums to the equity committed and the drawn pair to
+            the peak equity the cashflow actually called down. */}
+        <Row k="Investor capital committed" v={fmtGBP(w.investorCommitted)} />
+        <Row k="Investor capital drawn (peak)" v={fmtGBP(w.investorDrawnPeak)} />
+        <Row k="Developer capital committed" v={fmtGBP(w.developerCommitted)} />
+        <Row k="Developer capital drawn (peak)" v={fmtGBP(w.developerDrawnPeak)} />
         <Row k="Preferred return accrued" v={fmtGBP(w.prefAccrued)} />
         <Row k="Pref paid from profit" v={fmtGBP(w.prefPaid)} />
         {w.prefShortfall > 0 && <Row k="Pref shortfall (profit below hurdle)" v={fmtGBP(w.prefShortfall)} />}
@@ -575,8 +591,10 @@ function ScenariosTab({ result }: { result: AppraisalResult }) {
             <Row k="Profit on cost" v={fmtPctOr(sc.s1.profitOnCost)} />
             <Row k="Profit on GDV" v={fmtPctOr(sc.s1.profitOnGdv)} />
             <Row k="Investor profit share" v={fmtGBP(sc.s1.investorProfit)} />
-            <Row k="Investor ROI" v={fmtPct(sc.s1.investorRoi)} />
-            <Row k="Investor ROI per annum" v={fmtPct(sc.s1.investorRoiPa)} />
+            <Row k="Investor ROI (on capital committed)" v={fmtPctOr(sc.s1.waterfall.investorRoiOnCommitted)} />
+            <Row k="Investor ROI (on capital drawn)" v={fmtPctOr(sc.s1.waterfall.investorRoiOnDrawn)} />
+            <Row k="Investor ROI pa (on capital committed)" v={fmtPctOr(sc.s1.waterfall.investorRoiPaOnCommitted)} />
+            <Row k="Investor ROI pa (on capital drawn)" v={fmtPctOr(sc.s1.waterfall.investorRoiPaOnDrawn)} />
           </tbody>
         </table>
         <WaterfallTable w={sc.s1.waterfall} />
@@ -614,7 +632,8 @@ function ScenariosTab({ result }: { result: AppraisalResult }) {
             )}
             <Row k="NET PROFIT" v={fmtGBP(sc.s2.netProfit)} total />
             <Row k="Investor profit share" v={fmtGBP(sc.s2.investorProfit)} />
-            <Row k="Investor ROI" v={fmtPct(sc.s2.investorRoi)} />
+            <Row k="Investor ROI (on capital committed)" v={fmtPctOr(sc.s2.waterfall.investorRoiOnCommitted)} />
+            <Row k="Investor ROI (on capital drawn)" v={fmtPctOr(sc.s2.waterfall.investorRoiOnDrawn)} />
             <Row k="Total duration (months)" v={fmtMonthsOr(sc.s2.totalDurationMonths)} />
           </tbody>
         </table>
@@ -633,7 +652,8 @@ function ScenariosTab({ result }: { result: AppraisalResult }) {
             <Row k="NET PROFIT" v={fmtGBP(sc.s4.netProfit)} total />
             <Row k="Benefit vs Scenario 2" v={fmtGBP(sc.s4.benefitVsS2)} />
             <Row k="Investor profit share" v={fmtGBP(sc.s4.investorProfit)} />
-            <Row k="Investor ROI" v={fmtPct(sc.s4.investorRoi)} />
+            <Row k="Investor ROI (on capital committed)" v={fmtPctOr(sc.s4.waterfall.investorRoiOnCommitted)} />
+            <Row k="Investor ROI (on capital drawn)" v={fmtPctOr(sc.s4.waterfall.investorRoiOnDrawn)} />
           </tbody>
         </table>
         <WaterfallTable w={sc.s4.waterfall} />

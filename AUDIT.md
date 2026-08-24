@@ -373,6 +373,74 @@ branch zeroes anything `Number.isFinite` rejects, so a hand-edited
 the next validator does not assert a "repairs always charge the cost" property
 the code does not hold.
 
+### 6.8 Investor ROI: one headline, two denominators (2026-08-24)
+
+**Finding — the reported ROI changed with the profit mode, not with the
+scheme.** `computeWaterfall` set `investorCapital = mode === 'waterfall' ?
+drawnPeak : committed`, so the single `investorRoi` silently swapped its
+denominator when the user flipped a presentation switch. Measured on
+`DEMO_SCHEDULE` + `clonePricing(DEFAULT_PRICING)` with
+`equity = {total: 5,000,000, investorShare: 0.5}`,
+`waterfall = {prefRatePa: 0, residualInvestorPct: 0.5}` — a deal that is
+economically identical either way (no pref, 50/50 residual), S1:
+
+| mode | investorCapital | investorProfit | investorRoi |
+|---|---|---|---|
+| `simple` | 2,500,000 | 468,825.93673477694 | **0.1875303746939108** |
+| `waterfall` | 1,900,218.6900399998 | 468,825.93673477694 | **0.24672209529994052** |
+
+Same profit, same cashflow, **5.92 percentage points apart**.
+
+**Second finding — the two sides of the stack were measured on different
+bases.** In waterfall mode `investorCapital` was the drawn peak while
+`developerCapital` stayed *committed*. Their sum, **4,400,218.69**, reconciled
+to neither the £5,000,000 committed nor the £3,800,437.38 peak drawn
+(`finance.equityUsed`), so the Distribution-waterfall table displayed a capital
+stack that was not any real quantity, and nothing checked it.
+
+**Fix (A5) — report both bases, always, in both modes.** `WaterfallResult` now
+carries `investorCommitted` / `investorDrawnPeak` / `developerCommitted` /
+`developerDrawnPeak` and the four ROI figures
+(`investorRoiOnCommitted`, `investorRoiOnDrawn`, and their per-annum pair),
+each `null` where its base is exactly zero — the A9 precedent that a degenerate
+ratio must never read as a confident zero. Committed is the money the investor
+cannot deploy elsewhere for the duration; drawn peak is the exposure the
+cashflow actually called. Both parties' drawn peaks come from **one traversal**
+of the same `equityMonth` series with complementary shares, so they cannot
+drift. On the probe both modes now report 18.75% committed and 24.67% drawn,
+and 1,900,218.69 + 1,900,218.69 = 3,800,437.38 = `finance.equityUsed`.
+
+**No money moved.** `investorProfit`, `developerProfit`, `prefAccrued`,
+`prefPaid`, `prefShortfall` and `residualProfit` are untouched, as are the
+legacy `investorCapital` / `investorRoi` / `investorRoiPa` — now documented in
+the type as mode-dependent and no longer the reported figures. On the demo
+defaults (equity 1,400,000, fully drawn) S1 still reports investor capital
+700,000, ROI **0.556867854910761**, ROI pa **0.4454942839286088**, investor
+profit **389,807.4984375327**, and the new pair agrees with itself. No golden
+pin in `tests/dcf.test.ts` moved; the only deliberate movement is the audit
+count.
+
+**New audit check, one per profit scenario** — `wf-s1-capital`,
+`wf-s2-capital`, `wf-s4-capital`: committed halves sum to `equity.total`, drawn
+peaks sum to the peak `equityCum` over that scenario's own horizon, investor
+drawn never exceeds investor committed, and each ROI times its own base returns
+`investorProfit`. Clean demo: **65 checks / 0 fails** (was 62/0; +3, one per
+scenario). Tripwire proven: `investorDrawnPeak += 1` on S1 fails
+`wf-s1-capital` while S2 and S4 still pass.
+
+**Failing-first evidence.** `tests/roi.test.ts` — 7 tests, all 7 failing
+against the pre-change engine (`expected NaN to be less than or equal to
+1e-12`, `expected undefined to be 2500000`, `wf-s1-capital: expected undefined
+to be true`, and the stored-project test on `expected undefined to be 700000`),
+all 7 passing after. Re-verified at the landing step by running the delivered
+file in a worktree at the pre-change commit `0b2a57e`: `Tests 7 failed (7)`.
+
+**Residual.** The legacy `investorCapital` / `investorRoi` / `investorRoiPa`
+are still mode-dependent in the engine's return value. They are documented as
+such and are no longer what the UI reads, but a future consumer that reaches
+for `investorRoi` will still get a mode-dependent denominator. Retiring them is
+a separate, wider change.
+
 ## 7. Re-running the audit
 
 ```bash
