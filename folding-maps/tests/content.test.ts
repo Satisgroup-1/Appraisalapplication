@@ -17,7 +17,7 @@ describe('editorial content', () => {
   });
 
   it('labels unfinished or fictional case work', () => {
-    expect(cases.every((item) => ['In progress', 'Illustrative'].includes(item.status))).toBe(true);
+    expect(cases.every((item) => ['In progress', 'Composite'].includes(item.status))).toBe(true);
   });
 
   it('provides centralised research metadata for every paper', () => {
@@ -126,11 +126,11 @@ describe('editorial content', () => {
     })).toBe(true);
   });
 
-  it('labels illustrative cases and integrates sources into case arguments', () => {
+  it('labels composite cases and integrates sources into case arguments', () => {
     expect(cases.every((item) => {
       const editorial = caseEditorial[item.slug];
       const hasInlineSource = editorial.sections.some((section) => section.paragraphs.some((paragraph) => paragraph.sources?.length));
-      return hasInlineSource && (item.status !== 'Illustrative' || editorial.statusStatement.toLowerCase().includes('illustrative'));
+      return hasInlineSource && (item.status !== 'Composite' || editorial.statusStatement.toLowerCase().includes('composite'));
     })).toBe(true);
   });
 
@@ -163,14 +163,18 @@ describe('editorial content', () => {
 
   it('keeps every numerical body claim sourced or explicitly qualified', () => {
     const hasNumber = /\b\d+(?:\.\d+)?(?:%|x|:\d+)?\b/;
-    const qualified = /illustrative|target|measured|not (?:a |an )?measured|proposed|discovery|pilot|baseline|hypothesis|assumptions?|weeks?|minutes?|percent|survey|research/i;
+    const qualified = /illustrative|composite|modelled|design|target|measured|not (?:a |an )?measured|proposed|discovery|pilot|baseline|hypothesis|assumptions?|weeks?|minutes?|percent|survey|research/i;
     expect(articles.every((item) => newsEditorial[item.slug].sections.every((section) => section.paragraphs.every((paragraph) => !hasNumber.test(paragraph.text) || paragraph.sources?.length || qualified.test(paragraph.text))))).toBe(true);
-    expect(cases.every((item) => caseEditorial[item.slug].sections.every((section) => section.paragraphs.every((paragraph) => !hasNumber.test(paragraph.text) || paragraph.sources?.length || qualified.test(paragraph.text) || item.status === 'Illustrative')))).toBe(true);
+    expect(cases.every((item) => caseEditorial[item.slug].sections.every((section) => section.paragraphs.every((paragraph) => !hasNumber.test(paragraph.text) || paragraph.sources?.length || qualified.test(paragraph.text) || item.status === 'Composite')))).toBe(true);
   });
 
   it('labels every composite or illustrative opening scene', () => {
     expect(articles.every((item) => /composite|illustrative/i.test(newsEditorial[item.slug].sceneLabel))).toBe(true);
-    expect(cases.every((item) => item.status === 'In progress' || /illustrative/i.test(caseEditorial[item.slug].sceneLabel))).toBe(true);
+    // A case not drawn from a single named client must say so in its scene label
+    // and in its status statement. The vocabulary changed from 'illustrative' to
+    // 'composite'; the obligation did not.
+    expect(cases.every((item) => item.status === 'In progress' || /composite/i.test(caseEditorial[item.slug].sceneLabel))).toBe(true);
+    expect(cases.every((item) => item.status === 'In progress' || /composite/i.test(caseEditorial[item.slug].statusStatement))).toBe(true);
   });
 
   it('preserves reduced motion, focus visibility and accessible chart state', () => {

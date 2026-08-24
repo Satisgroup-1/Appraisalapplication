@@ -10,7 +10,7 @@ export const metadata = createPageMetadata({
 });
 
 /* What actually happens after the form is submitted. Setting this out removes
-   the main reason people hesitate over an enquiry form — not knowing what they
+   the main reason people hesitate over an enquiry form: not knowing what they
    are starting. */
 const process = [
   {
@@ -29,7 +29,7 @@ const process = [
     step: '03',
     title: 'A conversation, not a pitch',
     detail:
-      'If it goes further, the first call is spent on your operation rather than on our credentials. You should leave it with at least one thing worth doing whether or not you engage us.',
+      'If it goes further, the first call is spent on your operation, not on our credentials. You should leave it with at least one thing worth doing whether or not you engage us.',
   },
 ];
 
@@ -40,8 +40,8 @@ export default function Contact() {
         <span className="kicker">Contact</span>
         <h1>Tell us what is not working.</h1>
         <p className="lede">
-          The most useful enquiries describe a constraint rather than a solution: what slows
-          down, who it affects, and what has already been tried. You do not need a brief.
+          The most useful enquiries describe a constraint, not a solution: what slows down,
+          who it affects, and what has already been tried. You do not need a brief.
         </p>
       </section>
 
@@ -79,7 +79,7 @@ export default function Contact() {
               </div>
               <div>
                 <dt>Office</dt>
-                <dd>4 Foscote Mews, London — working UK-wide</dd>
+                <dd>4 Foscote Mews, London. Working UK-wide.</dd>
               </div>
               <div>
                 <dt>Confidentiality</dt>

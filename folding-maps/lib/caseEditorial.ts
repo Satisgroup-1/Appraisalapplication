@@ -96,9 +96,9 @@ export const caseEditorial: Record<string, CaseEditorial> = {
   },
 
   'cold-chain': {
-    statusStatement: 'This illustrative service design describes no completed client engagement. Every service level, weight and expected benefit remains a hypothesis for testing.',
+    statusStatement: 'This is a composite account. It draws on work in temperature-controlled operations, not on one named client. Every service level, weight and expected benefit on this page is a design target to be tested, not a measured outcome.',
     thesis: 'A useful cold-chain monitoring service must turn a temperature reading into a traceable exception case before it attempts to prioritise human attention.',
-    sceneLabel: 'Illustrative operating vignette',
+    sceneLabel: 'Composite operating vignette',
     openingTitle: 'At 02:13, an eight-minute excursion begins with a number and ends with an operating decision',
     openingParagraphs: [
       'A sensor reports a temperature excursion. The overnight operator can see the value, but not yet whether a door was open, a unit was defrosting, the sensor was healthy or product was exposed. The decision clock has started before the evidence has assembled itself.',
@@ -109,7 +109,7 @@ export const caseEditorial: Record<string, CaseEditorial> = {
     processTitle: 'Signal to closed exception case',
     systemTitle: 'Read-only monitoring and exception ledger',
     evidenceInterpretation: {
-      establishes: 'The illustrative design gives greatest decision weight to temperature and duration, then adds asset, product and operator context.',
+      establishes: 'The design gives greatest decision weight to temperature and duration, then adds asset, product and operator context.',
       doesNotEstablish: 'Observed predictive accuracy, alert precision and performance at a real site cannot be inferred from the weights.',
       management: 'A pilot must test whether these evidence layers distinguish actionable cases before they influence operational reliance.',
     },
@@ -129,7 +129,7 @@ export const caseEditorial: Record<string, CaseEditorial> = {
         purpose: 'Move the unit of work from alert to assembled exception case.',
         paragraphs: [
           { text: 'Discovery first asks whether the signal is trustworthy. A stale heartbeat or implausible step change makes it a data-quality exception. If the signal survives, duration changes a momentary breach into a sustained event. Asset state may explain a defrost, while product and location context determine consequence. Operator notes reveal whether corrective action is already under way.' },
-          { text: 'Illustrative weights make the proposed evidence hierarchy visible. They support design discussion and carry no measured contribution to a validated classifier. Temperature and duration remain core, while asset, product and human context qualify the response.' },
+          { text: 'The weights make the proposed evidence hierarchy visible. They are design judgements offered for challenge, and carry no measured contribution from a validated classifier. Temperature and duration remain core, while asset, product and human context qualify the response.' },
           { text: 'The weighted graphic shows how a raw alert leaves severity underdetermined. It offers no calibration for the final threshold, and additional context may sometimes add noise. The design therefore treats the assembled exception case as the working unit and subjects its weighting to pilot review.' },
         ],
         exhibits: [{ kind: 'evidence', afterParagraph: 1 }],
@@ -140,7 +140,7 @@ export const caseEditorial: Record<string, CaseEditorial> = {
         purpose: 'Route the exception through policy, ownership and closure.',
         paragraphs: [
           { text: 'For the 02:13 excursion, the target process senses the reading and equipment state, validates signal quality, prioritises the case against a versioned policy and records human resolution. The diagram depicts the proposed decision path; live operation has yet to measure it.' },
-          { text: 'The system design follows the same path. Sensors and gateways feed a read-only data-quality service, a policy engine assembles the exception, an operator reviews it in a queue, and a ledger records evidence, action and closure. The architecture remains illustrative and assumes no access to a real operational-technology estate.' },
+          { text: 'The system design follows the same path. Sensors and gateways feed a read-only data-quality service, a policy engine assembles the exception, an operator reviews it in a queue, and a ledger records evidence, action and closure. The architecture assumes no privileged access to an operational-technology estate; where one exists, that integration boundary is the first assumption to re-examine.' },
           { text: 'Direct equipment control is rejected because it changes the hazard and security boundary. A threshold-to-message service is also rejected because it transfers ambiguity to the operator. NCSC guidance treats OT connectivity as an architectural control question, supporting separation, validated schemas and a definitive asset view.', sources: [0, 3] },
           { text: 'Together, the diagrams locate the points where uncertainty may be reduced and human authority remains decisive. Sensor coverage, policy quality and response capacity are still unknown. Each becomes an explicit pilot condition with a named source of evidence.' },
         ],
@@ -151,7 +151,7 @@ export const caseEditorial: Record<string, CaseEditorial> = {
         transition: 'The exception-case architecture preserves human authority, but its signal and policy assumptions still require testing beside the existing process.',
         purpose: 'Test signal quality and operator response beside the existing process.',
         paragraphs: [
-          { text: 'The illustrative pilot selects one asset class at one site and runs beside the existing process. Historic replay supplies representative excursions if observation contains too few. Operators continue current controls while the team compares classification, ownership and closure evidence.' },
+          { text: 'The pilot selects one asset class at one site and runs beside the existing process. Historic replay supplies representative excursions if observation contains too few. Operators continue current controls while the team compares classification, ownership and closure evidence.' },
           { text: 'Acceptance requires known signal coverage, visible missing-data states, reviewed alert precision, assignment within an agreed severity target and complete closure records. Triage within fifteen minutes is a proposed service target whose suitability depends on local hazards and staffing. No measured result supports it yet.' },
           { text: 'Parallel running creates duplicate effort and delays efficiency, but exposes false positives, false negatives and unsafe assumptions before reliance. Threshold changes require approval and version history; monitoring remains read-only; closure requires corrective evidence.' },
         ],
@@ -171,20 +171,20 @@ export const caseEditorial: Record<string, CaseEditorial> = {
   },
 
   'property-pipeline': {
-    statusStatement: 'This illustrative transaction-workspace design describes no completed client project. Its allocations, targets and benefits have not been measured.',
+    statusStatement: 'This is a composite account. It draws on work across transaction-led businesses, not on one named client. Its allocations, targets and expected benefits are design judgements that have not been measured in production.',
     thesis: 'A property pipeline becomes decision-useful only when one transaction can prove its stage through current evidence, an accountable action and a visible unresolved dependency.',
-    sceneLabel: 'Illustrative operating vignette',
+    sceneLabel: 'Composite operating vignette',
     openingTitle: 'A busy transaction looks healthy until one missing approval changes the week',
     openingParagraphs: [
       'Calls have been made, emails exchanged and documents revised, so a transaction appears to be progressing. During the Friday review, a colleague asks for the approval supporting its current stage. The evidence cannot be found, the timetable moves and the team begins reconstructing what it believed had been settled.',
       'The representative transaction is fictional. It tests whether a workspace can expose missing evidence early without forcing professionals to maintain a second reporting process.',
     ],
     centralQuestion: 'Can one transaction record distinguish activity from readiness early enough to protect the timetable and preserve professional judgement?',
-    evidenceTitle: 'Illustrative control allocation by transaction stage',
+    evidenceTitle: 'Modelled control allocation by transaction stage',
     processTitle: 'Enquiry to evidence-backed completion',
     systemTitle: 'Transaction evidence and action architecture',
     evidenceInterpretation: {
-      establishes: 'The illustrative allocation concentrates control effort in evidence collection, review and completion readiness.',
+      establishes: 'The allocation concentrates control effort in evidence collection, review and completion readiness.',
       doesNotEstablish: 'The percentages are not observed time, cost, risk frequency or outcomes from a live property portfolio.',
       management: 'The pilot should test stage definitions and early exception visibility before funding broader workflow scope.',
     },
@@ -204,7 +204,7 @@ export const caseEditorial: Record<string, CaseEditorial> = {
         purpose: 'Locate the first point where the transaction lost readiness.',
         paragraphs: [
           { text: 'Reconstruction begins with the stage label, then asks which documents and approvals make it valid. The missing approval leads to an earlier message, which exposes an unanswered dependency, which reveals that no named owner was carrying it toward the deadline. A late document problem was therefore an earlier decision-architecture problem.' },
-          { text: 'An illustrative allocation shows where control effort may concentrate across qualification, evidence collection, review, completion readiness and archive. The percentages support design discussion; they contain no measured staff time or benefit forecast.' },
+          { text: 'The allocation shows where control effort concentrates across qualification, evidence collection, review, completion readiness and archive. The percentages are a design position offered for challenge; they contain no measured staff time and no benefit forecast.' },
           { text: 'The allocation shows where control work is expected to concentrate in this transaction type. Its shares cannot be transferred to another type without fresh evidence. The turning point replaces activity-based status with an evidence test: a stage may advance only when named facts, documents and approval are current.' },
         ],
         exhibits: [{ kind: 'evidence', afterParagraph: 1 }],
@@ -214,7 +214,7 @@ export const caseEditorial: Record<string, CaseEditorial> = {
         transition: 'Reconstruction shows that activity concealed readiness risk, which makes evidence-backed progression the central design requirement.',
         purpose: 'Connect stage evidence, dependencies and decisions in one workspace.',
         paragraphs: [
-          { text: 'The target process qualifies the parties and objective, collects minimum evidence, coordinates decisions and dependencies, then confirms completion readiness and archives the record. Its five gates are an illustrative starting sequence whose sufficiency must be tested by transaction type.' },
+          { text: 'The target process qualifies the parties and objective, collects minimum evidence, coordinates decisions and dependencies, then confirms completion readiness and archives the record. Its five gates are a starting sequence whose sufficiency has to be tested by transaction type, never assumed.' },
           { text: 'The workspace connects enquiries, one transaction record, a source-linked document index, an exception queue and portfolio reporting. The system view shows how daily work and management review can draw from the same evidence. Platform selection remains open.' },
           { text: 'A larger CRM rollout was rejected because it could digitise activity without defining readiness. Fully automatic extraction was also rejected: fields may be proposed, but remain unconfirmed until a professional inspects the source. RICS guidance on responsible AI use supports this boundary.', sources: [2] },
           { text: 'The diagrams connect stage, evidence and action into one operating sequence. Extraction accuracy, adoption and completion timing sit outside their evidential reach. Live records and a comparison baseline are required before any of those outcomes can be claimed.' },
@@ -237,7 +237,7 @@ export const caseEditorial: Record<string, CaseEditorial> = {
         transition: 'The single-transaction pilot creates evidence on visibility and burden, which must govern any expansion in scope.',
         purpose: 'Define the transaction evidence needed before widening scope.',
         paragraphs: [
-          { text: 'The case currently provides an illustrative transaction model, control logic, architecture and evaluation plan. Implementation and measured improvement remain future work.' },
+          { text: 'What exists is a transaction model, control logic, architecture and evaluation plan. Implementation and measured improvement remain ahead of the work, not behind it.' },
           { text: 'The Friday review sets the acceptance test. The pilot must show whether the missing approval appears as an owned exception early enough to protect the timetable and whether colleagues trust the record without rebuilding status elsewhere.' },
           { text: 'Expansion to another transaction type is justified only if stage evidence is maintained, dependencies surface earlier and reporting effort does not migrate into another channel. Otherwise the stage model, scope or interface should be revised first.' },
         ],
@@ -246,9 +246,9 @@ export const caseEditorial: Record<string, CaseEditorial> = {
   },
 
   'professional-services-intake': {
-    statusStatement: 'This illustrative professional-services design describes no completed legal or advisory engagement. Triage, quality and time results remain unmeasured.',
+    statusStatement: 'This is a composite account. It draws on work across professional-services intake, not on one named firm. The triage, quality and elapsed-time figures are design targets and remain unmeasured.',
     thesis: 'The intake service should automate the preparation of a professional decision while keeping mandatory controls deterministic and acceptance attributable to a qualified person.',
-    sceneLabel: 'Illustrative operating vignette',
+    sceneLabel: 'Composite operating vignette',
     openingTitle: 'A valuable referral arrives before it is safe to accept',
     openingParagraphs: [
       'A trusted referrer introduces a prospective client and signals urgency. The email contains enough information to create commercial interest but not enough to complete conflict, eligibility or service-routing checks. A senior professional begins searching correspondence while an assistant asks for missing facts.',
@@ -259,7 +259,7 @@ export const caseEditorial: Record<string, CaseEditorial> = {
     processTitle: 'Referral to professional acceptance',
     systemTitle: 'Controlled intake architecture',
     evidenceInterpretation: {
-      establishes: 'The illustrative design assigns structured capture and mandatory checks to systems while reserving acceptance for a professional.',
+      establishes: 'The design assigns structured capture and mandatory checks to systems while reserving acceptance for a professional.',
       doesNotEstablish: 'Bar length is a design judgement about automation suitability, not measured accuracy, time saved or capacity.',
       management: 'The pilot should test completeness, reproducibility and summary fidelity before it tests higher throughput.',
     },
@@ -279,7 +279,7 @@ export const caseEditorial: Record<string, CaseEditorial> = {
         purpose: 'Separate extractable facts, fixed gates and professional judgement.',
         paragraphs: [
           { text: 'First, the referral lacks required facts, which structured capture can expose. Second, identity, conflict and eligibility rules must give the same result for the same approved facts, so deterministic controls should apply them. Third, urgency, complexity, service fit and acceptance require accountable professional interpretation.' },
-          { text: 'The authority bars translate this allocation into visible responsibility. Their lengths express illustrative judgements about automation suitability and carry no measured share of work, accuracy or elapsed time. Systems lead or assist preparation; a professional retains acceptance.' },
+          { text: 'The authority bars translate this allocation into visible responsibility. Their lengths express design judgements about automation suitability, and carry no measured share of work, accuracy or elapsed time. Systems lead or assist preparation; a professional retains acceptance.' },
           { text: 'The authority map locates the boundary between preparation and professional judgement; it contains no evidence about tool performance. This changed the design because intake could no longer be treated as one classification task. Factual preparation, mandatory gates and professional judgement each require different controls.' },
         ],
         exhibits: [{ kind: 'evidence', afterParagraph: 1 }],
@@ -290,7 +290,7 @@ export const caseEditorial: Record<string, CaseEditorial> = {
         purpose: 'Place automation upstream of accountable acceptance.',
         paragraphs: [
           { text: 'Required facts and documents enter first, followed by deterministic checks and routing through an approved taxonomy. The item then reaches professional acceptance. The diagram proposes this progression and offers no proof of faster triage.' },
-          { text: 'The system creates a matter candidate, stores source evidence, applies rules and prepares a workspace containing original material, structured facts, unanswered questions and an assisted summary. The architecture is illustrative; no live firm environment or approved model route is represented.' },
+          { text: 'The system creates a matter candidate, stores source evidence, applies rules and prepares a workspace containing original material, structured facts, unanswered questions and an assisted summary. The architecture is a design position; it represents no live firm environment and no approved model route.' },
           { text: 'Automated acceptance was rejected because a model should not reinterpret a failed gate or make an unattributable professional decision. An unrestricted general-purpose summariser was also rejected because confidentiality and retention must follow an approved data boundary. Law Society guidance reinforces this joint view of opportunity and data risk.', sources: [1] },
           { text: 'The paired views show how preparation reaches judgement and where automation stops. Summary fidelity, reviewer trust and throughput remain open empirical questions, each requiring a measure in evaluation.' },
         ],
@@ -312,7 +312,7 @@ export const caseEditorial: Record<string, CaseEditorial> = {
         transition: 'The pilot measures both preparation and acceptance, providing the evidence needed to retain, restrict or remove assisted summaries.',
         purpose: 'Specify the evidence required for professional use.',
         paragraphs: [
-          { text: 'The available evidence consists of an illustrative architecture and evaluation plan. It contains no accelerated client intake, validated firm-specific control or measured summary-acceptance rate.' },
+          { text: 'The available evidence is an architecture and an evaluation plan. It contains no accelerated client intake, no validated firm-specific control and no measured summary-acceptance rate. A reader should hold it to that limit.' },
           { text: 'The referral supplies the acceptance test. A professional should be able to decide from the workspace without repeating the original search, while still identifying every fact and control that determines acceptance. The pilot must demonstrate lower reconstructive effort alongside intact scepticism.' },
           { text: 'Assisted summaries remain only if mandatory gates are reproducible, material omissions stay within tolerance and reviewers use evidence links. Otherwise assistance should be restricted or removed while the underlying capture and control flow remains.' },
         ],
@@ -321,9 +321,9 @@ export const caseEditorial: Record<string, CaseEditorial> = {
   },
 
   'field-service-planning': {
-    statusStatement: 'This illustrative planning design describes no completed deployment. Its weights, targets and expected improvements require calibration against representative operational data.',
+    statusStatement: 'This is a composite account. It draws on work across field-service operations, not on one named client. Its weights, targets and expected improvements require calibration against representative operational data before they mean anything.',
     thesis: 'A field-service planner creates value only after it separates non-negotiable feasibility from scored preferences and lets dispatchers see the disruption transferred by each option.',
-    sceneLabel: 'Illustrative operating vignette',
+    sceneLabel: 'Composite operating vignette',
     openingTitle: 'At 07:10, one urgent job changes a plan that took an hour to assemble',
     openingParagraphs: [
       'The dispatcher has balanced engineer skills, locations, parts, promised appointments and working-hour limits. An urgent job arrives. Inserting it may protect one customer while delaying another, increasing travel or breaking a certification rule.',
@@ -334,7 +334,7 @@ export const caseEditorial: Record<string, CaseEditorial> = {
     processTitle: 'Work order to published plan',
     systemTitle: 'Feasible-option planning architecture',
     evidenceInterpretation: {
-      establishes: 'The illustrative score treats safety and eligibility as a gate, then balances service, priority, travel and stability.',
+      establishes: 'The score treats safety and eligibility as a gate, then balances service, priority, travel and stability.',
       doesNotEstablish: 'The weights remain uncalibrated and carry no evidence about route, service, overtime or planning improvements.',
       management: 'Shadow planning must reveal whether the objectives and constraints produce acceptable options before dispatch relies on them.',
     },
@@ -365,7 +365,7 @@ export const caseEditorial: Record<string, CaseEditorial> = {
         purpose: 'Give dispatchers feasible options with visible trade-offs.',
         paragraphs: [
           { text: 'Validated work orders and capacity feed the generation of feasible options. The dispatcher sees the trade-offs, publishes a decision and later records actuals. This proposed process contains no evidence that a solver has improved a live plan.' },
-          { text: 'Approved work orders flow through a constraint solver and option scoring into the dispatcher console, with actuals stored for later review. The solver removes invalid assignments, the score ranks valid options and the dispatcher decides. The architecture is illustrative and vendor-neutral.' },
+          { text: 'Approved work orders flow through a constraint solver and option scoring into the dispatcher console, with actuals stored for later review. The solver removes invalid assignments, the score ranks valid options and the dispatcher decides. The architecture is a design position, and deliberately vendor-neutral.' },
           { text: 'A distance-only optimiser was rejected because it can transfer cost into missed service or unstable plans. Continuous automatic replanning was rejected because each mathematically better route may break a commitment. NCSC guidance supports validating work orders and resources before they influence the plan.', sources: [1] },
           { text: 'The two views keep feasibility, preference and authority distinct. Accuracy of duration, travel and parts data remains unknown, so shadow planning must measure it as an input to every recommendation.' },
         ],
@@ -387,7 +387,7 @@ export const caseEditorial: Record<string, CaseEditorial> = {
         transition: 'Override and actuals data from shadow planning provide the balanced evidence required before recommendations enter the live workspace.',
         purpose: 'Set the shadow-planning evidence required for release.',
         paragraphs: [
-          { text: 'The case defines illustrative inputs, constraint logic, preference weights, architecture and pilot measures. Travel, overtime, planning effort and service failure have yet to be measured.' },
+          { text: 'The case defines the inputs, constraint logic, preference weights, architecture and pilot measures. Travel, overtime, planning effort and service failure have yet to be measured.' },
           { text: 'The 07:10 urgent job supplies the release test. A recommendation must absorb it without an invalid assignment, explain which commitments move and remain defensible after actual duration, travel and service impact are known.' },
           { text: 'Recommendations may enter the live workspace only with feasible assignments, balanced outcomes, understandable rationale and a learning loop that prevents rejected suggestions from recurring. If route efficiency improves while service or stability deteriorates, the correct decision is to recalibrate or stop.' },
         ],

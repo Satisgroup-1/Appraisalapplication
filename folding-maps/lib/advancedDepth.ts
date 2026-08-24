@@ -35,7 +35,7 @@ export const advancedNewsDepth: DepthMap = {
       { text: 'Latency and availability should be valued through the operating promise. A slower service may be acceptable for overnight document preparation and unusable during a customer interaction. Resilience may require a second provider, a local model or a manual route. Each choice has integration and test cost, so continuity design should follow the consequence of delay and failure for the named workflow.' },
     ],
     [
-      { text: 'An open-weight service requires a model inventory with licence, provenance, checksum, runtime, quantisation, deployment region and evaluation status. Changes to any of those fields can affect behavior or obligations. Promotion between environments should use signed artifacts and repeat the relevant evaluation suite. Security review must cover the serving stack, model supply chain, exposed endpoints and the operational path for patches.' },
+      { text: 'An open-weight service requires a model inventory with licence, provenance, checksum, runtime, quantisation, deployment region and evaluation status. Changes to any of those fields can affect behaviour or obligations. Promotion between environments should use signed artifacts and repeat the relevant evaluation suite. Security review must cover the serving stack, model supply chain, exposed endpoints and the operational path for patches.' },
       { text: 'Capacity planning should model memory, throughput, concurrency and recovery under peak demand. Hardware utilisation can improve unit cost while reducing spare capacity for failures or sudden traffic. Teams also need a plan for model loading time, failover and observability. These responsibilities explain why open weights can be strategically valuable and operationally uneconomic at the same time.' },
     ],
     [
@@ -88,7 +88,7 @@ export const advancedNewsDepth: DepthMap = {
     ],
     [
       { text: 'Release should specify the degraded route for sensor, gateway, policy-engine and interface failure. Current controls remain active until the operator can detect loss of monitoring and switch without ambiguity. Service status must be visible at the point of decision; a silent gap is more dangerous than an explicit outage.' },
-      { text: 'Management should review the whole control chain after material incidents and on a defined cadence. The review covers architecture changes, policy drift, operator response, closure evidence and events missed by either route. Expansion to another asset class requires a fresh hazard and context assessment because signal behavior and consequence can differ materially.' },
+      { text: 'Management should review the whole control chain after material incidents and on a defined cadence. The review covers architecture changes, policy drift, operator response, closure evidence and events missed by either route. Expansion to another asset class requires a fresh hazard and context assessment because signal behaviour and consequence can differ materially.' },
     ],
   ],
   'small-teams-ai-advantage': [
@@ -132,7 +132,7 @@ export const advancedNewsDepth: DepthMap = {
     ],
     [
       { text: 'The ledger should retain baseline version, assumption, source, owner, observation window, confidence and decision. Assumptions are expected early; hidden assumptions are the defect. As evidence arrives, management can narrow ranges and retire measures that do not affect expansion, adjustment or stop decisions.' },
-      { text: 'Post-release review should examine benefit persistence. Initial gains may reflect attention, training or unusually careful use. Drift in demand, model behavior or workarounds can erode them. A benefit whose evidence cannot be maintained at reasonable cost may still exist, but it should not support a precise ongoing financial claim.' },
+      { text: 'Post-release review should examine benefit persistence. Initial gains may reflect attention, training or unusually careful use. Drift in demand, model behaviour or workarounds can erode them. A benefit whose evidence cannot be maintained at reasonable cost may still exist, but it should not support a precise ongoing financial claim.' },
     ],
   ],
   'legal-ai-source-grounded-work': [
@@ -153,7 +153,7 @@ export const advancedNewsDepth: DepthMap = {
       { text: 'Economic analysis should include professional concentration. If the service shifts routine checks to a few senior reviewers, nominal drafting savings can increase the real bottleneck. Queue age, reviewer mix and correction cause should sit beside task time. The release should prove a better allocation of legal attention, not simply faster text production.' },
     ],
     [
-      { text: 'Automation bias can be tested through seeded defects and observation of source-opening behavior during supervised evaluation. The purpose is not to police individuals. It is to determine whether interface design and workload encourage adequate verification. Prominent confidence language has little value if users cannot inspect the underlying evidence efficiently.' },
+      { text: 'Automation bias can be tested through seeded defects and observation of source-opening behaviour during supervised evaluation. The purpose is not to police individuals. It is to determine whether interface design and workload encourage adequate verification. Prominent confidence language has little value if users cannot inspect the underlying evidence efficiently.' },
       { text: 'Clients and courts may impose disclosure, provenance or technology conditions beyond the internal design. The matter-opening process should record these constraints and disable unsupported routes. A technically acceptable service can still be unsuitable for a particular instruction because the professional or procedural context governs use.' },
     ],
     [
@@ -230,8 +230,8 @@ export const advancedCaseDepth: DepthMap = {
       { text: 'Policy changes require approval and effective dates. A rollback should restore the prior version and identify cases classified during the affected interval. Monitoring health must be visible at the operating point, with a documented manual route for gateway, network or service failure.' },
     ],
     [
-      { text: 'A release decision is limited to the tested asset class, site, policy and staffing model. Expansion needs a fresh context assessment because loading pattern, sensor layout, product sensitivity and response capacity can differ. Reuse belongs in the architecture and evaluation method, not an unexamined assumption about operating behavior.' },
-      { text: 'The case is illustrative. The design specifies what evidence a pilot should collect and how responsibility should remain with the operator. It provides no signal coverage, alert precision, response improvement, reporting saving or food-safety outcome.' },
+      { text: 'A release decision is limited to the tested asset class, site, policy and staffing model. Expansion needs a fresh context assessment because loading pattern, sensor layout, product sensitivity and response capacity can differ. Reuse belongs in the architecture and evaluation method, not an unexamined assumption about operating behaviour.' },
+      { text: 'This is a composite account. The design specifies what evidence a pilot should collect and how responsibility remains with the operator. It provides no signal coverage, alert precision, response improvement, reporting saving or food-safety outcome.' },
     ],
   ],
   'property-pipeline': [
@@ -253,7 +253,7 @@ export const advancedCaseDepth: DepthMap = {
     ],
     [
       { text: 'Rejected alternatives remain available for later review. A large CRM replacement may become justified once transaction logic and integration needs are proven. Autonomous extraction may expand after field-level evidence supports it. The first release stays narrow so the team can identify which mechanism changed visibility.' },
-      { text: 'The case is illustrative. Allocation bars express a design discussion and no client transaction has completed faster or with fewer defects. Expansion depends on live evidence that users maintain the record and see dependencies early enough to change action.' },
+      { text: 'This is a composite account. The allocation bars express a design position, and no client transaction has yet completed faster or with fewer defects. Expansion depends on live evidence that users maintain the record and see dependencies early enough to change action.' },
     ],
   ],
   'professional-services-intake': [
@@ -275,7 +275,7 @@ export const advancedCaseDepth: DepthMap = {
     ],
     [
       { text: 'Release should specify manual intake, service outage, incorrect merge and confidentiality incident routes. Every candidate matter remains recoverable from original evidence. Access, model, taxonomy and control changes trigger relevant regression tests before promotion.' },
-      { text: 'The case is illustrative. It supplies an intake architecture and proposed acceptance evidence, with no measured firm result. Professional use depends on reproducible controls, source fidelity, permitted processing and evidence that preparation improves without weakening acceptance.' },
+      { text: 'This is a composite account. It supplies an intake architecture and proposed acceptance evidence, with no measured firm result. Professional use depends on reproducible controls, source fidelity, permitted processing and evidence that preparation improves without weakening acceptance.' },
     ],
   ],
   'field-service-planning': [
@@ -297,7 +297,7 @@ export const advancedCaseDepth: DepthMap = {
     ],
     [
       { text: 'Production release can begin with recommendations inside the dispatcher workspace and no automatic publication. Authority may expand only for a narrow class with strong evidence, reversible impact and reliable inputs. Model, solver, policy and source changes trigger targeted regression.' },
-      { text: 'The case is illustrative. It specifies constraint logic, architecture and shadow measures while providing no route, overtime, service or planning result. The next decision depends on whether options remain feasible and useful after actuals expose the assumptions.' },
+      { text: 'This is a composite account. It specifies constraint logic, architecture and shadow measures, and provides no route, overtime, service or planning result. The next decision depends on whether options remain feasible and useful after actuals expose the assumptions.' },
     ],
   ],
 };
@@ -310,7 +310,7 @@ export const advancedNewsSections: Record<string, AddedSection[]> = {
     purpose: 'Translate workflow integration into durable interfaces, service ownership and release evidence.',
     transition: 'The architecture explains how one item moves; durable integration also requires operating contracts between every contributing system and team.',
     paragraphs: [
-      { text: 'A data contract should name the source owner, schema, permitted use, freshness expectation, quality checks and behavior when a field is missing or disputed. The receiving service should reject or quarantine incompatible input and preserve enough detail to diagnose the failure. Quiet default values are dangerous when they convert unknown context into an apparently complete model request.' },
+      { text: 'A data contract should name the source owner, schema, permitted use, freshness expectation, quality checks and behaviour when a field is missing or disputed. The receiving service should reject or quarantine incompatible input and preserve enough detail to diagnose the failure. Quiet default values are dangerous when they convert unknown context into an apparently complete model request.' },
       { text: 'Identity and access should follow the service, user and action. Retrieval can require one permission while a record update requires another. The audit record must show whose authority the service used and which policy version allowed the action. This is particularly important when a shared assistant can reach records from several functions with different confidentiality and retention rules.' },
       { text: 'Release management should separate changes to source data, workflow policy, model, prompt, evaluation and interface. Each component has a different regression surface. A source-schema change may break eligibility; a prompt change may alter uncertainty language; a model change may shift failure distribution. Versioned releases and targeted tests make those effects observable.' },
       { text: 'Support needs a queue and service expectation of its own. Users should know whether to correct an item, report a defect or use the fallback route. The team should classify incidents by data, integration, policy, model and adoption cause. Otherwise every poor result becomes a model complaint and investment is directed away from the actual constraint.' },
@@ -323,7 +323,7 @@ export const advancedNewsSections: Record<string, AddedSection[]> = {
     transition: 'Model and deployment comparisons create option value only when the application can reproduce its standard and recover from supplier change.',
     paragraphs: [
       { text: 'The evaluation harness should store representative inputs, expected properties, reviewer rubric, model configuration, prompt, retrieval snapshot and cost observation. Results need versioned adjudication because the business standard can change. A model earns promotion through the same release process whether it is accessed through an API or served on controlled infrastructure.' },
-      { text: 'Adapters should normalise only what the application genuinely shares. Context limits, tool protocols, safety behavior and structured-output guarantees differ across suppliers. Forcing them behind an overly simple interface can hide useful capability and create unreliable fallbacks. The application should expose meaningful differences while keeping business rules and acceptance evidence under buyer control.' },
+      { text: 'Adapters should normalise only what the application genuinely shares. Context limits, tool protocols, safety behaviour and structured-output guarantees differ across suppliers. Forcing them behind an overly simple interface can hide useful capability and create unreliable fallbacks. The application should expose meaningful differences while keeping business rules and acceptance evidence under buyer control.' },
       { text: 'Continuity testing should include throttling, regional outage, malformed output, model withdrawal and a sudden quality regression. The fallback may be a second model, queued processing or a manual route. The correct choice follows the service promise. A nominal second provider offers little resilience if it has not processed the current evaluation set or cannot handle the same data boundary.' },
       { text: 'Contracts should address data use, retention, sub-processors, service change, model retirement, capacity, export and incident notification. Open-weight licences need a similar review of use restrictions, distribution and attribution. The technical inventory and commercial register should reference the same deployed artifact so a licence decision cannot become detached from production reality.' },
       { text: 'Quarterly sourcing review should compare cost per accepted task, quality distribution, review demand, continuity evidence and switching effort. This creates a disciplined response to falling prices. Procurement can capture savings or capability improvements without creating a permanent migration programme each time a benchmark leader changes.' },
@@ -372,7 +372,7 @@ export const advancedNewsSections: Record<string, AddedSection[]> = {
     paragraphs: [
       { text: 'Workflow events should identify eligibility, start, completion, review, correction, exception and fallback. The data model needs stable definitions across baseline and observed periods. If a release changes what counts as completed work, finance must reconcile the series before comparing performance. Versioned metric definitions belong in the benefits ledger.' },
       { text: 'Demand and mix adjustments should be agreed before results are known. Volume, seasonality, customer segment and task complexity can change effort and outcome. Where causal attribution is weak, the report should present a range and the alternative explanations still consistent with evidence. Transparent uncertainty supports a better decision than a precise adjustment chosen after the outcome.' },
-      { text: 'Operations owns behavior and service evidence; finance owns classification and financial consequence; technology owns telemetry quality. A joint review is required because no group can prove the full bridge alone. Each benefit should identify the decision it affects, the next evidence date and the condition that would reduce confidence.' },
+      { text: 'Operations owns behaviour and service evidence; finance owns classification and financial consequence; technology owns telemetry quality. A joint review is required because no group can prove the full bridge alone. Each benefit should identify the decision it affects, the next evidence date and the condition that would reduce confidence.' },
       { text: 'Benefit persistence should be tested after the initial adoption period. Workarounds, demand growth, staff change and model updates can alter net effort. Temporary training cost may fall, while permanent review or support can rise. The ledger should separate one-off transition effects from the sustainable operating state.' },
       { text: 'Portfolio reporting should avoid adding unlike benefits into one total without explaining valuation and confidence. Cash, capacity, service, quality and risk can all support investment. Keeping them separate lets leaders see where value is realised, where it remains a hypothesis and which owner must act next.' },
     ],
@@ -386,7 +386,7 @@ export const advancedNewsSections: Record<string, AddedSection[]> = {
       { text: 'Knowledge requires expiry and revalidation. A legal proposition may remain textually accurate while its authority or procedural context changes. Collections should surface review dates, amendments and cited-source changes. A later user sees the status and can return the item to professional review before reliance.' },
       { text: 'Client terms, court directions and regulatory expectations may alter permitted processing or disclosure. Matter opening should record applicable constraints and configure the service route. A default approved tool does not imply approval for every instruction. Professionals need a clear manual path when a matter falls outside the assessed boundary.' },
       { text: 'Incident response should identify affected matters, users, sources and generated artifacts through lineage. Containment may revoke access, remove a source or roll back a model. The firm then assesses professional, confidentiality and client consequences. Provenance makes this investigation narrower and more reliable than searching an undifferentiated output archive.' },
-      { text: 'Service reporting should cover support and omission by proposition class, source availability, reviewer correction, inspection behavior, access incidents and queue delay. Management can use these measures to narrow scope, repair source operations or change supervision. They provide no substitute for file-level professional responsibility.' },
+      { text: 'Service reporting should cover support and omission by proposition class, source availability, reviewer correction, inspection behaviour, access incidents and queue delay. Management can use these measures to narrow scope, repair source operations or change supervision. They provide no substitute for file-level professional responsibility.' },
     ],
   }],
   'hospitality-ai-guest-recovery': [{
@@ -394,7 +394,7 @@ export const advancedNewsSections: Record<string, AddedSection[]> = {
     purpose: 'Define how the recovery service stays current, lawful and usable across properties and channels.',
     transition: 'Recovery authority resolves one disruption; reliable integration and privacy operations determine whether the service can support many concurrent journeys.',
     paragraphs: [
-      { text: 'Each connector needs an owner, freshness target, reconciliation check and degraded behavior. Reservation, property, maintenance and CRM systems may update on different schedules. The recovery case should display source time and place a hold on options supported by stale state. A central dashboard should show connector health by property.' },
+      { text: 'Each connector needs an owner, freshness target, reconciliation check and degraded behaviour. Reservation, property, maintenance and CRM systems may update on different schedules. The recovery case should display source time and place a hold on options supported by stale state. A central dashboard should show connector health by property.' },
       { text: 'Identity resolution should minimise attributes, encrypt sensitive data and keep match evidence available only to authorised roles. Manual reviewers need enough information to distinguish guests without exposing complete profiles. Merge, correction and deletion should propagate through the recovery index and preserve a lawful audit record.' },
       { text: 'Compensation controls require policy versions by property, brand, disruption and delegated role. The service records which version supported each offer. Local managers can approve exceptions with reason, while portfolio teams review patterns. This keeps discretion visible and makes policy improvement possible without removing local authority.' },
       { text: 'Incident routes should cover incorrect identity, stale availability, failed fulfilment, duplicate compensation and privacy breach. Front-line staff need a manual fallback and a temporary case record. Technical recovery later reconciles actions so the guest does not become responsible for resolving the system discrepancy.' },
@@ -451,7 +451,7 @@ export const advancedCaseSections: Record<string, AddedSection[]> = {
         { text: 'Historical replay should include normal variation, known excursions, sensor failures, loading, defrost and incomplete records. Experts label signal quality, materiality and expected action with documented disagreement. The set is retained for regression when thresholds, context rules or classification components change.' },
         { text: 'Observation mode matches each proposed case with existing alarms and manual discoveries. Review covers events found by both routes and events found by one. Precision, missed-event consequence, queue age, response and closure evidence are considered together. Suppression of difficult alerts cannot appear as success.' },
         { text: 'Operators record override cause, missing context and corrective action. Repeated causes direct remediation to sensor, asset data, policy or staffing. The service should expose uncertainty and permit closure only with the evidence required by severity. Professional judgement remains attributable.' },
-        { text: 'Release conditions include known coverage, visible data gaps, approved policy, controlled OT boundary, acceptable alert burden, no unacceptable missed-event pattern and a rehearsed fallback. Each condition has an owner and observation date. A target service time remains local and illustrative until the hazard and staffing model support it.' },
+        { text: 'Release conditions include known coverage, visible data gaps, approved policy, controlled OT boundary, acceptable alert burden, no unacceptable missed-event pattern and a rehearsed fallback. Each condition has an owner and observation date. A target service time remains local and provisional until the hazard and staffing model support it.' },
         { text: 'Production approval remains limited to the tested site, asset class and policy. Expansion repeats context and readiness review. The case offers a technical and governance design only, with no measured food-safety, labour, response or financial result.' },
       ],
     },
@@ -478,7 +478,7 @@ export const advancedCaseSections: Record<string, AddedSection[]> = {
         { text: 'Users maintain the workspace during live work with an explicit exception route. Parallel spreadsheets, private status lists and unrecorded approvals are evidence about usability or model fit. Adoption is judged by maintained state and decisions made from the record.' },
         { text: 'Extraction evaluation separates exact fields, contextual judgement and material omission. Review time and correction cause belong in the economics. A fast proposal that increases document checking may still be useful for indexing and unsuitable for gate evidence.' },
         { text: 'Release requires earlier visibility of missing evidence or dependencies, acceptable maintenance effort, reliable access, traceable stage decisions and reporting derived from the operational record. No target is treated as achieved until live comparison supports it.' },
-        { text: 'Expansion to another transaction type depends on overlap in state, evidence and controls. Shared architecture can be reused; gate definitions and source systems need fresh discovery. This illustrative case claims no completed client transaction or measured outcome.' },
+        { text: 'Expansion to another transaction type depends on overlap in state, evidence and controls. Shared architecture can be reused; gate definitions and source systems need fresh discovery. This composite account claims no completed client transaction and no measured outcome.' },
       ],
     },
   ],
@@ -504,7 +504,7 @@ export const advancedCaseSections: Record<string, AddedSection[]> = {
         { text: 'Summary scoring separates omission, distortion, unsupported inference, confidentiality and style. Material errors have blocking thresholds. Reviewers open linked evidence and record correction cause. A held-back set tests changes to model, prompt, taxonomy and policy.' },
         { text: 'Service measures follow the item through time to substantive decision, clarification, preparation effort, acceptance queue and reclassification. Faster form completion cannot offset a longer professional queue. Economics include reviewer and support demand across the full route.' },
         { text: 'Release requires reproducible controls, permitted processing, complete source links, no material omission outside tolerance and evidence that professionals can decide with less reconstruction. Manual intake and service outage routes remain available and rehearsed.' },
-        { text: 'Assistance can expand by enquiry class only after supervised evidence supports it. The illustrative case provides no live firm deployment, faster intake, accepted summary rate or client result. Qualified professionals retain acceptance and responsibility in every release.' },
+        { text: 'Assistance can expand by enquiry class only after supervised evidence supports it. The account provides no live firm deployment, no faster intake, no accepted summary rate and no client result. Qualified professionals retain acceptance and responsibility in every release.' },
       ],
     },
   ],
@@ -530,7 +530,7 @@ export const advancedCaseSections: Record<string, AddedSection[]> = {
         { text: 'Dispatchers classify rejection or amendment as data, constraint, weight, explanation, customer context or local knowledge. Accepted recommendations also receive sampled review. A low override rate can reflect poor scrutiny, so outcome and rationale remain necessary.' },
         { text: 'Acceptance requires every evaluated assignment to satisfy hard constraints, with service, travel, overtime and stability within agreed bounds. Explanation must identify the affected promises and relevant inputs. Churn and dispatcher effort sit inside the value case.' },
         { text: 'Initial production authority is recommendation only. Automatic publication would require separate evidence for a narrow, reversible class and reliable inputs. Solver, policy, model or source changes trigger regression and can return the service to shadow mode.' },
-        { text: 'This illustrative case contains no live planning result. It offers a constraint architecture, shadow method and release decision. Travel, service, overtime and planning benefits remain open until representative operational evidence supports them.' },
+        { text: 'This composite account contains no live planning result. It offers a constraint architecture, shadow method and release decision. Travel, service, overtime and planning benefits remain open until representative operational evidence supports them.' },
       ],
     },
   ],
@@ -569,7 +569,7 @@ export const advancedNewsExtensionSections: Record<string, AddedSection[]> = {
       { text: 'Adversarial tests should include conflicting instructions, malicious content in retrieved records, attempts to exceed permissions and tool responses that imply success ambiguously. These cases test the full system, including policy and adapters, without assuming the model alone will recognise every unsafe route.' },
       { text: 'Live shadow traces should be reviewed for plans that appear successful because staff repaired them silently. Rescue time and intervention point help determine whether the service is reducing work or moving it. Reviewers need an easy way to annotate the trace without recreating the case.' },
       { text: 'Authority review follows evidence by action class. Drafting, recommendation, reversible update and external commitment may progress at different speeds. The system can remain valuable with permanent approval on consequential actions if the complete workflow creates a measured operating benefit.' },
-      { text: 'Post-release sampling should include actions that completed without visible exception. Silent success can still contain weak evidence, unnecessary tool use or excessive permission. Periodic trace review protects against gradual expansion of behavior beyond the evaluated route.' },
+      { text: 'Post-release sampling should include actions that completed without visible exception. Silent success can still contain weak evidence, unnecessary tool use or excessive permission. Periodic trace review protects against gradual expansion of behaviour beyond the evaluated route.' },
     ],
   }],
   'cold-chain-collaboration': [{
@@ -608,7 +608,7 @@ export const advancedNewsExtensionSections: Record<string, AddedSection[]> = {
       { text: 'Attribution can use staged rollout, matched cohorts, interruption analysis or carefully documented before-and-after comparison. The design follows feasibility and consequence. Where none is credible, the programme should report association and keep alternative explanations visible.' },
       { text: 'Work mix should be segmented when complexity changes the effect. Automation may handle routine volume and leave a smaller, harder queue whose average effort rises. Reporting total and eligible populations prevents this selection effect from appearing as operational deterioration or improvement without explanation.' },
       { text: 'Quality and service measures need stable definitions and sampling. Complaint count can fall with demand, while sampled defect rate changes differently. Customer outcome may lag workflow change. The benefits ledger should state observation period and when a claim is mature enough for decision.' },
-      { text: 'Portfolio comparison should use confidence, persistence and management relevance alongside value magnitude. A large illustrative range should not outrank a smaller measured service gain automatically. Leadership needs to see what has happened, what is likely and which action can convert the remaining opportunity.' },
+      { text: 'Portfolio comparison should use confidence, persistence and management relevance alongside value magnitude. A large modelled range should not automatically outrank a smaller measured service gain. Leadership needs to see what has happened, what is likely and which action can convert the remaining opportunity.' },
       { text: 'Benefits review should also surface negative value: support burden, slower exceptions, training loss, control incidents and opportunity cost. Recording these effects does not weaken the business case. It protects investment by showing the conditions under which the workflow should change or stop.' },
       { text: 'The review pack should retain reconciliation from source events to reported measures. A leadership total that cannot be traced back to eligible volume, correction and owner action will lose credibility after staff or systems change. Auditability is therefore part of value governance.' },
       { text: 'Sunset decisions need operational planning. When a workflow stops, data retention, user communication, source permissions and any downstream dependency must be closed safely. A weak project should not become a permanent unsupported service merely because removal was omitted from the business case.' },
@@ -627,7 +627,7 @@ export const advancedCaseExtensionSections: Record<string, AddedSection[]> = {
       { text: 'Amendment and reopening are normal parts of evidence quality. A later calibration finding or maintenance diagnosis may change the interpretation. The ledger appends the new evidence, reason and decision while preserving what the overnight operator knew originally.' },
       { text: 'Assurance sampling should follow a case from raw reading through policy and closure, including cases classified as non-material. This tests silent suppression as well as visible response. Findings direct remediation to telemetry, context, policy, ownership or evidence.' },
       { text: 'Retention and export should meet the operator’s legal and commercial context. The design must preserve intelligible records after model or vendor change. No generated narrative should become the only copy of the evidence on which a safety decision relied.' },
-      { text: 'The next release decision depends on complete, reviewable cases and an alert route that existing controls judge acceptable. This remains an illustrative design with no measured improvement.' },
+      { text: 'The next release decision depends on complete, reviewable cases and an alert route that existing controls judge acceptable. This remains a design position with no measured improvement behind it.' },
       { text: 'Management should also confirm who owns assurance sampling after pilot specialists leave. A sustainable release needs normal operating capacity for review, policy change and incident reconstruction, with escalation to food-safety and engineering expertise when the case requires it.' },
     ],
   }],
@@ -673,7 +673,7 @@ export const advancedCaseExtensionSections: Record<string, AddedSection[]> = {
       { text: 'Constraint changes require operational approval. New certification, working rule or parts policy can invalidate prior options. Effective dates and regression cases ensure the solver applies the correct rule to each planning day.' },
       { text: 'Objective weights should change through evidence and management choice. A period of travel pressure may not justify permanent damage to service stability. Scenario replay shows how proposed weights would have moved outcomes, with dispatchers reviewing representative days.' },
       { text: 'Support analysis should classify failed recommendations, unavailable data, performance delay and confusing explanation. The owner decides whether to correct source, solver, interface or policy. Prompt changes alone cannot repair a hard-constraint or stale-data defect.' },
-      { text: 'Authority remains recommendation until continuing evidence supports more. Any automated publication scope would need its own reversible action class, monitoring and rollback. This illustrative case makes no claim that such authority is appropriate.' },
+      { text: 'Authority remains recommendation until continuing evidence supports more. Any automated publication scope would need its own reversible action class, monitoring and rollback. This account makes no claim that such authority is appropriate.' },
       { text: 'Dispatcher trust should be examined by decision, not sentiment alone. The team can compare accepted options, modification cause and later outcome. A recommendation may be disliked and operationally sound, or accepted quickly because its hidden trade-off was missed.' },
       { text: 'Engineer and customer communication belong in the change model. Frequent replanning can create cognitive load and missed commitments even when the route score improves. The service should record notification and acknowledgement where a changed plan affects work already under way.' },
       { text: 'The operating owner should set review cadence for estimates, constraints, objectives and override patterns. This turns maintenance into a managed planning process. Without it, a once-useful solver will encode an old service policy and gradually lose fit with field reality.' },

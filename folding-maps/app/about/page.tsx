@@ -29,7 +29,7 @@ const refusals = [
   },
   {
     title: 'We do not promise a number we cannot baseline.',
-    body: 'Efficiency claims made before measurement are guesses with a decimal point. If the current position cannot be measured, the first piece of work is measuring it, and we will say so rather than quote a saving.',
+    body: 'Efficiency claims made before measurement are guesses with a decimal point. If the current position cannot be measured, the first piece of work is measuring it, and we will say so before quoting any saving.',
   },
 ];
 
@@ -70,15 +70,15 @@ export default function About() {
           <p>
             The obstacle to fixing it is not usually ambition or budget. It is that the
             people who understand the operation are the same people running it, and the
-            technical judgement needed — what to automate, what to leave alone, what will
-            still be maintainable in two years — is not the judgement their day job builds.
+            technical judgement needed (what to automate, what to leave alone, what will still
+            be maintainable in two years) is not the judgement their day job builds.
           </p>
           <p>
             That is the gap we work in. Our job is to understand the operating detail well
             enough to decide what genuinely deserves to change, then take responsibility for
-            a focused release rather than a programme. Sometimes AI belongs in the answer.
+            a focused release, not a programme. Sometimes AI belongs in the answer.
             Often the honest answer is simpler software, better data, or a process change
-            that costs nothing at all — and we would rather say so and be trusted next time.
+            that costs nothing at all. We would sooner say so and be trusted next time.
           </p>
         </div>
       </section>
@@ -91,7 +91,7 @@ export default function About() {
               <h2 id="refusals-title">Four things we will not do.</h2>
             </div>
             <p className="lede">
-              Capability lists are interchangeable. Constraints are not — they tell you what
+              Capability lists are interchangeable. Constraints are not: they tell you what
               happens when the commercially convenient answer and the correct one diverge.
             </p>
           </div>
@@ -135,8 +135,8 @@ export default function About() {
           <div>
             <span className="fact-label">Specialist network</span>
             <p>
-              We bring in specialists — data engineering, security review, sector regulation
-              — where a brief genuinely needs one, and we say who they are before they start.
+              We bring in specialists in data engineering, security review or sector regulation
+              where a brief genuinely needs one, and we say who they are before they start.
               Introductions from experienced practitioners who want direct client
               responsibility are welcome.
             </p>

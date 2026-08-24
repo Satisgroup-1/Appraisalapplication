@@ -149,7 +149,7 @@ export default async function IndustryDetail({ params }: { params: Promise<{ slu
             <h2>Where we would usually start in {industry.name.toLowerCase()}.</h2>
             <p className={styles.sectionLede}>
               A first engagement here normally draws on these. The reasoning matters more
-              than the label — if it does not match your situation, the label is wrong.
+              than the label: if it does not match your situation, the label is wrong.
             </p>
             <div className={styles.services}>
               {recommendedServices.map(({ service, rationale }) => (
@@ -184,8 +184,7 @@ export default async function IndustryDetail({ params }: { params: Promise<{ slu
             <h2>Does this match how {industry.name.toLowerCase()} actually runs for you?</h2>
             <p>
               Sector notes generalise, and yours will differ in at least one way that
-              matters. Tell us which, and we will start from that rather than from this
-              page.
+              matters. Tell us which, and that is where we will start.
             </p>
           </div>
           <Link

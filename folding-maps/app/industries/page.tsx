@@ -19,7 +19,7 @@ export default function IndustriesPage() {
         <h1>Sector knowledge is mostly knowing what cannot change.</h1>
         <p className="lede">
           The technology varies little between industries. What varies is the constraint
-          around it — the regulation, the shift pattern, the margin, the person who has to
+          around it: the regulation, the shift pattern, the margin, the person who has to
           sign. These notes set out what we look at in each sector before proposing
           anything.
         </p>

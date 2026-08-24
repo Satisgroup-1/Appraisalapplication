@@ -36,7 +36,7 @@ const homeJsonLd = [
   },
 ];
 
-/* The firm's position, stated as three arguments rather than three adjectives.
+/* The firm's position, stated as three arguments and not three adjectives.
    Each names the claim, the reasoning behind it and what it costs us. */
 const positions = [
   {
@@ -69,14 +69,14 @@ const method = [
     number: '01',
     title: 'Diagnose',
     detail:
-      'We follow the work as it is actually done — the hand-offs, the exceptions, the spreadsheet nobody mentions in the process map. The output is a written account of where effort goes and which of it is judgement rather than administration.',
+      'We follow the work as it is actually done: the hand-offs, the exceptions, the spreadsheet nobody mentions in the process map. The output is a written account of where effort goes, and how much of it is judgement as opposed to administration.',
     ends: 'Ends with a baseline both sides accept.',
   },
   {
     number: '02',
     title: 'Scope',
     detail:
-      'We define the smallest system that would settle the question, with the controls and data access it needs. Where a requirement rests on an assumption about the business, we put the assumption in writing rather than build on it silently.',
+      'We define the smallest system that would settle the question, with the controls and data access it needs. Where a requirement rests on an assumption about the business, we put the assumption in writing and do not build on it silently.',
     ends: 'Ends with a fixed scope and a stated success test.',
   },
   {

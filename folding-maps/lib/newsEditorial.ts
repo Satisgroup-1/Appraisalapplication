@@ -241,7 +241,7 @@ export const newsEditorial: Record<string, NewsEditorial> = {
     title: 'Cold-chain operating value begins with accountable response',
     standfirst: 'Temperature-controlled operations already produce abundant readings. The harder problem is turning a material change into timely, accountable action while keeping the physical infrastructure and human evidence visible.',
     thesis: 'A credible cold-chain service must connect signal quality, operating context, response ownership and corrective evidence in one traceable exception case.',
-    sceneLabel: 'Illustrative operating vignette',
+    sceneLabel: 'Composite operating vignette',
     sceneTitle: 'A temperature excursion lasts eight minutes. The commercial consequence could last much longer',
     sceneParagraphs: [
       'An overnight operator sees a threshold breach. The number alone cannot explain whether a loading door opened, a unit entered defrost, a probe lost calibration or sensitive product faced a genuine excursion. Several systems hold fragments of the answer, while the response expectation depends on severity that has not yet been established.',
@@ -253,7 +253,7 @@ export const newsEditorial: Record<string, NewsEditorial> = {
         purpose: 'Distinguish raw telemetry from an operational fact.',
         paragraphs: [
           { text: 'The same temperature can represent routine loading, a defrost cycle, a failing unit or a product risk. Duration, asset state, product, location and recent activity change the interpretation. A system that applies a threshold without this context increases alert volume while leaving the operator’s underlying question unanswered.' },
-          { text: 'The proposed evidence model therefore combines the reading and duration with asset state, product context and operator observation. The relative weights shown in the graphic are illustrative design priorities, not measured contributions to food safety or commercial performance.' },
+          { text: 'The proposed evidence model therefore combines the reading and duration with asset state, product context and operator observation. The relative weights in the graphic are modelled design priorities, not measured contributions to food safety or commercial performance.' },
           { text: 'For the eight-minute event, context is the difference between immediate escalation and documented observation. Yet context is useful only if the underlying signal can be trusted. The next step is to test the physical and digital path that produced it.' },
         ],
         exhibits: [{ kind: 'evidence', view: 0, afterParagraph: 1 }],
@@ -501,7 +501,7 @@ export const newsEditorial: Record<string, NewsEditorial> = {
         paragraphs: [
           { text: 'A source-grounded interface can make weak work look safer. Visible citations may encourage reviewers to inspect fewer sources, and a high rate of plausible outputs can reduce vigilance before a rare consequential error. Detailed provenance also adds interface and maintenance cost.' },
           { text: 'Some matters will remain faster with direct professional research, especially where the question is novel, the source set is small or authority turns on subtle procedural history. A service should permit a direct-research route and should not treat low automated usage as failure when the matter does not fit the evaluated scope.' },
-          { text: 'The control response combines blind evaluation, sampled secondary review, error analysis by consequence and monitoring of inspection behavior. If reviewers stop opening primary sources or correction time offsets drafting gains, the service has failed its purpose even when formal citation checks pass.' },
+          { text: 'The control response combines blind evaluation, sampled secondary review, error analysis by consequence and monitoring of inspection behaviour. If reviewers stop opening primary sources or correction time offsets drafting gains, the service has failed its purpose even when formal citation checks pass.' },
           { text: 'This objection narrows the recommendation. Assistance should expand by matter type and proposition class only after evidence shows that professional scepticism remains active.' },
         ],
       },
@@ -570,7 +570,7 @@ export const newsEditorial: Record<string, NewsEditorial> = {
         paragraphs: [
           { text: 'Compensation policy should define bands by disruption, entitlement and local operating context. Front-desk colleagues need enough authority to resolve common cases during the interaction. Higher-cost, unusual or sensitive remedies move to a named approver with the same evidence view.' },
           { text: 'A language model can draft a clear explanation from approved facts and remedies. The owner confirms tone, accuracy and commitment before sending. Accepted communications become events in the recovery history so another colleague can continue without asking the guest to repeat the story.' },
-          { text: 'Measurement begins with acknowledgement time, time to feasible option, handoffs, repeat contacts, policy adherence, compensation by band and closure completeness. Guest feedback and future behavior may add outcome evidence, with careful treatment of attribution and privacy. The second evidence view is an illustrative measurement architecture, not a predicted uplift.' },
+          { text: 'Measurement begins with acknowledgement time, time to feasible option, handoffs, repeat contacts, policy adherence, compensation by band and closure completeness. Guest feedback and future behaviour may add outcome evidence, with careful treatment of attribution and privacy. The second evidence view is a measurement architecture, not a predicted uplift.' },
           { text: 'Booking.com describes AI use across travel planning and service contexts. Its first-party account shows the breadth of channel coordination at scale while supplying no forecast for the property-level recovery measures proposed here.', sources: [openAiBooking] },
         ],
         exhibits: [{ kind: 'evidence', view: 1, afterParagraph: 2 }],

@@ -61,7 +61,7 @@ export function IndustryDirectory({
 
       {visibleFamilies.length === 0 ? (
         <p className={styles.empty}>
-          Nothing matches “{query.trim()}”. The sector list is not exhaustive — if yours is
+          Nothing matches “{query.trim()}”. The sector list is not exhaustive. If yours is
           missing, the operating problem is usually still one we recognise.{' '}
           <Link className="text-link" href="/contact">
             Describe it instead

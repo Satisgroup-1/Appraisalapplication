@@ -33,7 +33,7 @@ const routes = [
   {
     question: '“We bought the tools and nothing changed.”',
     answer:
-      'Licences are not adoption. When usage stalls it is usually because the tool sits beside the work rather than inside it, and because nobody has been given permission to change how the work is done. That is an operating-model problem, and it is fixable without buying anything else.',
+      'Licences are not adoption. When usage stalls it is usually because the tool sits beside the work and not inside it, and because nobody has been given permission to change how the work is done. That is an operating-model problem, and it is fixable without buying anything else.',
     service: 'AI adoption and operating model',
     slug: 'enterprise-ai',
   },
@@ -92,8 +92,8 @@ export default function ServicesPage() {
             <span className="kicker">Enquiries</span>
             <h2>Not sure which of these you need?</h2>
             <p>
-              Describe the problem rather than the solution and we will tell you which kind
-              of work it is — including when the answer is that it is not ours.
+              Describe the problem, not the solution, and we will tell you which kind of work
+              it is, including when the answer is that it is not ours.
             </p>
           </div>
           <Link className="button" href="/contact">

@@ -33,7 +33,7 @@ export type Industry = {
 export const industries: Industry[] = [
   {
     slug: 'aerospace-and-defense',
-    name: 'Aerospace & Defense',
+    name: 'Aerospace & Defence',
     family: 'Advanced industries',
     eyebrow: 'Precision under constraint',
     headline: 'Make complex programmes easier to see and safer to move.',

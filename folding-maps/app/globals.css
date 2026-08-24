@@ -418,15 +418,6 @@ th { font-weight: 600; font-size: var(--step--1); letter-spacing: 0.04em; text-t
   }
 }
 
-/* Content arriving in the viewport. The class is only applied by JavaScript,
-   and only when reduced motion has not been requested, so the no-JS and
-   reduced-motion cases render fully visible with no work. */
-.reveal {
-  opacity: 0;
-  transform: translateY(14px);
-  transition: opacity 420ms var(--ease), transform 420ms var(--ease);
-}
-.reveal.seen { opacity: 1; transform: none; }
 
 /* --------------------------------------------------------------------------
    Shared page furniture
@@ -1193,3 +1184,9 @@ html[data-reading-mode='advanced'] [data-report-mode='simple'] { display: none; 
   background-position: right 14px center;
 }
 .consent { align-items: flex-start; }
+
+/* Report headings hold a headline measure, so the title and the standfirst
+   under it read as one column instead of two different widths. */
+.report h1 { max-width: 21ch; }
+.report > .lede { max-width: 62ch; }
+.report > .caveat { max-width: 62ch; }

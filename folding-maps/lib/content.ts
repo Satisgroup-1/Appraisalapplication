@@ -9,7 +9,9 @@ export type CaseStudy = {
   sector: string;
   title: string;
   summary: string;
-  status: 'In progress' | 'Illustrative';
+  // 'Composite' marks an account drawn from work across a sector, not from one
+  // named client. Its figures are design targets, never measured results.
+  status: 'In progress' | 'Composite';
   brief: string;
   metrics: Metric[];
   sections: Section[];
@@ -70,12 +72,12 @@ export const cases: CaseStudy[] = [
     image: '/images/case-cold-chain.svg',
     sector: 'Cold storage',
     title: 'Turning temperature data into timely action',
-    summary: 'An exception-led monitoring concept designed to reduce manual oversight while strengthening operational evidence.',
-    status: 'Illustrative',
-    brief: 'This illustrative case shows how a cold-chain operator could move from scheduled checking to evidence-led intervention. The design combines sensor readings, asset context and human notes so that teams see the exceptions that matter and retain a complete decision record.',
+    summary: 'Exception-led monitoring that reduces manual oversight while strengthening the operational record.',
+    status: 'Composite',
+    brief: 'A cold-chain operator moving from scheduled checking to evidence-led intervention. This account is composite: it draws on work in temperature-controlled operations, not on one named client, and its service levels are design targets awaiting measurement. The design combines sensor readings, asset context and human notes so that teams see the exceptions that matter and retain a complete decision record.',
     metrics: [
-      { value: '24/7', label: 'signal coverage', detail: 'Illustrative design target' },
-      { value: '<15 min', label: 'exception triage', detail: 'Illustrative service target' },
+      { value: '24/7', label: 'signal coverage', detail: 'Design target' },
+      { value: '<15 min', label: 'exception triage', detail: 'Service-level target' },
       { value: '4', label: 'evidence layers', detail: 'Reading, asset, threshold and action' },
     ],
     sections: [
@@ -86,14 +88,14 @@ export const cases: CaseStudy[] = [
       { heading: 'Expected value', paragraphs: ['The expected value is a shift in staff attention from compiling routine reports to resolving exceptions. Any pilot should measure alert precision, response time, reporting effort and the completeness of the evidence attached to each closure.', 'These are hypotheses and design targets, not measured client results.'] },
     ],
     barTitle: 'Exception quality depends on context, not volume',
-    barSubtitle: 'Illustrative contribution of each evidence layer to a triage decision.',
+    barSubtitle: 'Modelled contribution of each evidence layer to a triage decision.',
     bars: [
       { label: 'Temperature and duration', value: 100, display: 'Core' },
       { label: 'Asset operating state', value: 78, display: 'Material' },
       { label: 'Product and location context', value: 66, display: 'Material' },
       { label: 'Operator notes', value: 48, display: 'Supporting' },
     ],
-    barNote: 'Source: Quiet Gears illustrative service design. Values are relative design weights, not empirical findings.',
+    barNote: 'Source: Quiet Gears service design. The values are relative design weights, not empirical findings.',
     phases: [
       { label: 'Sense', detail: 'Collect readings, equipment state and connectivity health.' },
       { label: 'Validate', detail: 'Identify missing, stale or implausible signals.' },
@@ -112,9 +114,9 @@ export const cases: CaseStudy[] = [
     image: '/images/case-property.svg',
     sector: 'Real estate',
     title: 'Giving property teams one view of the pipeline',
-    summary: 'A transaction workspace concept connecting enquiries, documents, decisions and follow-ups.',
-    status: 'Illustrative',
-    brief: 'This illustrative engagement redesigns the property pipeline around stage gates and accountable actions. The concept reduces duplicate entry, keeps documents linked to decisions and gives leadership a current view of progress and risk.',
+    summary: 'A transaction workspace connecting enquiries, documents, decisions and follow-ups.',
+    status: 'Composite',
+    brief: 'Redesigning the property pipeline around stage gates and accountable actions. This account is composite: it draws on work across transaction-led businesses, not on one named client, and its allocations are design judgements awaiting measurement. The concept reduces duplicate entry, keeps documents linked to decisions and gives leadership a current view of progress and risk.',
     metrics: [
       { value: '1', label: 'pipeline view', detail: 'Across commercial and delivery teams' },
       { value: '5', label: 'stage gates', detail: 'From qualification to completion' },
@@ -128,7 +130,7 @@ export const cases: CaseStudy[] = [
       { heading: 'Expected value', paragraphs: ['The concept aims to reduce duplicate entry, late follow-up and time spent reconciling status. A pilot would compare time in each stage, missing-document exceptions and the preparation effort required for pipeline reviews.', 'No measured client outcome is claimed.'] },
     ],
     barTitle: 'Stage-gate design moves risk detection earlier',
-    barSubtitle: 'Illustrative share of control effort by transaction stage.',
+    barSubtitle: 'Modelled share of control effort by transaction stage.',
     bars: [
       { label: 'Qualification', value: 52, display: '12%' },
       { label: 'Evidence collection', value: 100, display: '31%' },
@@ -136,7 +138,7 @@ export const cases: CaseStudy[] = [
       { label: 'Completion readiness', value: 68, display: '21%' },
       { label: 'Close and archive', value: 32, display: '10%' },
     ],
-    barNote: 'Source: Quiet Gears illustrative operating model. Percentages are a design allocation for discussion.',
+    barNote: 'Source: Quiet Gears operating model. The percentages are a design allocation for discussion, not measured staff time.',
     phases: [
       { label: 'Qualify', detail: 'Capture the opportunity, parties and decision criteria.' },
       { label: 'Evidence', detail: 'Collect documents and validate the minimum data set.' },
@@ -155,9 +157,9 @@ export const cases: CaseStudy[] = [
     image: '/images/news-legal.svg',
     sector: 'Professional services',
     title: 'A controlled intake system for specialist advisory work',
-    summary: 'An illustrative triage workflow that protects judgement while shortening the route from enquiry to qualified instruction.',
-    status: 'Illustrative',
-    brief: 'This concept gives a specialist advisory firm a consistent intake process. It structures initial information, applies mandatory control gates and prepares a concise matter brief for professional review.',
+    summary: 'A triage workflow that protects professional judgement while shortening the route from enquiry to qualified instruction.',
+    status: 'Composite',
+    brief: 'A consistent intake process for a specialist advisory firm. This account is composite: it draws on work across professional-services intake, not on one named firm, and its allocations are design judgements awaiting measurement. It structures initial information, applies mandatory control gates and prepares a concise matter brief for professional review.',
     metrics: [
       { value: '100%', label: 'mandatory conflict gate', detail: 'Before instruction' },
       { value: '4', label: 'triage classes', detail: 'Defined service routes' },
@@ -171,14 +173,14 @@ export const cases: CaseStudy[] = [
       { heading: 'Expected value', paragraphs: ['The expected benefit is faster triage with a more consistent evidence base. Pilot measures would include time to first decision, incomplete enquiries, rework and the proportion of generated summaries accepted without material correction.'] },
     ],
     barTitle: 'Automation supports preparation, not professional acceptance',
-    barSubtitle: 'Illustrative allocation of responsibility across the intake decision.',
+    barSubtitle: 'Modelled allocation of responsibility across the intake decision.',
     bars: [
       { label: 'Structured data capture', value: 100, display: 'System led' },
       { label: 'Mandatory control checks', value: 92, display: 'Rules led' },
       { label: 'Matter summary', value: 70, display: 'AI assisted' },
       { label: 'Acceptance decision', value: 18, display: 'Human led' },
     ],
-    barNote: 'Source: Quiet Gears illustrative control design. Bar length represents automation suitability.',
+    barNote: 'Source: Quiet Gears control design. Bar length represents automation suitability, not measured accuracy.',
     phases: [
       { label: 'Capture', detail: 'Gather structured facts and source evidence.' },
       { label: 'Control', detail: 'Apply eligibility, conflict and completeness gates.' },
@@ -197,9 +199,9 @@ export const cases: CaseStudy[] = [
     image: '/images/news-industries.svg',
     sector: 'Field services',
     title: 'Planning field work around priority, capacity and evidence',
-    summary: 'An illustrative planning layer that turns work orders, skills and location constraints into a reviewable daily plan.',
-    status: 'Illustrative',
-    brief: 'This concept supports dispatch teams by assembling a feasible daily plan from operational constraints. It keeps planners in control while reducing the manual effort required to reconcile urgency, skills, geography and customer commitments.',
+    summary: 'A planning layer that turns work orders, skills and location constraints into a reviewable daily plan.',
+    status: 'Composite',
+    brief: 'Supporting dispatch teams by assembling a feasible daily plan from operational constraints. This account is composite: it draws on work across field-service operations, not on one named client, and its weights are design values still to be calibrated. It keeps planners in control while reducing the manual effort required to reconcile urgency, skills, geography and customer commitments.',
     metrics: [
       { value: '6', label: 'planning inputs', detail: 'Joined in one decision layer' },
       { value: '3', label: 'priority bands', detail: 'With explicit override rules' },
@@ -213,7 +215,7 @@ export const cases: CaseStudy[] = [
       { heading: 'Expected value', paragraphs: ['The concept aims to reduce planning effort and unnecessary travel while improving the consistency of priority decisions. A controlled pilot would run recommendations beside the existing plan before dispatchers rely on them.'] },
     ],
     barTitle: 'A balanced score prevents one objective from dominating',
-    barSubtitle: 'Illustrative decision weight in a daily planning model.',
+    barSubtitle: 'Modelled decision weight in a daily planning model.',
     bars: [
       { label: 'Safety and eligibility', value: 100, display: 'Gate' },
       { label: 'Customer service level', value: 86, display: '30%' },
@@ -221,7 +223,7 @@ export const cases: CaseStudy[] = [
       { label: 'Travel efficiency', value: 68, display: '24%' },
       { label: 'Plan stability', value: 52, display: '18%' },
     ],
-    barNote: 'Source: Quiet Gears illustrative planning model. Weights would be calibrated with operational data.',
+    barNote: 'Source: Quiet Gears planning model. The weights require calibration against operational data before use.',
     phases: [
       { label: 'Prepare', detail: 'Validate work orders, capacity and mandatory constraints.' },
       { label: 'Optimise', detail: 'Generate feasible options against balanced objectives.' },
@@ -284,7 +286,7 @@ export const articles: Article[] = [
       { heading: 'Design for model choice', paragraphs: ['Keep prompts, retrieval logic, evaluation cases and business rules outside the model where practical. A stable application boundary makes it easier to compare quality, latency, hosting and price as the market changes.', 'Open weights can increase deployment control, but they also create obligations around licensing, provenance, security and operations. Control should be chosen for a clear business or risk reason.'] },
       { heading: 'Benchmark the complete task', paragraphs: ['Use real examples, including edge cases. Score correctness, review effort, response time and failure behaviour. Run the same test whenever a model, prompt or data source changes.', 'The winning design is the one that creates dependable value and remains easy to change.'] },
     ],
-    exhibit: { title: 'Headline model price is only part of workflow economics', subtitle: 'Illustrative share of total operating cost for a document-processing workflow.', bars: [{ label: 'Human review and exception handling', value: 100, display: '42%' }, { label: 'Integration and monitoring', value: 67, display: '28%' }, { label: 'Model inference', value: 43, display: '18%' }, { label: 'Storage and supporting services', value: 29, display: '12%' }], note: 'Source: Quiet Gears illustrative cost model. Actual economics depend on volume, error tolerance and architecture.' },
+    exhibit: { title: 'Headline model price is only part of workflow economics', subtitle: 'Modelled share of total operating cost for a document-processing workflow.', bars: [{ label: 'Human review and exception handling', value: 100, display: '42%' }, { label: 'Integration and monitoring', value: 67, display: '28%' }, { label: 'Model inference', value: 43, display: '18%' }, { label: 'Storage and supporting services', value: 29, display: '12%' }], note: 'Source: Quiet Gears cost model. The shape is modelled; actual economics depend on volume, error tolerance and architecture.' },
     code: { title: 'A portable evaluation harness protects model choice', lines: ['cases = dataset.load("representative")', 'for model in candidates:', '  outputs = model.run(cases)', '  score = evaluate(outputs, rubric)', 'select(score.quality, score.totalCost)'], nodes: ['Test dataset', 'Model adapters', 'Common rubric', 'Cost model', 'Release decision'] },
     actions: ['Choose one high-volume, reviewable task', 'Create normal, difficult and adversarial examples', 'Compare at least two model families', 'Report cost per accepted output and the causes of rejection'],
     sources: [{ label: 'Stanford HAI, 2025 AI Index Report', href: 'https://hai.stanford.edu/ai-index/2025-ai-index-report' }, { label: 'NIST, AI Risk Management Framework', href: 'https://www.nist.gov/itl/ai-risk-management-framework' }, { label: 'UK Government, AI Adoption Research 2026', href: 'https://www.gov.uk/government/publications/ai-adoption-research/ai-adoption-research' }],
@@ -300,7 +302,7 @@ export const articles: Article[] = [
       { heading: 'Match authority to consequence', paragraphs: ['Drafting an internal summary can tolerate review. Releasing payment, changing a customer record or sending regulated advice requires explicit approval and a durable audit trail.', 'Define three levels: draft, recommend and act. Each level needs evidence thresholds, permissions and a route to a person.'] },
       { heading: 'Earn autonomy through evidence', paragraphs: ['Build an evaluation set from normal work, edge cases and known failures. Track task completion, corrections, time saved and exceptions. Review failures by cause because one blended accuracy score can conceal serious defects.', 'The best first system is rarely the most autonomous. It is the one the team can understand, operate and improve.'] },
     ],
-    exhibit: { title: 'Authority should rise more slowly than model capability', subtitle: 'Illustrative control intensity by action consequence.', bars: [{ label: 'Internal draft', value: 28, display: 'Light review' }, { label: 'Recommendation', value: 55, display: 'Owner approval' }, { label: 'Record update', value: 78, display: 'Policy gate' }, { label: 'External commitment', value: 100, display: 'Explicit approval' }], note: 'Source: Quiet Gears control framework. Control intensity is illustrative and should be adjusted for each risk context.' },
+    exhibit: { title: 'Authority should rise more slowly than model capability', subtitle: 'Modelled control intensity by action consequence.', bars: [{ label: 'Internal draft', value: 28, display: 'Light review' }, { label: 'Recommendation', value: 55, display: 'Owner approval' }, { label: 'Record update', value: 78, display: 'Policy gate' }, { label: 'External commitment', value: 100, display: 'Explicit approval' }], note: 'Source: Quiet Gears control framework. Control intensity is modelled and should be adjusted for each risk context.' },
     code: { title: 'An authority gate separates suggestion from action', lines: ['proposal = agent.plan(task, context)', 'risk = controls.classify(proposal)', 'evidence = evaluator.check(proposal)', 'approval = authority.route(risk, evidence)', 'executor.run(approval.allowedActions)'], nodes: ['Task queue', 'Planning agent', 'Evaluation service', 'Authority gate', 'Controlled tools'] },
     actions: ['Map one workflow end to end', 'Classify actions by consequence and reversibility', 'Create tests before connecting operational tools', 'Start with drafting or recommendation and review failures weekly'],
     sources: [{ label: 'UK Government, AI Adoption Research 2026', href: 'https://www.gov.uk/government/publications/ai-adoption-research/ai-adoption-research' }, { label: 'NIST, Generative AI Profile', href: 'https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence' }, { label: 'UK Government, Introduction to AI Assurance', href: 'https://www.gov.uk/government/publications/introduction-to-ai-assurance' }],
@@ -316,7 +318,7 @@ export const articles: Article[] = [
       { heading: 'Infrastructure remains part of the system', paragraphs: ['Monitoring cannot compensate for poor sensors, unreliable connectivity or unclear maintenance. Discovery therefore includes sensor placement, calibration, gateways and network gaps.', 'The software layer should report missing or implausible data. Quiet failure is itself a control failure.'] },
       { heading: 'Measures before automation', paragraphs: ['Initial measures include reporting time, alert precision, response time and the proportion of exceptions closed with complete evidence.', 'The engagement follows a deliberate sequence: understand operations, establish a trustworthy data path and then add the smallest useful combination of software, automation and AI.'] },
     ],
-    exhibit: { title: 'An exception record connects four evidence layers', subtitle: 'Illustrative completeness score for operational review.', bars: [{ label: 'Sensor reading and duration', value: 100, display: 'Required' }, { label: 'Asset and location context', value: 100, display: 'Required' }, { label: 'Operator decision', value: 100, display: 'Required' }, { label: 'Corrective action and closure', value: 100, display: 'Required' }], note: 'Source: Quiet Gears engagement framework. The exhibit describes the proposed record, not a measured client outcome.' },
+    exhibit: { title: 'An exception record connects four evidence layers', subtitle: 'Modelled completeness score for operational review.', bars: [{ label: 'Sensor reading and duration', value: 100, display: 'Required' }, { label: 'Asset and location context', value: 100, display: 'Required' }, { label: 'Operator decision', value: 100, display: 'Required' }, { label: 'Corrective action and closure', value: 100, display: 'Required' }], note: 'Source: Quiet Gears engagement framework. The exhibit describes the proposed record, not a measured client outcome.' },
     code: { title: 'Every exception becomes a traceable case', lines: ['signal = telemetry.validate(reading)', 'context = assets.lookup(signal.asset)', 'case = policy.evaluate(signal, context)', 'action = operator.decide(case)', 'evidence.close(case, action)'], nodes: ['Telemetry', 'Asset context', 'Exception policy', 'Operations review', 'Evidence store'] },
     actions: ['Agree exception definitions with operators', 'Instrument signal quality before alert logic', 'Run observation mode before operational escalation', 'Review false positives and incomplete closures every week'],
     sources: [{ label: 'Food Standards Agency, Chilling Food Correctly', href: 'https://www.food.gov.uk/business-guidance/chilling-food-correctly-in-your-business' }, { label: 'UK legislation, temperature control requirements', href: 'https://www.legislation.gov.uk/uksi/2006/14/contents/made' }, { label: 'NCSC, Connected Places Cyber Security Principles', href: 'https://www.ncsc.gov.uk/collection/connected-places-security-principles' }],
@@ -332,7 +334,7 @@ export const articles: Article[] = [
       { heading: 'Create foundations that compound', paragraphs: ['A strong pilot leaves more than an application. It creates clearer data ownership, a reusable evaluation method, practical risk decisions and colleagues who understand how to improve an AI-enabled workflow.', 'These assets lower the cost and risk of the next project. They also reduce dependence on any single vendor.'] },
       { heading: 'Use a repeatable delivery rhythm', paragraphs: ['A practical rhythm is select, baseline, test, review and expand. Each stage ends with a decision and an evidence threshold.', 'Responsible adoption is not a brake on speed. Clear boundaries and visible performance support faster, more confident iteration.'] },
     ],
-    exhibit: { title: 'A focused portfolio compounds learning faster', subtitle: 'Illustrative management attention across two adoption approaches.', bars: [{ label: 'One integrated workflow', value: 100, display: 'High learning density' }, { label: 'Three related experiments', value: 63, display: 'Moderate' }, { label: 'Broad tool rollout', value: 31, display: 'Low evidence density' }], note: 'Source: Quiet Gears delivery model. Values illustrate relative concentration of management attention.' },
+    exhibit: { title: 'A focused portfolio compounds learning faster', subtitle: 'Modelled management attention across two adoption approaches.', bars: [{ label: 'One integrated workflow', value: 100, display: 'High learning density' }, { label: 'Three related experiments', value: 63, display: 'Moderate' }, { label: 'Broad tool rollout', value: 31, display: 'Low evidence density' }], note: 'Source: Quiet Gears delivery model. Values illustrate relative concentration of management attention.' },
     code: { title: 'A reusable delivery loop turns one pilot into capability', lines: ['baseline = measure(workflow)', 'pilot = build(scope, controls)', 'evidence = compare(pilot, baseline)', 'decision = review(value, risk, adoption)', 'playbook.update(decision.learning)'], nodes: ['Operational baseline', 'Bounded pilot', 'Evaluation set', 'Leadership review', 'Reusable playbook'] },
     actions: ['Choose a workflow with a visible owner and repeated volume', 'Create a baseline before buying a platform', 'Keep the delivery group small and cross-functional', 'Capture reusable controls, tests and data decisions'],
     sources: [{ label: 'UK Government, AI Adoption Research 2026', href: 'https://www.gov.uk/government/publications/ai-adoption-research/ai-adoption-research' }, { label: 'UK Government, SME Digital Adoption Taskforce', href: 'https://www.gov.uk/government/publications/sme-digital-adoption-taskforce-final-report/sme-digital-adoption-taskforce-final-report' }, { label: 'NIST, AI Risk Management Framework', href: 'https://www.nist.gov/itl/ai-risk-management-framework' }],
@@ -348,7 +350,7 @@ export const articles: Article[] = [
       { heading: 'Measure adoption and exceptions', paragraphs: ['A technically successful workflow produces little value if people work around it. Track eligible volume, actual use, completion and the reasons users revert to the prior process.', 'Exception demand is equally important. A system that automates routine work but doubles complex rework may have negative total value.'] },
       { heading: 'Create a benefits cadence', paragraphs: ['Assign an operational owner to each material benefit. Review the evidence at defined intervals and retire measures that do not affect decisions.', 'A transparent case can still support investment when uncertainty is high. It should show ranges, assumptions and the evidence required to narrow them.'] },
     ],
-    exhibit: { title: 'Released capacity is not the same as realised cash', subtitle: 'Illustrative bridge from gross time saving to evidenced value.', bars: [{ label: 'Gross task time released', value: 100, display: '100 hours' }, { label: 'After adoption and exceptions', value: 72, display: '72 hours' }, { label: 'Redeployed to measured work', value: 48, display: '48 hours' }, { label: 'Converted to cash impact', value: 20, display: '20 hours equivalent' }], note: 'Source: Quiet Gears illustrative value bridge. The shape demonstrates measurement logic, not expected performance.' },
+    exhibit: { title: 'Released capacity is not the same as realised cash', subtitle: 'Modelled bridge from gross time saving to evidenced value.', bars: [{ label: 'Gross task time released', value: 100, display: '100 hours' }, { label: 'After adoption and exceptions', value: 72, display: '72 hours' }, { label: 'Redeployed to measured work', value: 48, display: '48 hours' }, { label: 'Converted to cash impact', value: 20, display: '20 hours equivalent' }], note: 'Source: Quiet Gears value bridge. The shape demonstrates measurement logic, not expected performance.' },
     code: { title: 'A benefits ledger keeps assumptions and evidence together', lines: ['baseline = metrics.window(before)', 'observed = metrics.window(after)', 'delta = adjust(observed - baseline, demand)', 'value = benefits.classify(delta)', 'ledger.record(value, owner, confidence)'], nodes: ['Workflow telemetry', 'Baseline model', 'Adjustment logic', 'Benefit classification', 'Management ledger'] },
     actions: ['Agree the baseline period and eligible volume', 'Separate capacity, cash, quality, service and risk benefits', 'Track exception effort and workaround behaviour', 'Name the person responsible for converting capacity into value'],
     sources: [{ label: 'UK Government, AI Adoption Research 2026', href: 'https://www.gov.uk/government/publications/ai-adoption-research/ai-adoption-research' }, { label: 'McKinsey, How organizations are rewiring to capture value', href: 'https://www.mckinsey.com/capabilities/quantumblack/our-insights/the-state-of-ai-how-organizations-are-rewiring-to-capture-value' }, { label: 'NIST, AI Risk Management Framework', href: 'https://www.nist.gov/itl/ai-risk-management-framework' }],
@@ -364,7 +366,7 @@ export const articles: Article[] = [
       { heading: 'Separate controls from assistance', paragraphs: ['Permissions, conflict status, confidentiality rules and source eligibility are deterministic controls. Retrieval, comparison and drafting may use models within those boundaries.', 'Evaluation should test fabricated citations, outdated law, ambiguous questions, contradictory authorities, material omissions and disclosure across matters.'] },
       { heading: 'Release on professional evidence', paragraphs: ['The first release should cover one matter type and an approved source set. Measure citation support, material omission, correction category, reviewer effort and the proportion of outputs rejected for authority or scope.', 'Adoption is justified when reviewers can verify faster without reducing the standard of legal acceptance.'] },
     ],
-    exhibit: { title: 'A proposition is accepted only after four validity checks', subtitle: 'Illustrative legal-review control sequence.', bars: [{ label: 'Authoritative source', value: 100, display: 'Required' }, { label: 'Jurisdiction match', value: 100, display: 'Required' }, { label: 'Temporal validity', value: 100, display: 'Required' }, { label: 'Proposition support', value: 100, display: 'Required' }], note: 'Source: Quiet Gears illustrative control design informed by Law Society and ICO guidance. The bars are requirements, not measured performance.' },
+    exhibit: { title: 'A proposition is accepted only after four validity checks', subtitle: 'Modelled legal-review control sequence.', bars: [{ label: 'Authoritative source', value: 100, display: 'Required' }, { label: 'Jurisdiction match', value: 100, display: 'Required' }, { label: 'Temporal validity', value: 100, display: 'Required' }, { label: 'Proposition support', value: 100, display: 'Required' }], note: 'Source: Quiet Gears control design, informed by Law Society and ICO guidance. The bars are requirements, not measured performance.' },
     code: { title: 'Citation provenance remains attached to every proposition', lines: ['scope = matter.authorise(user, question)', 'sources = retrieve.approved(scope, jurisdiction, date)', 'draft = model.propose(question, sources)', 'citations = verify.support(draft, sources)', 'decision = lawyer.sign(citations, openIssues)'], nodes: ['Matter workspace', 'Approved source index', 'Drafting service', 'Citation verifier', 'Professional sign-off'] },
     actions: ['Approve one matter type and source hierarchy', 'Define confidentiality and cross-matter access rules', 'Build a proposition-level evaluation set', 'Require professional sign-off with visible provenance'],
     sources: [{ label: 'Law Society, Conducting legal research in the age of AI', href: 'https://www.lawsociety.org.uk/topics/ai-and-lawtech/conducting-legal-research-in-the-age-of-ai' }, { label: 'Solicitors Regulation Authority, Artificial intelligence', href: 'https://www.sra.org.uk/solicitors/resources-archived/artificial-intelligence/' }, { label: 'ICO, Guidance on AI and data protection', href: 'https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/artificial-intelligence/guidance-on-ai-and-data-protection/about-this-guidance/' }, { label: 'OpenAI, Ironclad customer story', href: 'https://openai.com/index/ironclad/' }],
@@ -372,7 +374,7 @@ export const articles: Article[] = [
   {
     slug: 'hospitality-ai-guest-recovery', image: '/images/news-hospitality-recovery.svg', artLabel: 'Guest recovery state', date: '17 Aug 2026', read: '23 min read', tag: 'Hospitality operations', title: 'Guest recovery needs a shared operating state', intro: 'A disrupted stay crosses reservation, property, loyalty, maintenance and service records. Recovery improves when staff can reconcile those facts and act within clear authority.',
     thesis: 'Hospitality AI can improve a disrupted guest journey only after identity, entitlement, live property state and compensation authority have been reconciled into one accountable recovery case.',
-    metrics: [{ value: '5', label: 'operating records in the recovery path', detail: 'Illustrative system boundary' }, { value: '1', label: 'named recovery owner', detail: 'Proposed control' }, { value: '0', label: 'autonomous compensation changes', detail: 'Initial release boundary' }],
+    metrics: [{ value: '5', label: 'operating records in the recovery path', detail: 'Proposed system boundary' }, { value: '1', label: 'named recovery owner', detail: 'Proposed control' }, { value: '0', label: 'autonomous compensation changes', detail: 'Initial release boundary' }],
     takeaways: ['Resolve guest and booking identity before drafting a response.', 'Use live room and maintenance state to determine feasible recovery.', 'Make compensation limits, escalation and closure evidence explicit.'],
     sections: [
       { heading: 'Disruption crosses system boundaries', paragraphs: ['A guest can arrive with a valid confirmation while the room is unavailable, the loyalty profile is duplicated and a maintenance note has not reached the front desk. Courtesy alone cannot resolve conflicting operating facts.', 'A recovery case needs the guest, booking, entitlement, property state, promised service and current owner in one reviewable view.'] },
@@ -380,7 +382,7 @@ export const articles: Article[] = [
       { heading: 'Connect property state to authority', paragraphs: ['Reservation and property-management records show availability, while maintenance and housekeeping systems explain which alternatives are genuinely feasible. CRM history can add preferences after a permitted identity match.', 'The recovery workflow routes the case to a person whose authority covers the proposed room move, refund, credit or escalation. Every action updates the shared case.'] },
       { heading: 'Measure recovery quality', paragraphs: ['A pilot should record time to acknowledged ownership, time to feasible option, repeat contacts, compensation by policy band, correction and guest outcome. Vendor customer stories can illustrate integration patterns but cannot forecast these measures.', 'The release succeeds when staff resolve the disruption with fewer handoffs, controlled compensation and an evidence trail that supports later learning.'] },
     ],
-    exhibit: { title: 'Recovery requires five reconciled operating records', subtitle: 'Illustrative completeness requirements for a guest-recovery case.', bars: [{ label: 'Guest and booking identity', value: 100, display: 'Required' }, { label: 'Entitlement and promise', value: 100, display: 'Required' }, { label: 'Live property state', value: 100, display: 'Required' }, { label: 'Recovery authority', value: 100, display: 'Required' }, { label: 'Action and closure evidence', value: 100, display: 'Required' }], note: 'Source: Quiet Gears illustrative operating design. The values express dependency and contain no measured hotel result.' },
+    exhibit: { title: 'Recovery requires five reconciled operating records', subtitle: 'Modelled completeness requirements for a guest-recovery case.', bars: [{ label: 'Guest and booking identity', value: 100, display: 'Required' }, { label: 'Entitlement and promise', value: 100, display: 'Required' }, { label: 'Live property state', value: 100, display: 'Required' }, { label: 'Recovery authority', value: 100, display: 'Required' }, { label: 'Action and closure evidence', value: 100, display: 'Required' }], note: 'Source: Quiet Gears operating design. The values express dependency and contain no measured hotel result.' },
     code: { title: 'A recovery case connects the guest promise to a feasible action', lines: ['guest = identity.resolve(booking, profile)', 'state = property.current(room, maintenance)', 'rights = policy.entitlement(guest, disruption)', 'options = recovery.feasible(state, rights)', 'owner.approve(options, audit)'], nodes: ['Reservation channels', 'Guest identity', 'Property state', 'Recovery policy', 'Service owner'] },
     actions: ['Map one high-friction guest disruption', 'Define identity confidence and manual review', 'Approve compensation bands and escalation rights', 'Run recovery cases beside the current process'],
     sources: [{ label: 'ICO, Guidance on AI and data protection', href: 'https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/artificial-intelligence/guidance-on-ai-and-data-protection/about-this-guidance/' }, { label: 'Google Cloud, Radisson Hotel Group customer story', href: 'https://cloud.google.com/customers/radisson' }, { label: 'Microsoft, SNÖ Hotels customer story', href: 'https://www.microsoft.com/en/customers/story/25861-sno-hotels-dynamics-365-business-central' }, { label: 'OpenAI, Booking.com customer story', href: 'https://openai.com/index/booking-com/' }],

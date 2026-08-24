@@ -197,7 +197,7 @@ export default async function CaseDetail({ params }: { params: Promise<{ slug: s
             <h2>Where is the work getting stuck for you?</h2>
             <p>
               If this account resembles your operation, the useful first step is a
-              conversation about the differences rather than the similarities.
+              conversation about the differences, not the similarities.
             </p>
           </div>
           <Link className="button" href="/contact">

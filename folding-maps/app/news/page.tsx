@@ -23,8 +23,8 @@ export default function News() {
         <h1>Arguments, with the evidence attached.</h1>
         <p className="lede">
           Each piece takes a position, sets out the case against it, and links every figure
-          to its source. Where the evidence is thin we say so rather than rounding it up
-          into a recommendation.
+          to its source. Where the evidence is thin we say so, and do not round it up into
+          a recommendation.
         </p>
       </section>
 

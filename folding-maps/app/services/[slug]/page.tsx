@@ -79,8 +79,8 @@ export default async function ServiceDetailPage({ params }: PageProps) {
             </ul>
             <p className="small">
               Named for transparency, not preference. The right components depend on your
-              data, your existing systems and what your team can maintain — and we will say
-              when the honest answer is a tool you already own.
+              data, your existing systems and what your team can maintain. Where the honest
+              answer is a tool you already own, we will say so.
             </p>
           </div>
         </section>
@@ -117,8 +117,8 @@ export default async function ServiceDetailPage({ params }: PageProps) {
               <h2 id="cases-title">Where this earns its place.</h2>
             </div>
             <p className="lede">
-              Each pattern begins with an operating constraint rather than a technology, and
-              keeps a traceable route from source information to accountable action.
+              Each pattern begins with an operating constraint, not a technology, and keeps a
+              traceable route from source information to accountable action.
             </p>
           </div>
 
@@ -174,7 +174,7 @@ export default async function ServiceDetailPage({ params }: PageProps) {
                   ))}
                 </ul>
                 <p className={styles.controlNote}>
-                  These are conditions of the engagement rather than options within it. A
+                  These are conditions of the engagement, not options within it. A
                   system without them is cheaper to build and considerably more expensive to
                   own.
                 </p>
@@ -203,8 +203,8 @@ export default async function ServiceDetailPage({ params }: PageProps) {
             <span className="kicker">Enquiries</span>
             <h2>Have a constraint that looks like this?</h2>
             <p>
-              Send the situation rather than a specification. The first response will tell
-              you what we would need to know to scope it properly.
+              Send the situation, not a specification. The first response will tell you what we
+              would need to know to scope it properly.
             </p>
           </div>
           <Link className="button" href="/contact">

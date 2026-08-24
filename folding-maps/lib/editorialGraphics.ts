@@ -132,13 +132,13 @@ export const newsEvidenceViews: Record<string, EvidenceView[]> = {
     {
       label: 'Evidence model',
       title: 'A useful exception combines signal and operating context',
-      summary: 'This is an illustrative design weighting. It shows how a case can become more decision-ready without pretending that every input is equally important.',
+      summary: 'This is a modelled design weighting. It shows how a case can become more decision-ready without pretending that every input is equally important.',
       interpretation: {
         establishes: 'The proposed design needs more than a temperature number to support a reviewable operating decision.',
         doesNotEstablish: 'The weights are not measured contributions to food safety, response quality or financial value.',
         management: 'Test the evidence model against historical and live cases before using it to set severity.',
       },
-      source: 'Quiet Gears illustrative service design informed by FSA and NCSC guidance',
+      source: 'Quiet Gears service design, informed by FSA and NCSC guidance',
       points: [
         { label: 'Temperature and duration', value: 100, display: 'Core', detail: 'The observed excursion and its duration establish the initial operational question.' },
         { label: 'Asset operating state', value: 78, display: 'Material', detail: 'Defrost cycles, loading and equipment state can change the interpretation of a reading.' },
@@ -149,7 +149,7 @@ export const newsEvidenceViews: Record<string, EvidenceView[]> = {
     {
       label: 'Control sequence',
       title: 'The value chain fails if any control stage is skipped',
-      summary: 'An illustrative control profile based on the article thesis. Equal weighting reflects dependency, not measured contribution.',
+      summary: 'A modelled control profile following the argument above. Equal weighting reflects dependency, not measured contribution.',
       interpretation: {
         establishes: 'The proposed exception route depends on signal validation, contextual classification, ownership and evidenced closure.',
         doesNotEstablish: 'Equal bars do not mean the stages contribute equally to risk reduction or economic value.',
@@ -220,18 +220,18 @@ export const newsEvidenceViews: Record<string, EvidenceView[]> = {
     {
       label: 'Value bridge',
       title: 'Gross time released contracts before it becomes financial value',
-      summary: 'An illustrative bridge showing why adoption, exceptions and redeployment must be observed before a cash claim is made.',
+      summary: 'A modelled bridge showing why adoption, exceptions and redeployment must be observed before a cash claim is made.',
       interpretation: {
         establishes: 'A benefits case needs separate stages between theoretical task time, usable capacity and financial consequence.',
-        doesNotEstablish: 'The values are illustrative assumptions and do not predict a typical conversion rate.',
+        doesNotEstablish: 'The values are modelled assumptions and do not predict a typical conversion rate.',
         management: 'Name the owner and evidence required at each stage before reporting realised value.',
       },
-      source: 'Quiet Gears illustrative benefits model',
+      source: 'Quiet Gears benefits model (design values, not measured findings)',
       points: [
         { label: 'Gross task time released', value: 100, display: '100 hours', detail: 'The theoretical saving before real operating friction is counted.' },
         { label: 'After adoption and exceptions', value: 72, display: '72 hours', detail: 'Capacity remaining after usage, review and rescue effort.' },
         { label: 'Redeployed to measured work', value: 48, display: '48 hours', detail: 'Capacity deliberately redirected to activity with an observed output.' },
-        { label: 'Converted to cash impact', value: 20, display: '20 hours eq.', detail: 'Illustrative portion linked to cost removed, avoided or verified contribution.' },
+        { label: 'Converted to cash impact', value: 20, display: '20 hours eq.', detail: 'The modelled portion linked to cost removed, avoided or verified contribution.' },
       ],
     },
   ],
@@ -239,7 +239,7 @@ export const newsEvidenceViews: Record<string, EvidenceView[]> = {
     {
       label: 'Validity chain',
       title: 'Every accepted proposition needs four independent checks',
-      summary: 'This is an illustrative control sequence informed by professional guidance. Equal values express dependency and contain no measured legal-work result.',
+      summary: 'This is a modelled control sequence informed by professional guidance. Equal values express dependency and contain no measured legal-work result.',
       interpretation: {
         establishes: 'The proposed service treats authority, jurisdiction, date and textual support as separate conditions for professional review.',
         doesNotEstablish: 'The exhibit provides no accuracy, productivity or risk-reduction evidence for a deployed legal system.',
@@ -257,19 +257,19 @@ export const newsEvidenceViews: Record<string, EvidenceView[]> = {
     {
       label: 'Release evidence',
       title: 'Legal evaluation must separate unlike failure classes',
-      summary: 'Illustrative evaluation priorities for a matter-scoped pilot. The values express control criticality and are not empirical weights.',
+      summary: 'Modelled evaluation priorities for a matter-scoped pilot. The values express control criticality and are not empirical weights.',
       interpretation: {
-        establishes: 'Citation fabrication, weak support, omission, confidentiality and reviewer behavior require distinct evidence.',
+        establishes: 'Citation fabrication, weak support, omission, confidentiality and reviewer behaviour require distinct evidence.',
         doesNotEstablish: 'The bars do not predict defect frequency or assign financial value to any control.',
         management: 'Set thresholds by consequence and keep professional review effort inside the economic denominator.',
       },
-      source: 'Quiet Gears illustrative evaluation design',
+      source: 'Quiet Gears evaluation design (design values, not measured findings)',
       points: [
         { label: 'Citation existence', value: 100, display: 'Blocking', detail: 'A fabricated or inaccessible source prevents acceptance.' },
         { label: 'Material proposition support', value: 100, display: 'Blocking', detail: 'A material claim without adequate authority prevents acceptance.' },
         { label: 'Cross-matter disclosure', value: 100, display: 'Blocking', detail: 'Unauthorised disclosure is a release-stopping control failure.' },
         { label: 'Material omission', value: 92, display: 'Critical', detail: 'The evaluation must detect missing issues that could change the legal conclusion.' },
-        { label: 'Reviewer inspection', value: 78, display: 'Monitor', detail: 'Source-opening behavior helps detect false reassurance during supervised use.' },
+        { label: 'Reviewer inspection', value: 78, display: 'Monitor', detail: 'Source-opening behaviour helps detect false reassurance during supervised use.' },
       ],
     },
   ],
@@ -277,13 +277,13 @@ export const newsEvidenceViews: Record<string, EvidenceView[]> = {
     {
       label: 'Case completeness',
       title: 'Recovery depends on five reconciled records',
-      summary: 'Illustrative dependency model for a guest-recovery case. Equal values are requirements and contain no measured hotel outcome.',
+      summary: 'A modelled dependency model for a guest-recovery case. Equal values are requirements and contain no measured hotel outcome.',
       interpretation: {
         establishes: 'The proposed route needs identity, promise, property state, authority and closure evidence before it can support accountable recovery.',
         doesNotEstablish: 'A complete case does not guarantee guest satisfaction, faster resolution or lower compensation.',
         management: 'Test connector freshness and ownership before measuring generated communication quality.',
       },
-      source: 'Quiet Gears illustrative hospitality operating design',
+      source: 'Quiet Gears hospitality operating design (design values, not measured findings)',
       points: [
         { label: 'Guest and booking identity', value: 100, display: 'Required', detail: 'The case must link the right guest, stay and channel reference.' },
         { label: 'Entitlement and promise', value: 100, display: 'Required', detail: 'The booked product and policy determine the permitted remedy space.' },
@@ -295,19 +295,19 @@ export const newsEvidenceViews: Record<string, EvidenceView[]> = {
     {
       label: 'Pilot measures',
       title: 'Recovery quality cannot be reduced to compensation cost',
-      summary: 'Illustrative measurement priorities for a parallel pilot. Values show proposed decision relevance, not expected improvement.',
+      summary: 'Modelled measurement priorities for a parallel pilot. Values show proposed decision relevance, not expected improvement.',
       interpretation: {
         establishes: 'The evaluation must cover ownership, feasibility, handoffs, policy and guest outcome across the complete recovery route.',
         doesNotEstablish: 'The weights do not predict satisfaction, loyalty, revenue or operating savings.',
         management: 'Use a balanced review so lower compensation cannot disguise slower or less humane recovery.',
       },
-      source: 'Quiet Gears illustrative evaluation design',
+      source: 'Quiet Gears evaluation design (design values, not measured findings)',
       points: [
         { label: 'Time to named ownership', value: 90, display: 'Core', detail: 'Measure when one colleague becomes accountable for the case.' },
         { label: 'Time to feasible option', value: 100, display: 'Core', detail: 'Measure when a deliverable remedy becomes available, not when text is generated.' },
         { label: 'Repeat contacts and handoffs', value: 82, display: 'Material', detail: 'Repeated explanation is evidence of coordination failure.' },
         { label: 'Policy and compensation control', value: 88, display: 'Material', detail: 'Track approved bands, overrides and escalation decisions.' },
-        { label: 'Guest outcome evidence', value: 78, display: 'Material', detail: 'Use feedback and subsequent behavior carefully because attribution is incomplete.' },
+        { label: 'Guest outcome evidence', value: 78, display: 'Material', detail: 'Use feedback and subsequent behaviour carefully because attribution is incomplete.' },
       ],
     },
   ],
