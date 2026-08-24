@@ -402,18 +402,23 @@ describe('criterion 6: the audit is opt-in and unchanged', () => {
     expect(p.result).not.toBe(null);
   });
 
-  it('opted in on a clean spec: 65 checks, 0 failures', () => {
+  // 65 -> 66 with D4: +1, the `inputs-enums` tripwire, which is run on every
+  // spec and passes on any spec that came through sanitizeSpec — which, since
+  // this module exists, is every spec the auditor ever sees. failCount stays 0
+  // in both cases and no existing check changed verdict; the count is the only
+  // movement, and it is the same +1 recorded on tests/appaudit.test.ts's pin.
+  it('opted in on a clean spec: 66 checks, 0 failures', () => {
     const p = appraiseProject({ schedule: DEMO_SCHEDULE, pricing: DEFAULT_PRICING }, { audit: true });
     expect(p.audit!.failCount, JSON.stringify(p.audit!.checks.filter((c) => !c.pass))).toBe(0);
-    expect(p.audit!.passCount).toBe(65);
+    expect(p.audit!.passCount).toBe(66);
   });
 
-  it('opted in on the typo spec: still 65/0, proving the auditor sees the REPAIRED spec', () => {
+  it('opted in on the typo spec: still 66/0, proving the auditor sees the REPAIRED spec', () => {
     // If the auditor were handed the raw spec it would be re-deriving costs
     // from a 450% bridge rate against a result computed at 50%, and would fail.
     const p = appraiseProject({ schedule: DEMO_SCHEDULE, pricing: typoSpec() }, { audit: true });
     expect(p.audit!.failCount, JSON.stringify(p.audit!.checks.filter((c) => !c.pass))).toBe(0);
-    expect(p.audit!.passCount).toBe(65);
+    expect(p.audit!.passCount).toBe(66);
     expect(p.repairs).toHaveLength(2);
   });
 });

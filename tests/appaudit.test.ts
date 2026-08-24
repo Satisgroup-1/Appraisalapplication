@@ -183,9 +183,11 @@ describe('duplicate cost codes (D11)', () => {
   });
 
   // 62 -> 65 with A5: +3, one capital-basis reconciliation per profit scenario
-  // (wf-s1-capital, wf-s2-capital, wf-s4-capital). No existing check changed
-  // verdict and failCount stays 0 — the count is the only movement.
-  it('a clean spec: 0 repairs and costs-duplicate-codes passes (62 -> 65)', () => {
+  // (wf-s1-capital, wf-s2-capital, wf-s4-capital). 65 -> 66 with D4: +1, the
+  // inputs-enums tripwire, which is run on every spec and passes on a clean
+  // one. No existing check changed verdict in either cycle and failCount stays
+  // 0 — the count is the only movement.
+  it('a clean spec: 0 repairs and costs-duplicate-codes passes (62 -> 65 -> 66)', () => {
     const spec = clonePricing(DEFAULT_PRICING);
     spec.buildCostMode = 'fixed';
     expect(sanitizeSpec(spec).repairs).toHaveLength(0);
@@ -194,7 +196,7 @@ describe('duplicate cost codes (D11)', () => {
     const check = report.checks.find((c) => c.id === 'costs-duplicate-codes');
     expect(check!.pass).toBe(true);
     expect(report.failCount).toBe(0);
-    expect(report.passCount).toBe(65);
+    expect(report.passCount).toBe(66);
     for (const id of ['wf-s1-capital', 'wf-s2-capital', 'wf-s4-capital']) {
       expect(report.checks.some((c) => c.id === id), id).toBe(true);
     }

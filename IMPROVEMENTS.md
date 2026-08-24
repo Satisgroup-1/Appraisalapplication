@@ -344,7 +344,25 @@ Fix: validate `code`/`group`/`kind` in `sanitizeSpec` (repairing unknown groups 
 with a reported repair), and replace the bare catch with a visible error state carrying the
 message.
 
-### D4 — MEDIUM · Enum inputs are never validated
+### ~~D4 — MEDIUM · Enum inputs are never validated~~ **DONE 2026-08-24.**
+`fixEnum` in `sanitizeSpec` now resolves `buildCostMode` → `fixed`, `waterfall.mode` →
+`simple`, `vat.fundedBy` → `equity` and `sdlt.regime` → `manual`, each with a reported
+`AuditRepair`; the auditor's simple-split gate became `mode !== 'waterfall' || netProfit <= 0`
+— the literal negation of the engine's own `mode === 'waterfall' && netProfit > 0` — which
+restores the three `wf-*-simple` checks that both an unknown mode AND a loss-making waterfall
+deal were silently skipping; and a new `inputs-enums` tripwire fails on any spec still carrying
+a bad discriminant. For the three newly validated discriminants the resolution is the branch
+the engine already took, so no figure moves; `sdlt.regime` is the exception — an unrecognised
+regime NaNs the appraisal (raw S1 `NaN` vs sanitised 2,079,630.16), so its `manual` fallback is
+justified by keeping the solicitor's typed B04, not by reproducing an unusable branch;
+check count 65 → 66 on a clean spec, 62 → 66 on one with a bad mode, and 62 → 66 on a
+loss-making waterfall. Recorded in AUDIT.md §6.10.
+**Residual:** disclosure, not correction — a corrupt `buildCostMode` still prices from the
+fixed D01 line and still shows the £251,748 of profit the room rates would not have given; the
+user must pick the right mode in the UI. Cost-line discriminants remain unvalidated (D3).
+
+The finding as probed:
+
 `sanitizeSpec` validates the SDLT regime (added by the previous audit) but not
 `vat.fundedBy`, `waterfall.mode` or `buildCostMode`. Probe with `'typo'` in all three:
 
@@ -556,7 +574,10 @@ again across the profit/loss line.
    and the auditor grew the plausibility checks that catch this whole class. Recorded in
    AUDIT.md §6.6. **Residuals:** the facility estimate can still diverge from the actual draw
    (warned, not fixed — A4), and an unfunded month is reported but not funded (A8).
-6. **C2, C3, D3, D4, D8** — robustness; small diffs, removes silent failure.
+6. **C2, C3, D3, D8** — robustness; small diffs, removes silent failure. ~~**D4**~~ **Done** —
+   every spec discriminant is resolved to the engine's own branch with a reported repair, and
+   the auditor no longer loses three checks to an unrecognised `waterfall.mode` or to a
+   loss-making waterfall deal. Recorded in AUDIT.md §6.10.
 7. **A5, A7, A10, D5-D7** — model conventions and persistence.
 8. **B1-B7, E1, E2, E4** — scope decisions and process, once the questions below are answered.
 
@@ -608,13 +629,23 @@ Question 3 above is decided in principle but needs one number (5). The rest are 
     is flagged as having no source and is charged no interest. If a scheme's bridge and equity
     do not cover pre-construction spend, what facility fills it and on what terms: rate pa,
     arrangement fee, exit fee, and does it rank behind the senior development loan?
-12. **Basis of the development-loan arrangement fee.** Is the fee priced on the facility
+12. **Basis of the development-loan arrangement fee (Q12).** Is the fee priced on the facility
     committed at signing (the current E29 estimate) or on the facility actually drawn? On the
     demo the fee is charged on £3,787,282 against a cashflow peak of £3,982,955 — a £195,674
     gap understating the fee by ~£2,935 plus rolled interest. In the over-equitised probe it
     errs the other way, levying ~£12,612 on £591,694 of facility that is never drawn.
     Repricing would move golden pins, so it needs the client's own lending convention.
-13. **Basis of "capital drawn" in the investor ROI.** The model reports ROI on **peak** capital
+    **Still open, and it now blocks two backlog items rather than one:** the A4 residual (the
+    two figures above) and the reviewer's "cliff, not a threshold" observation on the
+    `devFacilityNil` warning. Both resolve the same way once the basis is known.
+13. **Mixed-use refinance (A10).** On a scheme with a retained commercial unit, S3 currently
+    advances against the WHOLE asset at the residential `refinance.ltv` (65%) and prices it at
+    the residential rate (5.5%), including the demo's £14,400 pa of commercial rent. Which
+    convention do you want: (a) one blended facility as now, (b) the commercial unit excluded
+    from the refinance and held unencumbered, or (c) a separate commercial facility — and if
+    (c), at what LTV, rate and arrangement fee? Either (b) or (c) reduces the modelled advance,
+    so this moves stored S3 figures and the loop will not choose it for you.
+14. **Basis of "capital drawn" in the investor ROI.** The model reports ROI on **peak** capital
     drawn. A time-weighted average drawn balance would give a higher figure again for a scheme
     whose equity is called down late. Peak is the convention adopted because it is the exposure
     the investor underwrites; confirm it is yours.

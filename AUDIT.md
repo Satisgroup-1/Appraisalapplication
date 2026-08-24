@@ -616,6 +616,154 @@ failure, so it correctly takes the empty state — but the sentence is wrong for
 scheme the user did select. Copy only, and it needs the card's "not viable"
 reason to say anything better.
 
+### 6.10 Spec discriminants: validated, resolved and disclosed (2026-08-24)
+
+**Finding — three of the four discriminants the engine branches on were never
+validated, and each one errs in the direction that flatters the deal.**
+`sanitizeSpec` checked `finance.sdlt.regime` and nothing else. Every other
+discriminant is read in `dcf.ts` as a `=== 'literal'` test, so a corrupt value
+is not rejected: it silently takes the else-branch. Probed on this checkout at
+`2dfdf20` with the `full_balanced` option of `DEMO_BUILDING` and
+`clonePricing(DEFAULT_PRICING)`, one hand-edited value at a time — baseline
+0 repairs, **65 checks / 0 fails**, D01 £2,526,760.9416,
+`totalPreFinance` £5,404,844.04553, S1 net profit £2,079,630.1602789517:
+
+| Hand-edited value | repairs | audit | S1 net profit | against the correct spec |
+|---|---|---|---|---|
+| `buildCostMode: 'typo'` | **0** | 65 / 0 | **2,331,378.373762631** | **+£251,748.21** vs `'roomRates'`; D01 collapses to 2,305,099 (−£221,661.94 of build cost) |
+| `waterfall.mode: 'typo'` | **0** | **62 / 0** — `wf-s1-simple`, `wf-s2-simple`, `wf-s4-simple` silently skipped | 2,079,630.16 (unchanged) | investor paid the *simple* 1,039,815.08 while the result reported mode `'typo'`, so `WaterfallTable` rendered nothing; a genuine `'waterfall'` run pays 1,072,525.53 |
+| `vat.optedToTax: true, vat.fundedBy: 'typo'` | **0** | 65 / 0 | **2,058,321.89779957** | identical to `'equity'`; **£17,056.89** of VAT-loan fee and interest avoided vs `'vatLoan'` (2,041,265.0087556047) |
+
+A quarter of a million pounds of profit from a misspelt string, while the audit
+strip reads 65 checks, 0 fails, 0 repairs. The middle row is the worse defect:
+the instrument meant to catch this class of thing had a hole in it, because
+`wf.mode === 'simple'` gated the simple-split reconciliation and an unknown
+mode was assessed by **neither** branch — the report shrank by three checks and
+said nothing about it. Pulling on that thread found a second state falling
+through the same gap, with no corrupt input at all: a **loss-making waterfall
+deal**, where the engine splits pro rata but the mode still reads
+`'waterfall'`. See the fix below.
+
+**Fix (D4) — resolve to the branch the engine already took, and report it.** A
+`fixEnum` helper beside `fix()` resolves `buildCostMode` → `'fixed'`,
+`finance.waterfall.mode` → `'simple'`, `finance.vat.fundedBy` → `'equity'` and
+(folded in unchanged in wording and fallback) `finance.sdlt.regime` →
+`'manual'`, each through the existing `AuditRepair` channel that `AuditStrip`
+already renders. **For the three discriminants this item newly validates**, the
+fallback is what the engine *already* did with the corrupt value, so **no
+figure moves anywhere** — this is a disclosure fix, not a correction. The
+sanitiser deliberately does **not** guess the costlier intent
+(`'roomRates'`, `'vatLoan'`): the intent behind a corrupt string is unknowable,
+and inventing a repricing or a whole VAT facility on load is exactly the
+stored-project movement that §6.1 finding 8's `sdlt: {}` trap warns against.
+
+**The SDLT regime is the exception to that no-movement claim, and is worth its
+own record.** Its repair is pre-existing and unchanged by this cycle — same
+wording, same `'manual'` fallback — but it is *not* justified the way the other
+three are. `dcf.ts` gates the automatic calculation on `regime !== 'manual'`,
+so an unrecognised regime takes the **automatic** arm; `computeSdlt`
+(`src/core/sdlt.ts:60`) has no default case, B04 comes back `undefined`, and
+the whole appraisal goes NaN. Measured on the demo with
+`finance.sdlt = { regime: 'typo' }`: raw S1 net profit **NaN**, sanitised
+**2,079,630.1602789517** — a whole appraisal of movement, not zero. `'manual'`
+remains the right resolution, but because it preserves the solicitor's typed
+B04 rather than because it reproduces a branch that is unusable. This is the
+one discriminant whose corruption fails **loudly** rather than flatteringly,
+which is why it was the only one already validated before this item, and why
+its "movement" is the repair of a NaN and not the movement of anyone's stored
+number.
+
+**`normalizePricing` was deliberately left alone.** It still coerces a missing
+`buildCostMode` to `'fixed'` silently at load (`src/core/pricing.ts:178`, "old
+files priced from fixed D01"). That is a migration default for a field that was
+never written, not a corruption, and the loader has no channel in which to
+report anything. Validation belongs where it can be *told to the user*.
+
+**Two auditor changes.** The simple-split gate is now
+`wf.mode !== 'waterfall' || netProfit <= 0`, the literal negation of the
+engine's own condition for the waterfall arithmetic, which is
+**`mode === 'waterfall' && netProfit > 0`** — not `mode === 'waterfall'`
+(`src/core/dcf.ts:708` reads `if (wf.mode !== 'waterfall' || netProfit <= 0)`).
+Mirroring it exactly is the only thing that makes the check's coverage
+complementary, so no deal state can fall between the two branches. Two used to.
+The first was an unrecognised mode (`=== 'simple'` false). The second, found by
+the reviewer of the first attempt at this item and fixed here, was a
+**loss-making waterfall deal**: a loss is shared pro rata however the deal is
+papered, because there is no preferred return payable out of a negative number,
+so the engine ran the simple split while `!== 'waterfall'` was false and the
+check was skipped. Measured, `full_balanced` with `priceAdjust −0.5` and
+`waterfall { mode: 'waterfall', prefRatePa 0.08, residualInvestorPct 0.7 }`: S1
+net profit **−1,795,885.48**, investor **−897,942.74** = net profit × the
+*simple* share 0.5 — and `wf-s1-simple`/`-s2-`/`-s4-` absent, **62 checks**. It
+now reads **66 / 0 fails**, the same count as the identical loss papered as a
+simple split. A genuinely profitable waterfall still reports 63: those three
+checks are correctly not applicable there, and asserting them would be a false
+failure. And a new tripwire `inputs-enums` ("Every spec discriminant is a value
+the engine recognises") fails, naming the field and the offending value, on any
+spec that still carries one — the D11 pattern.
+
+That tripwire is **defence in depth, not a live catch**. The rationale it was
+written against — `OptionsView` and `PricingView` calling `runAppraisal` on the
+raw spec — was closed by §6.9 (D12) while this cycle was in flight: every screen
+now prices through `appraiseProject`, which sanitises before it audits, so no
+caller in the shipped app can reach `auditAppraisal` with a corrupt
+discriminant. It is kept, and its comments say so plainly, because the failure
+it guards is the silent kind: every other check re-derives the model from the
+same spec the engine was handed, so a corrupt discriminant makes auditor and
+engine agree on the wrong branch and every identity holds while the answer is
+not the one the file asked for. A future caller auditing an unsanitised spec
+would otherwise collect a clean bill of health on a scheme priced by a branch
+nobody chose.
+
+**Check count** on `full_balanced`, every "before" figure measured at `2dfdf20`
+and every "after" figure on this tree:
+
+| Spec | before | after | what moved |
+|---|---|---|---|
+| clean, either raw or sanitised | 65 / 0 | **66 / 0** | the tripwire, which passes |
+| unrecognised `waterfall.mode`, sanitised | 62 / 0 | **66 / 0** | tripwire + the three `wf-*-simple` restored |
+| unrecognised `waterfall.mode`, raw | 62 / 0 | **66 / 1** | as above, and the tripwire now fails as it should |
+| unrecognised `buildCostMode`, raw | 65 / 0 | **66 / 1** | the tripwire, failing |
+| loss-making `waterfall` deal | 62 / 0 | **66 / 0** | the three `wf-*-simple` restored, plus the tripwire |
+| profitable `waterfall` deal | 62 / 0 | **63 / 0** | the tripwire only; the three simple checks are correctly not applicable |
+
+Those are the only movements. Two suites pin the count exactly and both were
+updated 65 → 66, with the provenance in their comments and in the commit
+message: `tests/appaudit.test.ts`'s clean-spec pin, and the two in §6.9's
+`tests/appraise.test.ts` ("opted in on a clean spec" and "opted in on the typo
+spec"), which landed on the branch while this cycle was in flight. In every one
+of them `failCount` stays 0 and no existing check changed verdict — the +1 is
+the new tripwire passing. No golden pin in `tests/dcf.test.ts` moved, and no
+engine file was touched.
+
+**Incidental, fixed here because it blocked the tripwire from ever being
+reported:** the auditor *threw* on a raw spec with an unrecognised SDLT regime.
+`computeSdlt` has no branch for one, so the engine's B04 comes back `undefined`
+and the `gbp()` formatter died on `undefined.toLocaleString()`, taking the
+whole report with it. `gbp()` is now total for non-numbers; output for every
+finite value, and for `NaN`, is byte-identical.
+
+**Failing-first evidence.** `tests/enums.test.ts` — 7 tests, 6 of them failing
+against `2dfdf20` (`expected [] to have a length of 1` ×3,
+`inputs-enums must exist: expected undefined to be defined`, `expected 65
+checks to have a length of 66`, and for the loss-making waterfall
+`wf-s1-simple must be assessed …: expected undefined to be defined`), all 7
+passing after. The seventh, F2, passes both before and after by design: it is
+the guard on the *other* side of the gate, pinning that a profitable waterfall
+is still **not** reconciled as a simple split, so a future widening of the
+condition cannot assert `profit × share` against arithmetic that never ran.
+
+**Residual — the overstatement is disclosed, not removed.** A file with
+`buildCostMode: 'typo'` still prices its contract from the fixed D01 line and
+still shows the £251,748 of profit that the room rates would not have given.
+The repair note now says which side of that the appraisal landed on; choosing
+the right mode remains the user's act, in the UI. Likewise a corrupt
+`vat.fundedBy` no longer claims a facility nobody priced, but the £17,056.89 of
+VAT-loan cost is not conjured back. And cost-line discriminants
+(`DevCostLine.group` / `kind` / `whenIncurred`) are still unvalidated — that is
+D3, still open, and it needs an incidence rule this change deliberately does
+not invent.
+
 ## 7. Re-running the audit
 
 ```bash
