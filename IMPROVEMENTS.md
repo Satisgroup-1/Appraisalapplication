@@ -179,6 +179,62 @@ rather than a passing zero.
 `number | null`; `ltgdvOk` is `boolean | null`. The UI renders `n/a` and "not assessed". A real
 breach stays `false`, pinned by a test. Recorded in AUDIT.md §6.6 finding 18.
 
+### A12 — MEDIUM · The A4 floor under-prices a facility that is genuinely drawn
+
+A4's fix floors the **whole** estimate — `Math.max(0, devFacilityRaw)` at
+`src/core/dcf.ts:364` — which removes the negative arrangement fee but replaces it
+with a **zero** fee on real borrowing. Measured on the landed code (demo schedule,
+`equity.total` £6,000,000, default bridge):
+
+| | |
+|---|---|
+| facility estimate | **£0** |
+| arrangement fee | **£0** |
+| peak actually drawn | **£1,446,776** |
+| interest rolled to PC | £108,081 |
+| fee owed at the 1.5% input rate | **£21,702** |
+
+The loan is drawn because `computeCashflow`'s `grossNeed` adds the bridge
+redemption at `conStartMonth` while `equityCum` is capped at
+`cumNeed − bridgeAdvance`, so surplus equity never steps up to repay the bridge —
+the dev facility does. A facility that refinances £1.34m of bridge debt is a real
+facility and carries a real fee.
+
+The fix is to floor the **equity term** rather than the estimate, so the
+redemption the facility must fund always survives:
+
+```ts
+const devFacilityEstimate = estRedemption + Math.max(0, dev.totalPreFinance - f.equity.total - bridgeAdvance);
+```
+
+Where the equity term is positive this is the pre-A4 expression with its final
+addition commuted, and IEEE-754 addition is commutative (only associativity
+fails), so **the demo stays bit-identical and no golden pin moves.** On the probe
+above it gives an estimate of £1,338,695.76 and a fee of £20,080.44.
+
+Two further points established while investigating, both verified numerically:
+
+- `surplusEquity`-style figures are **sizing** figures, not idle capital. On a
+  VAT-reclaim-lag case (equity £5.3m, no bridge, 18-month lag) the surplus is
+  £164,414 while `equity.total − equityUsed` is **£0** — every committed pound is
+  drawn, absorbed as working capital. Even on a plainly over-equitised deal they
+  differ: £2,151,414 surplus against £2,199,563 never drawn. Any warning that
+  calls the surplus "idle" is wrong.
+- Because `runAppraisal` runs **two** cashflows, there is a band of committed
+  equity — `(letPreFinance − advance, salePreFinance − advance)`, on the demo
+  £3,739,362 to £3,848,586 — in which the **let** basis floors and the sale basis
+  does not. S3's cost base and unrealised profit move there (up to ~£1,648) while
+  any sale-basis surplus reads zero. A warning keyed only to the sale basis is
+  silent across that whole band.
+
+Evidence came from a manually driven cycle whose plan and audit were verified
+independently but which was abandoned rather than pushed, because origin had
+advanced 21 commits across 30 files in the meantime and a hand merge of
+overlapping engine work carried more risk than the fix was worth. Local commit
+`01b440c` in that session held a complete implementation with 28 tests, three
+warnings and three audit checks; it is not on any branch, so treat the expression
+and the figures above as the specification rather than looking for the code.
+
 ### A10 — MEDIUM · Retained commercial rent is refinanced on residential terms
 S3's `grossAnnualRent` is the whole schedule's rent, including the retained commercial unit
 (£14,400 pa on the demo), and the whole lot is advanced against at the residential
