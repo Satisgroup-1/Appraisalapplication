@@ -75,7 +75,7 @@ export const newsEditorial: Record<string, NewsEditorial> = {
         purpose: 'Explain the causal mechanism between connected software and dependable performance.',
         paragraphs: [
           { text: 'Once a material decision is selected, integration becomes less about moving data and more about allocating authority. Management must decide which record is authoritative, which fields are sufficient, which outputs may proceed without review and which exception stops the workflow. A confidence score has no operating value unless low confidence changes the route, owner or service expectation.' },
-          { text: 'The strongest design usually combines ordinary software with bounded AI. Required fields, calculations and known notifications should remain deterministic. A model earns its place where language or variation makes fixed rules inadequate. Source attribution and evaluation then connect interpretation back to evidence, while an accountable person retains authority over consequential exceptions.' },
+          { text: 'The strongest design usually combines ordinary software with bounded AI. Required fields, calculations and known notifications should remain deterministic. A model belongs where language or variation makes fixed rules inadequate. Source attribution and evaluation then connect interpretation back to evidence, while an accountable person retains authority over consequential exceptions.' },
           { text: 'This architecture gives the finance team something measurable: elapsed time from eligible input to accepted outcome, first-time quality, rework and exception effort. Yet it also creates cost and control obligations. A formal workflow is not always worth that burden, and the threshold should be set before the work starts.' },
         ],
         exhibits: [{ kind: 'system', afterParagraph: 1 }],
@@ -150,7 +150,7 @@ export const newsEditorial: Record<string, NewsEditorial> = {
         heading: 'Rational supplier lock-in',
         role: 'counterargument',
         transition: 'Control carries its own engineering and operating cost. The next section identifies the conditions under which a managed supplier remains the sounder economic choice.',
-        purpose: 'Examine where managed platforms earn their premium.',
+        purpose: 'Examine what managed platforms charge a premium for.',
         paragraphs: [
           { text: 'A rigid demand for portability can itself destroy value. Managed platforms may combine strong models with retrieval, security, observability and support that would be costly to reproduce. If those services materially improve accepted-task economics, a degree of dependency can be a rational commercial choice.' },
           { text: 'The discipline is to make that dependency visible. Business rules, representative test cases and acceptance criteria should remain controlled by the buyer even when execution uses proprietary features. A stable evaluation set is more important than a universal adapter because it allows the firm to determine whether a second provider can satisfy the same business standard.' },
@@ -329,7 +329,7 @@ export const newsEditorial: Record<string, NewsEditorial> = {
         purpose: 'Use the strongest SME evidence to define the opportunity and its limits.',
         paragraphs: [
           { text: 'An OECD survey across seven countries found generative AI in use at 31 percent of SMEs. Among users, 65 percent reported improved employee performance and 39 percent of those with a recent skills gap said the technology helped compensate. At the same time, 83 percent reported no change in overall staffing need. These are reported experiences, not measured productivity magnitudes.', sources: [oecdWorkforce] },
-          { text: 'The evidence shows that smaller firms can access AI and often perceive it as useful. It offers no basis for claims that they outperform large firms, that jobs will disappear or that a particular workflow will earn a positive return. Management can use the findings to justify a focused test, with no presumption about its result.' },
+          { text: 'The evidence shows that smaller firms can access AI and often perceive it as useful. It offers no basis for claims that they outperform large firms, that jobs will disappear or that a particular workflow will produce a positive return. Management can use the findings to justify a focused test, with no presumption about its result.' },
           { text: 'For the five-person group, the practical agenda is augmentation tied to a visible constraint. Better preparation, interpretation or coordination should release capacity or improve quality in one recurring part of the work.' },
         ],
         exhibits: [{ kind: 'evidence', view: 0, afterParagraph: 0 }],
@@ -430,14 +430,14 @@ export const newsEditorial: Record<string, NewsEditorial> = {
         purpose: 'Give the finance director an evidence-based continuation decision.',
         paragraphs: [
           { text: 'The programme’s 100 hours should be restated as a hypothesis. Finance and the process owner should review the baseline, eligible adoption, net effort, quality, service and the named destination of any released capacity. Confidence should rise only as observed evidence replaces assumptions.' },
-          { text: 'The review should conclude with one of four decisions: expand where the causal chain is working, adjust where a bottleneck is visible, hold where observation is insufficient, or stop where the result no longer justifies the operating cost. Measurement earns its cost when it changes that choice.' },
+          { text: 'The review should conclude with one of four decisions: expand where the causal chain is working, adjust where a bottleneck is visible, hold where observation is insufficient, or stop where the result no longer justifies the operating cost. Measurement is worth its cost when it changes that choice.' },
           { text: 'Finance could not find a pound because the original calculation ended at the automated task. A credible case follows the effect until it reaches an operating or financial consequence, then states honestly what remains unproven. A range supported by that chain is stronger than a precise saving that exists only on a slide.' },
         ],
       },
     ],
   },
   'legal-ai-source-grounded-work': {
-    title: 'Legal AI earns trust one proposition at a time',
+    title: 'Legal AI is trusted one proposition at a time',
     standfirst: 'Legal research and drafting can move faster without relaxing professional standards. The operating design must keep each proposition inside the matter boundary, attach it to valid authority and preserve a visible route to professional acceptance.',
     thesis: 'A legal AI service becomes decision-useful when every material proposition is linked to an approved source, checked for jurisdiction and date, protected by matter-level access and accepted by an accountable legal professional.',
     sceneLabel: 'Composite legal-operating vignette',
@@ -513,7 +513,7 @@ export const newsEditorial: Record<string, NewsEditorial> = {
         paragraphs: [
           { text: 'The solicitor in the opening scene should be able to select each proposition, open the supporting passage, see jurisdiction and date, inspect counterauthority and record acceptance or rejection. A proposition without that route remains a drafting suggestion and cannot enter accepted work.' },
           { text: 'The first release should cover one matter type, one approved source hierarchy and a defined set of professional users. It should stop on uncertain identity, inaccessible source, failed validity check or material evaluation regression. Expansion depends on support, omission, review-effort and confidentiality evidence from live supervised use.' },
-          { text: 'Legal AI does not earn trust through fluent output or a long reference list. It earns a bounded place in practice when evidence stays visible, professional authority stays attributable and the system makes weak support easier to detect.' },
+          { text: 'Fluent output and a long reference list do not make legal AI trustworthy. It takes a bounded place in practice when evidence stays visible, professional authority stays attributable and the system makes weak support easier to detect.' },
         ],
       },
     ],
@@ -583,7 +583,7 @@ export const newsEditorial: Record<string, NewsEditorial> = {
         paragraphs: [
           { text: 'An experienced colleague can often resolve disruption through local knowledge and discretion faster than a new system can reconcile imperfect records. A rigid workflow may narrow empathy, delay a simple gesture or turn policy into a ceiling when an unusual situation warrants generosity.' },
           { text: 'Integration can also create a fragile dependency. A central case that waits for every connector may be slower than direct inspection, and centralised identity increases privacy and security consequence. The right fallback is an explicit manual route with delegated authority, later reconciliation and no requirement to wait for generated text.' },
-          { text: 'The service earns its place on recurring cross-system failures where reconstruction and approval delay are material. It should stay out of a straightforward conversation that one colleague can resolve safely. Override reasons become evidence about where policy, data or interface design is too restrictive.' },
+          { text: 'The service belongs on recurring cross-system failures where reconstruction and approval delay are material. It should stay out of a straightforward conversation that one colleague can resolve safely. Override reasons become evidence about where policy, data or interface design is too restrictive.' },
           { text: 'This counterargument keeps the release focused on coordination. It does not ask software to substitute for judgement or care.' },
         ],
       },

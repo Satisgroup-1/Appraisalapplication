@@ -329,7 +329,7 @@ export const caseEditorial: Record<string, CaseEditorial> = {
       'The dispatcher has balanced engineer skills, locations, parts, promised appointments and working-hour limits. An urgent job arrives. Inserting it may protect one customer while delaying another, increasing travel or breaking a certification rule.',
       'The representative job is fictional. It tests whether a planning layer can produce feasible, explainable options while the dispatcher retains authority over the published day.',
     ],
-    centralQuestion: 'The service earns its place by absorbing an urgent job with visible trade-offs and no breach of a hard constraint, and without imposing unacceptable churn on customers and engineers.',
+    centralQuestion: 'The service is worth running if it absorbs an urgent job with visible trade-offs and no breach of a hard constraint, and without imposing unacceptable churn on customers and engineers.',
     evidenceTitle: 'Daily planning gate and weights',
     processTitle: 'Work order to published plan',
     systemTitle: 'Feasible-option planning architecture',

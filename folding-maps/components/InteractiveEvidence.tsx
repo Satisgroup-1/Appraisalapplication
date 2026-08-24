@@ -73,7 +73,7 @@ export function InteractiveEvidence({
         <div className="evidence-interpretation">
           <p><strong>What this establishes.</strong> {view.interpretation.establishes}</p>
           <p><strong>What it does not establish.</strong> {view.interpretation.doesNotEstablish}</p>
-          <p><strong>Why management should care.</strong> {view.interpretation.management}</p>
+          <p><strong>What management should do.</strong> {view.interpretation.management}</p>
         </div>
       )}
 

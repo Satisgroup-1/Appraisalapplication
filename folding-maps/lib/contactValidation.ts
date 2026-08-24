@@ -35,11 +35,11 @@ export function validateContactPayload(body: Record<string, unknown>) {
 
   const missing: string[] = [];
   if (!/^\S+@\S+\.\S+$/.test(payload.email)) missing.push('a valid email address');
-  if (!payload.interest) missing.push('service interest');
+  if (!payload.interest) missing.push('the subject');
   if (!payload.companySize) missing.push('company size');
-  if (!payload.budget) missing.push('indicative budget');
-  if (payload.message.length < 10) missing.push('an opportunity description of at least 10 characters');
-  if (!payload.consent) missing.push('privacy consent');
+  if (!payload.budget) missing.push('an indicative budget');
+  if (payload.message.length < 10) missing.push('a description of the constraint (at least ten characters)');
+  if (!payload.consent) missing.push('consent to reply');
   if (payload.referred && !payload.referralSource) missing.push('how you were referred');
   if (payload.referred && !payload.referralName) missing.push('who referred you');
 

@@ -10,7 +10,7 @@ export const metadata = createPageMetadata({
   path: '/about',
 });
 
-const leadConsultants = ['Luc Balonwu', 'Rohan Campion'];
+const leadConsultants = ['Rohan Campion', 'Luc Balonwu'];
 
 /* What the firm will not do. Stated plainly, because a list of refusals tells a
    prospective client more about how a firm works than a list of capabilities. */

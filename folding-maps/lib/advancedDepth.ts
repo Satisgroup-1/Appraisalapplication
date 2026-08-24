@@ -39,7 +39,7 @@ export const advancedNewsDepth: DepthMap = {
       { text: 'Capacity planning should model memory, throughput, concurrency and recovery under peak demand. Hardware utilisation can improve unit cost while reducing spare capacity for failures or sudden traffic. Teams also need a plan for model loading time, failover and observability. These responsibilities explain why open weights can be strategically valuable and operationally uneconomic at the same time.' },
     ],
     [
-      { text: 'Managed services may earn their premium through identity integration, regional controls, abuse monitoring, support and rapid access to improved models. The value should be tested at workflow level. A proprietary retrieval feature that lifts acceptance and reduces engineering can justify dependency when contract, export and migration terms are understood.' },
+      { text: 'Managed services justify their premium through identity integration, regional controls, abuse monitoring, support and rapid access to improved models. The value should be tested at workflow level. A proprietary retrieval feature that lifts acceptance and reduces engineering can justify dependency when contract, export and migration terms are understood.' },
       { text: 'Exit planning should record data export, evaluation portability, prompt and policy ownership, replacement lead time and the features that have no equivalent elsewhere. A periodic substitute test is more informative than a theoretical multi-provider abstraction. It shows whether a second candidate can process the representative set at the required service level and identifies the dependencies that remain rational.' },
     ],
     [
@@ -124,7 +124,7 @@ export const advancedNewsDepth: DepthMap = {
     ],
     [
       { text: 'External studies can inform mechanism and evaluation design. They cannot provide the local counterfactual because task mix, worker experience, interface, incentives and operating support differ. The programme should record which elements of a study resemble the target workflow and which do not, then state the narrower hypothesis being tested.' },
-      { text: 'Distribution matters alongside the mean. A tool can lift average throughput while slowing experts, increasing variance or moving difficult work to a specialist queue. Results should be segmented by task type, experience and correction demand where sample size permits. This reveals whether value comes from raising a lower baseline, compressing routine work or changing allocation.' },
+      { text: 'Distribution deserves as much attention as the mean. A tool can lift average throughput while slowing experts, increasing variance or moving difficult work to a specialist queue. Results should be segmented by task type, experience and correction demand where sample size permits. This reveals whether value comes from raising a lower baseline, compressing routine work or changing allocation.' },
     ],
     [
       { text: 'Quality value needs a measurable defect and consequence. Fewer drafting corrections may release review effort; fewer customer errors may reduce remediation and protect service. Risk value needs exposure, control effectiveness and a defensible method for treating uncertainty. These benefit types should remain separate so a weak cash case cannot be rescued by an undefined risk claim.' },
@@ -164,7 +164,7 @@ export const advancedNewsDepth: DepthMap = {
   'hospitality-ai-guest-recovery': [
     [
       { text: 'Case creation should work across arrival, in-stay and post-stay channels. The same disruption may begin in an app, continue at the desk and close through email. Channel events need one recovery identifier and a clear owner so the guest does not repeat facts. Duplicate cases should merge with preserved histories and an auditable reason.' },
-      { text: 'Property time matters. Availability, housekeeping and maintenance events can arrive in different time zones and with delayed sync. The recovery view should display event time, source time and freshness. A proposed room option expires if its supporting state is stale or if reservation is not confirmed before the colleague commits.' },
+      { text: 'Property time is its own complication. Availability, housekeeping and maintenance events can arrive in different time zones and with delayed sync. The recovery view should display event time, source time and freshness. A proposed room option expires if its supporting state is stale or if reservation is not confirmed before the colleague commits.' },
     ],
     [
       { text: 'Identity matching should use the minimum attributes needed for the decision and expose why records are considered related. High-confidence exact links can proceed; uncertain links stay separate until a colleague verifies them. Merge and unmerge operations need an audit trail because identity correction can affect loyalty, payment and communications beyond the recovery case.' },
@@ -259,7 +259,7 @@ export const advancedCaseDepth: DepthMap = {
   'professional-services-intake': [
     [
       { text: 'The intake taxonomy should separate prospective client, contact, organisation, service need, jurisdiction, urgency and candidate matter. Each field needs purpose, source and sensitivity. Collecting every potentially useful fact at first contact increases abandonment and confidentiality exposure, so the form should ask only what the next control or routing decision requires.' },
-      { text: 'Referral provenance matters. The workspace records who supplied each fact and whether it came from the prospective client, referrer or an internal check. Conflicting facts remain visible. A generated brief cannot resolve conflict by selecting the more plausible statement without review.' },
+      { text: 'Referral provenance has to be recorded. The workspace records who supplied each fact and whether it came from the prospective client, referrer or an internal check. Conflicting facts remain visible. A generated brief cannot resolve conflict by selecting the more plausible statement without review.' },
     ],
     [
       { text: 'Deterministic controls should use approved identifiers and rule versions. Conflict, eligibility and mandatory completeness produce reproducible outcomes for the same evidence. A failed control creates a hold with reason and required action. A language model cannot override, reinterpret or conceal that state.' },
@@ -322,7 +322,7 @@ export const advancedNewsSections: Record<string, AddedSection[]> = {
     purpose: 'Turn buyer choice into a repeatable technical and commercial capability.',
     transition: 'Model and deployment comparisons create option value only when the application can reproduce its standard and recover from supplier change.',
     paragraphs: [
-      { text: 'The evaluation harness should store representative inputs, expected properties, reviewer rubric, model configuration, prompt, retrieval snapshot and cost observation. Results need versioned adjudication because the business standard can change. A model earns promotion through the same release process whether it is accessed through an API or served on controlled infrastructure.' },
+      { text: 'The evaluation harness should store representative inputs, expected properties, reviewer rubric, model configuration, prompt, retrieval snapshot and cost observation. Results need versioned adjudication because the business standard can change. A model is promoted through the same release process whether it is accessed through an API or served on controlled infrastructure.' },
       { text: 'Adapters should normalise only what the application genuinely shares. Context limits, tool protocols, safety behaviour and structured-output guarantees differ across suppliers. Forcing them behind an overly simple interface can hide useful capability and create unreliable fallbacks. The application should expose meaningful differences while keeping business rules and acceptance evidence under buyer control.' },
       { text: 'Continuity testing should include throttling, regional outage, malformed output, model withdrawal and a sudden quality regression. The fallback may be a second model, queued processing or a manual route. The correct choice follows the service promise. A nominal second provider offers little resilience if it has not processed the current evaluation set or cannot handle the same data boundary.' },
       { text: 'Contracts should address data use, retention, sub-processors, service change, model retirement, capacity, export and incident notification. Open-weight licences need a similar review of use restrictions, distribution and attribution. The technical inventory and commercial register should reference the same deployed artifact so a licence decision cannot become detached from production reality.' },

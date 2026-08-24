@@ -120,7 +120,7 @@ export default async function ServiceDetailPage({ params }: PageProps) {
           <div className="page-head">
             <div>
               <span className="kicker">Applied</span>
-              <h2 id="cases-title">Where this earns its place.</h2>
+              <h2 id="cases-title">Where this is applied.</h2>
             </div>
             <p className="lede">
               Each pattern begins with an operating constraint, not a technology, and keeps a

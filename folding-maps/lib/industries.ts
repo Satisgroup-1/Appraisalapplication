@@ -272,7 +272,7 @@ export const industries: Industry[] = [
     eyebrow: 'Reliable networks, clearer intervention',
     headline: 'Turn asset and customer signals into owned action.',
     lead: 'Independent operators, service providers and energy retailers can use AI to improve field planning, asset insight and customer operations while respecting safety-critical boundaries.',
-    thesis: 'AI earns trust in energy operations when it makes exceptions easier to diagnose and prioritise, without becoming an opaque control layer over physical infrastructure.',
+    thesis: 'AI is trusted in energy operations when it makes exceptions easier to diagnose and prioritise, without becoming an opaque control layer over physical infrastructure.',
     contextTitle: 'Reliability depends on coordinated evidence',
     context: [
       'Asset alarms, inspection records, work orders, weather and customer reports often sit in separate systems. Field and control teams join them manually under time pressure, then document the response after the event.',
@@ -456,7 +456,7 @@ export const industries: Industry[] = [
       { title: 'Conduct safety analysis', copy: 'Evaluate omissions, automation bias, privacy, workflow interruption and escalation with representative users.' },
       { title: 'Pilot with active surveillance', copy: 'Review every output initially, monitor corrections and involve patients where the experience changes.' },
     ],
-    closing: 'Build healthcare AI that earns trust by improving continuity, protecting professional responsibility and making care feel more joined up.',
+    closing: 'Build healthcare AI that is trusted because it improves continuity, protects professional responsibility and makes care feel more joined up.',
     accent: '#2e8d86',
     motif: 'pulse',
   },

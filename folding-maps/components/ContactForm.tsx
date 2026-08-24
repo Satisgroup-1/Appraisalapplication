@@ -60,8 +60,10 @@ export function ContactForm() {
         <Check size={20} aria-hidden="true" />
         <h3>Enquiry received.</h3>
         <p>
-          One of the two lead consultants will read it and reply, usually within one working
-          day. If it is urgent, email quietgearsai@gmail.com and say so in the subject line.
+          One of the two lead consultants will read it and reply within one working day,
+          either to arrange an initial consultation or to say plainly that this is not work
+          for us. A confirmation is on its way to your inbox. If it is urgent, email
+          quietgearsai@gmail.com and say so in the subject line.
         </p>
       </div>
     );
