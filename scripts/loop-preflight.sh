@@ -171,11 +171,13 @@ elif [[ "$BEHIND" -gt 0 ]]; then
   VERDICT=BLOCK
   REASON="this checkout is $BEHIND commit(s) behind $REMOTE_BRANCH — fast-forward before planning (git pull --ff-only), or the cycle will build against work that already exists"
   CODE=2
-elif [[ "$UNMERGED" -gt 0 ]]; then
-  VERDICT=WARN
-  REASON="$UNMERGED commit(s) on $REMOTE_BRANCH have not reached $TRUNK"
-  CODE=1
 fi
+# NOT a warning. The loop commits straight to its branch and never opens a PR,
+# so commits sitting on the branch and not on main is the NORMAL steady state —
+# it is how this loop is specified to work. Flagging it would mean a preflight
+# that warns on every cycle forever, and a warning that is always on is one
+# nobody reads. The count is still printed below, because it is what a human
+# needs before cutting a release; it just is not a finding.
 
 if [[ $JSON == 1 ]]; then
   esc() { printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g'; }
@@ -206,7 +208,7 @@ b "Unlanded work"
 echo "  uncommitted files            $DIRTY"
 echo "  committed here, not pushed   $STRANDED"
 echo "  behind $REMOTE_BRANCH   $BEHIND"
-echo "  pushed, not on $TRUNK          $UNMERGED"
+echo "  on the branch, not yet on $TRUNK   $UNMERGED   (expected: the loop does not merge)"
 if [[ "$STRANDED" -gt 0 ]]; then
   echo
   echo "  stranded commits (these do NOT survive this session):"
