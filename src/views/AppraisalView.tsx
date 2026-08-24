@@ -3,15 +3,21 @@
 // scenarios and sensitivity grids, plus export to the Excel template.
 
 import { useMemo, useState } from 'react';
-import { runAppraisal } from '../core/dcf';
-import { auditAppraisal, repairSchedule, sanitizeSpec } from '../core/audit';
+import { appraiseProject } from '../core/appraise';
 import { buildExportInputs, buildModelV2 } from '../core/exportPayload';
 import type { AuditReport, AuditRepair } from '../core/audit';
 import { DEMO_SCHEDULE } from '../core/demo';
-import type { AppraisalResult, PricingSpec, ScheduleRow } from '../core/types';
+import type { AppraisalResult, ScheduleRow } from '../core/types';
 import { fmtGBP, fmtMonthsOr, fmtNum, fmtNumOr, fmtPct, fmtPctOr, useStore } from '../state/store';
 
 type Tab = 'summary' | 'costs' | 'cashflow' | 'scenarios' | 'sensitivity';
+
+/** Shown when the inputs cannot be priced at all. Says plainly that there are
+ *  no figures — an appraisal screen with some numbers missing and no
+ *  explanation is worse than one that admits it computed nothing. Held as a
+ *  constant so the wording is one string a test can assert, not JSX fragments. */
+const NOT_PRICED_COPY =
+  'This appraisal could not be computed, so no figures are shown. Check the pricing inputs on the Pricing page.';
 
 export default function AppraisalView() {
   const project = useStore((s) => s.project);
@@ -28,38 +34,15 @@ export default function AppraisalView() {
   const roomAreas = useDemo ? undefined : option?.roomAreas;
   const pricing = project?.pricing ?? null;
 
-  // Every appraisal runs through the automatic financial audit: inputs are
-  // repaired where recoverable (and every repair reported), then the computed
-  // result is re-derived check by check.
-  const { result, schedule, spec, audit, repairs } = useMemo((): {
-    result: AppraisalResult | null;
-    schedule: ScheduleRow[] | null;
-    /** The REPAIRED spec the result was computed from. The workbook export
-     *  must use this and not the raw project spec, or a reported repair
-     *  (e.g. a 450% bridge rate clamped to 50%) is shown on screen while the
-     *  exported '2. Inputs' still carries the unrepaired figure. */
-    spec: PricingSpec | null;
-    audit: AuditReport | null;
-    repairs: AuditRepair[];
-  } => {
-    const empty = { result: null, schedule: null, spec: null, audit: null, repairs: [] };
-    if (!rawSchedule || !rawSchedule.length || !pricing) return empty;
-    try {
-      const clean = sanitizeSpec(pricing);
-      const sched = repairSchedule(rawSchedule);
-      const res = runAppraisal(sched.schedule, clean.spec, roomAreas);
-      const auditReport = auditAppraisal(res, clean.spec, sched.schedule);
-      return {
-        result: res,
-        schedule: sched.schedule,
-        spec: clean.spec,
-        audit: auditReport,
-        repairs: [...clean.repairs, ...sched.repairs],
-      };
-    } catch {
-      return empty;
-    }
-  }, [rawSchedule, pricing, roomAreas]);
+  // Every appraisal runs through the one entry point in src/core/appraise.ts:
+  // inputs are repaired where recoverable (and every repair reported), the
+  // result is priced from the repaired inputs, then re-derived check by check.
+  // The Options and Pricing pages price through the same function, so no
+  // screen can show a different profit for the same option.
+  const { result, schedule, spec, audit, repairs, error } = useMemo(
+    () => appraiseProject({ schedule: rawSchedule, pricing, roomAreas }, { audit: true }),
+    [rawSchedule, pricing, roomAreas],
+  );
 
   if (!project) return null;
 
@@ -118,11 +101,39 @@ export default function AppraisalView() {
       </div>
 
       {!result ? (
-        <div className="empty-state">
-          No option selected yet.
-          <br />
-          Generate options on the Options page and pick one, or load the bundled demo scheme above.
-        </div>
+        // "Nothing selected" and "this scheme could not be priced" are
+        // different situations and must read differently: telling a user who
+        // HAS selected an option to select one sent them looking for a
+        // selection bug instead of at the pricing input that broke the run.
+        error !== null ? (
+          <div className="warn-box">
+            <div>
+              <span className="badge fail" style={{ marginRight: 8 }}>
+                Not priced
+              </span>
+              {NOT_PRICED_COPY}
+            </div>
+            <div className="compliance-issue">Technical detail: {error}</div>
+            {repairs.length > 0 && (
+              <details style={{ marginTop: 6 }}>
+                <summary style={{ fontSize: 11, cursor: 'pointer' }}>
+                  What was repaired before the failure ({repairs.length})
+                </summary>
+                {repairs.map((rep, i) => (
+                  <div key={i} className="assumption">
+                    · {rep.field}: {rep.from} → {rep.to} ({rep.reason})
+                  </div>
+                ))}
+              </details>
+            )}
+          </div>
+        ) : (
+          <div className="empty-state">
+            No option selected yet.
+            <br />
+            Generate options on the Options page and pick one, or load the bundled demo scheme above.
+          </div>
+        )
       ) : (
         <>
           {result.warnings.length > 0 && (

@@ -441,6 +441,181 @@ such and are no longer what the UI reads, but a future consumer that reaches
 for `investorRoi` will still get a mode-dependent denominator. Retiring them is
 a separate, wider change.
 
+### 6.9 One appraisal entry point: the Options page priced from the raw spec (2026-08-24)
+
+**Finding — two screens of the same app reported different profits for the same
+option, and the screen the user chooses on was the wrong one.**
+`OptionsView` called `runAppraisal(o.schedule, project.pricing, o.roomAreas)`
+on the **raw** spec for the "S1 profit" on every card; `PricingView` did the
+same for the GDV and `devFacilityEstimate` it briefed the finance-research agent
+with. `AppraisalView` and the workbook export priced from the **repaired** spec
+(`sanitizeSpec` then `repairSchedule`) and disclosed the repairs in the audit
+strip. Nothing on the Options grid disclosed anything.
+
+No file editing is needed to reach it: `PctField` is
+`<input type="number" step="0.1">` with no `min` and no `max`, so `450` typed in
+the bridge-rate box stores `bridge.ratePa = 4.5` and `90` in the agent-fee box
+stores `sales.agentFeePct = 0.9`. `sanitizeSpec` repairs both (`bridge rate
+4.5->0.5`, `sales agent fee 0.9->0.2`). Measured on
+`generateOptions(DEMO_BUILDING, DEFAULT_RULES, ...)` with that spec:
+
+| Option | Options card (raw) | Appraisal page (repaired) | Divergence |
+|---|---|---|---|
+| `full_max_units` | **-7,365,660.643752255** | **+431,604.0969711812** | £7.80m, sign flip |
+| `full_balanced` | -7,365,660.643752255 | +431,604.0969711812 | £7.80m, sign flip |
+| `full_family` | -7,346,488.693813074 | +451,889.7887576418 | £7.80m, sign flip |
+| `DEMO_SCHEDULE` | -7,173,576.862996035 | -558,799.2093047546 | £6.61m |
+
+A developer reading the grid abandons every conversion as catastrophically
+loss-making while the app's own appraisal page prices `full_max_units` at
+**+£431,604** and its audit strip reads **65 checks / 0 fails, 2 input repairs
+applied**. Second reproduction, a preset-merged spec carrying `D01` twice (the
+duplicate-code repair of D11): card **-1,671,760.1760894181** against appraisal
+**+779,614.9968750654**, £2,451,375 apart and again across the profit/loss line.
+
+**Fix — `src/core/appraise.ts`, and no view may price a scheme itself.**
+`appraiseProject({schedule, pricing, roomAreas}, {audit?})` runs
+`sanitizeSpec` → `repairSchedule` → `runAppraisal` → `auditAppraisal` (audit
+opt-in only; 65 re-derivations per option card is not free) and returns the
+result **with the repaired spec and schedule it was computed from**, the
+repairs, and an error string. It never throws. All three views now call it, so
+the figure on the card is the figure the appraisal, the audit and the workbook
+are built from.
+
+Two empty results are kept distinct, because collapsing them is what made the
+old bare `catch {}` unreadable: **nothing to price** (no schedule or no spec) is
+all nulls with `error: null`, and **pricing failed** is `result: null` with the
+message *plus the repairs the completed stages had already found*. On screen:
+`AppraisalView` shows an error panel naming the failure and listing those
+repairs instead of "No option selected yet" for a scheme that was selected;
+`OptionsView` says how many repairs it priced from and how many options failed;
+`PricingView` refuses to brief the research agent rather than sending it a GDV
+of 0.
+
+**No well-formed project moves.** Sanitising a clean spec is the identity, so
+all 8 demo options price bit-identically (`toBe`): `full_max_units`
+2079630.1602789517, `full_balanced` 2079630.1602789517, `full_family`
+2100210.1981250523, `mixed_max_units` 1400878.62059341, `mixed_balanced`
+1400878.62059341, `mixed_family` 1414649.656284904, `floor_through`
+1922012.764009281, `whole_house` 2285332.0792131154. No engine change, no schema
+change, no flag, no migration: nothing stored moves and nothing on load moves.
+No golden pin in `tests/dcf.test.ts` moved and the demo scheme's audit stays
+65 / 0.
+
+**Blast radius on screen — two distinct cases, not one.** (i) Where
+`sanitizeSpec` reports a repair, the figure moves **to** the disclosed figure
+the workbook already carried, which is the point of the item. (ii) Separately,
+and with **no repair involved at all**, an option whose `schedule` is empty now
+shows **no S1 profit stat**, where it previously showed one. `generateOptions`
+does return such options — `conversions.ts` warns "No residential dwelling could
+be planned on this envelope" and still emits the option — and on a 0.3-scaled
+`DEMO_BUILDING` (7.8m x 3.9m floors, too shallow for any compliant unit)
+`full_max_units`, `full_balanced` and `full_family` all come back with
+`schedule.length === 0`. The card printed **"S1 profit -2790709.023373137"**
+there at HEAD, from `runAppraisal` over an empty schedule, and now prints
+nothing, with `repairs: []` and `error: null`.
+
+That is deliberate and is the honest presentation: -£2.79m is the acquisition,
+finance and holding cost of buying a building and constructing no dwelling, not
+a conversion's profit, and it sat beside "0 units", "£0.00m GDV" and the card's
+own **"Not viable - no dwellings"** badge. `appraiseProject` classifies an empty
+schedule as *nothing to price* rather than as a failure (criterion 5), so the
+stat is absent next to an explicit badge saying why, instead of inviting a
+comparison between a scheme's profit and a non-scheme's sunk cost. Pinned in
+`tests/appraise.test.ts` so the next cycle inherits a true blast radius.
+
+The same option is why `PricingView` guards on the **result** and not only on
+the error: at HEAD it briefed the finance-research agent with
+`{ gdv: 0, facility: 1356702.246962354 }` — a facility sized off the purchase
+price for a scheme with no units — and a first cut of this change guarded on
+`p.error` alone and threw `Cannot read properties of null (reading 'totals')`,
+which `runEstimates` then displayed verbatim in the failed estimate row. It now
+reports *"The appraisal could not be priced, so the finance research has no
+facility size to work from: &lt;the selected option has no unit schedule to
+price&gt;"*.
+
+**The brief must describe one spec, not half of each.** A second cut of this
+change routed only the GDV and the facility through `appraiseProject` and left
+`purchasePrice` and `bridgeLtv` on the raw `spec.finance`, which is reachable by
+this item's own mechanism: 'LTV on purchase' is a `PctField` with no `max`, so
+`700` typed there stores `bridge.ltv = 7`. `sanitizeSpec` repairs it (`bridge
+LTV 7->1`) and the facility comes back sized off a **£1,950,000** bridge advance
+at 100% LTV (`devFacilityEstimate` £4,114,375.976832083, GDV
+£7,872,242.8484000005 on `full_max_units` of `DEMO_BUILDING`) — while the brief
+still said `bridgeLtv: 7`. The researcher was therefore asked to source bridge
+terms at 700% LTV for a facility sized at 100%, and its rates were then applied
+to the repaired appraisal. The raw brief was at least self-consistent;
+half-repaired is worse than either spec whole. Every field of the brief now
+reads from `p.spec.finance` and `p.result`, and the raw `fin` survives only on
+the branch where nothing was priced and there is no repaired spec to read.
+
+Noted in passing, and NOT caused by this change: of the 8 generated demo
+options, 7 audit 65 / 0 but `whole_house` audits **63 / 1** on `DEFAULT_PRICING`
+— `cf-retention: withheld £30,370.3 vs released £0`. Its `pcMonth` is 112, so
+the defects-period release at month 118 falls outside the model horizon and the
+retention pot never empties. Reproduced identically through the pre-change
+`sanitizeSpec` → `repairSchedule` → `runAppraisal` → `auditAppraisal` chain, so
+the Appraisal page already showed this failing check for that option; the
+retention identity really is broken there. A separate item.
+
+**Standing dependency, now pinned by a test.** `generateOptions` reads only
+`spec.rates` (via `rateFor`) and `spec.build` (via `buildMonthsFor`), and the
+sanitiser has no rule touching either, so `store.regenerate()` staying on the
+raw spec creates no divergence today. `tests/appraise.test.ts` asserts
+`sanitizeSpec` leaves both sub-objects deep-equal on a messy spec: if a rule
+ever clamps a rate or a build month, that test fails and `regenerate` must be
+routed through the same entry point.
+
+**Failing-first evidence.** `tests/appraise.test.ts` (24 tests) cannot even load
+at `2dfdf20` — `Failed to load url ../src/core/appraise`. Re-run in a worktree
+at `2dfdf20` with **only the new module** dropped in and the views left as they
+were: `Tests 5 failed | 19 passed (24)`. The source guard names all three
+offenders (`expected [ 'AppraisalView.tsx', 'OptionsView.tsx',
+'PricingView.tsx' ] to deeply equal []`); each of the three copy assertions
+fails because none of the three screens said any of this; and *PricingView
+guards on the result, not only on the error* fails because the raw call was not
+guarded at all.
+
+Two further assertions were failing-first against the **first cut of this
+change**, which guarded on `p.error` alone and read the result through a
+non-null assertion: *no view non-null-asserts a priced result* →
+`expected [ 'PricingView.tsx' ] to deeply equal []`, and *the finance brief is
+refused with the mandated sentence, not a TypeError* →
+`expected TypeError: Cannot read properties of null… to not be an instance of
+TypeError`.
+
+Four more were failing-first against the **second cut**, the half-repaired
+brief above. *briefs the repaired LTV of 1, not the 7 the input box holds* →
+`the brief must quote the LTV the facility was sized at: expected 7 to be 1`;
+*briefs the repaired purchase price too* → `the brief must quote the price the
+appraisal was priced on: expected -500000 to be +0` (the purchase price is
+clamped to >= 0, so the raw read had a second way to disagree with the figures
+beside it); *PricingView reads no raw finance field once a repaired spec exists*
+→ `expected 'const p = appraiseProject({ schedule:…' not to match /\bfin\./`;
+and the guard assertion, now `if (p.error || !p.result || !p.spec)`. The LTV
+assertion evaluates the expression the **view** briefs each deal field from,
+lifted out of `runFinanceEstimate`'s source and evaluated against the same two
+bindings the view has (`fin` raw, `f` repaired), rather than a hand-written
+mirror of the brief — a mirror is what let the half-repaired brief pass. The
+view cannot be rendered instead: there is no DOM under vitest and it pulls in
+the zustand store and `window.satis`.
+
+All 28 pass as delivered; 265 → 293 tests.
+
+**Residuals.** (a) `sanitizeSpec` still throws on a non-array `devCosts`
+(`s.devCosts is not iterable`) and the repairs it found before the throw are
+unrecoverable — it accumulates them in a local array and does not return on the
+throw path, so `appraiseProject`'s promise to preserve partial repairs stops at
+the sanitiser's own boundary. (b) Unknown `group`/`kind` on a cost line are
+still unvalidated, so such a spec is unpriceable rather than repaired (D3 stays
+open, and is now strictly easier because the error is on screen). (c) `PctField`
+still has no `min`/`max`, so the fat-finger input remains enterable — repaired
+and disclosed, not prevented. (d) Selecting a zero-dwelling option still shows
+"No option selected yet." on the Appraisal page: that is nothing-to-price, not a
+failure, so it correctly takes the empty state — but the sentence is wrong for a
+scheme the user did select. Copy only, and it needs the card's "not viable"
+reason to say anything better.
+
 ## 7. Re-running the audit
 
 ```bash

@@ -402,9 +402,9 @@ the code (first occurrence kept, so the charge is neither silently doubled nor h
 new `costs-duplicate-codes` auditor tripwire fails on any spec still carrying a duplicate — so
 the by-code self-comparison in `costs-lines` can no longer hide a doubled cost. Clean baseline
 moves from 61 to 62 passing checks. Residual (backlog): `OptionsView`/`PricingView` still call
-`runAppraisal` on the raw un-sanitised spec (a variant of the IMPROVEMENTS.md:289 divergence),
-and the root-cause by-code resolution in `costs-lines` (audit.ts) is left in place, guarded now
-by the new tripwire.
+`runAppraisal` on the raw un-sanitised spec (a variant of the IMPROVEMENTS.md:289 divergence)
+— **closed by D12 2026-08-24** — and the root-cause by-code resolution in `costs-lines`
+(audit.ts) is left in place, guarded now by the new tripwire.
 Found by the reviewer during the abandoned D3 cycle (2026-08-24) and independently
 reproduced. Nothing in `sanitizeSpec` or `auditAppraisal` compares cost-line **codes**, so a
 stored project carrying the same line twice — a hand-edited file, a merge of two `.pricing`
@@ -439,6 +439,57 @@ repair naming the code, so the charge is not silently doubled *or* silently halv
 a `costs-duplicate-codes` check to `auditAppraisal` so the auditor stops resolving a line
 against itself. Note that `costs-lines` comparing spec entries to engine lines **by code** is
 the root cause and is worth revisiting more generally.
+
+### D12 — HIGH · ~~The Options and Pricing pages price the scheme from the RAW spec while the Appraisal page prices the repaired one~~ · **FIXED 2026-08-24**
+Result: new pure module `src/core/appraise.ts` — `appraiseProject(input, {audit?})` runs
+`sanitizeSpec` → `repairSchedule` → `runAppraisal` → `auditAppraisal` (audit opt-in), never
+throws, and returns the result **together with the repaired spec and schedule it was computed
+from**, the repairs and an error string. All three views now price through it, so the "S1
+profit" on the option card, the appraisal, the audit and the exported workbook are one figure.
+"Nothing to price" (`error: null`) stays distinguishable from "pricing failed", and on failure
+the repairs the completed stages had already collected are reported rather than discarded with
+the exception. AUDIT.md §6.9. All 8 demo options bit-identical, audit still 65/0, no golden pin
+moved, 265 → 293 tests. The finance-research brief is now read **entirely** from the repaired
+spec `appraiseProject` returns: a second cut sent the repaired GDV and facility with the raw
+`purchasePrice`/`bridgeLtv`, which on a spec carrying `bridge.ltv = 7` (700 typed into a
+`PctField` with no `max`) asked the researcher for bridge terms at 700% LTV against a facility
+sized at the repaired 100% — half a spec is worse than either whole.
+One further on-screen move, with **no repair involved**: an option whose
+`schedule` is empty — `generateOptions` emits these, warned "No residential dwelling could be
+planned on this envelope" — no longer shows an S1 profit stat at all. On a 0.3-scaled
+`DEMO_BUILDING` the card printed **-2790709.023373137** at HEAD, which is the sunk acquisition
+and finance cost of building nothing rather than a conversion's profit, beside the card's own
+"Not viable - no dwellings" badge; an empty schedule is nothing-to-price, so no figure is shown.
+The same option is why `PricingView` guards on the result and not only on the error (at HEAD it
+briefed the research agent `{gdv: 0, facility: 1356702.246962354}`). Residuals: `sanitizeSpec` still throws on a non-array `devCosts` and
+loses the repairs it found before the throw (D4's companion); unknown `group`/`kind` are still
+unvalidated, so such a spec is unpriceable rather than repaired (**D3 stays open**, now easier
+because the error is visible on screen); and `PctField` still has no `min`/`max`, so the
+fat-finger input remains enterable — repaired and disclosed, not prevented; and selecting a
+zero-dwelling option still reads "No option selected yet." on the Appraisal page (correct
+branch, wrong sentence — copy only).
+
+Logged three times before it was picked up: D1's "same issue for the raw spec", D11's landing
+note, and the D11 reviewer's "two call sites bypass the sanitiser" (LOOP-LOG.md:258).
+`OptionsView.tsx:27` printed `runAppraisal(o.schedule, project.pricing, o.roomAreas)` as the
+card's S1 profit inside a bare `catch {}`; `PricingView.tsx:130` briefed the finance-research
+agent from the same raw figure; only `AppraisalView.tsx:48-51` sanitised, and only it disclosed
+the repairs. `PctField` has no `min`/`max`, so `450` in the bridge-rate box (stored as 4.5) and
+`90` in the agent-fee box (0.9) need no file editing at all. On
+`generateOptions(DEMO_BUILDING, DEFAULT_RULES, ...)` with that spec:
+
+| Option | Options card (raw) | Appraisal page (repaired) | Divergence |
+|---|---|---|---|
+| `full_max_units` | **-7,365,660.643752255** | **+431,604.0969711812** | £7.80m, sign flip |
+| `full_balanced` | -7,365,660.643752255 | +431,604.0969711812 | £7.80m, sign flip |
+| `full_family` | -7,346,488.693813074 | +451,889.7887576418 | £7.80m, sign flip |
+| `DEMO_SCHEDULE` | -7,173,576.862996035 | -558,799.2093047546 | £6.61m |
+
+Every conversion reads as catastrophically loss-making on the page the scheme is chosen on,
+while the appraisal page prices `full_max_units` at **+£431,604** with an audit strip reading
+65 checks / 0 fails, 2 input repairs applied. Second reproduction, D11's duplicated `D01`:
+card **-1,671,760.1760894181** against appraisal **+779,614.9968750654**, £2,451,375 apart and
+again across the profit/loss line.
 
 ---
 

@@ -4,7 +4,7 @@
 import { useMemo, useState } from 'react';
 import type { ConversionOption } from '../core/types';
 import { planToSvg } from '../core/svgplan';
-import { runAppraisal } from '../core/dcf';
+import { appraiseProject } from '../core/appraise';
 import { fmtGBP, fmtNum, fmtPct, useStore } from '../state/store';
 
 export default function OptionsView() {
@@ -19,17 +19,41 @@ export default function OptionsView() {
   const [filter, setFilter] = useState<'all' | 'compliant'>('all');
   const selected = options.find((o) => o.id === selectedOptionId) ?? null;
 
-  const profits = useMemo(() => {
-    const m = new Map<string, number>();
-    if (!project) return m;
+  // The card's "S1 profit" is priced through the SAME entry point as the
+  // Appraisal page and the exported workbook, so the figure the user chooses a
+  // scheme on is the figure the scheme is appraised at. Pricing these from the
+  // raw spec used to flip a repairable 450% bridge rate into a £7.4m loss here
+  // and a £432k profit there. The repairs and any failure are surfaced above
+  // the grid rather than swallowed: an option that cannot be priced said
+  // nothing at all before, which reads as "no profit stat for this one".
+  //
+  // sanitizeSpec deep-clones the spec once per option (8 on the demo). Do NOT
+  // hoist it out of the loop or cache it — pricing "once, elsewhere" is
+  // exactly how the two screens drifted apart. The audit is deliberately not
+  // requested; 65 re-derivations per card is not free.
+  const { profits, repairs, errors } = useMemo(() => {
+    const profits = new Map<string, number>();
+    const repairs: string[] = [];
+    const errors: string[] = [];
+    if (!project) return { profits, repairs, errors };
     for (const o of options) {
-      try {
-        m.set(o.id, runAppraisal(o.schedule, project.pricing, o.roomAreas).scenarios.s1.netProfit);
-      } catch {
-        /* unpriceable option */
+      const p = appraiseProject({ schedule: o.schedule, pricing: project.pricing, roomAreas: o.roomAreas });
+      if (p.result) profits.set(o.id, p.result.scenarios.s1.netProfit);
+      if (p.error) errors.push(p.error);
+      // Every option is priced from the SAME spec, so a spec repair comes back
+      // once per option: counting them raw would announce "16 repairs" here
+      // against the Appraisal page's "2 input repairs applied" — a fresh
+      // divergence of exactly the kind this entry point exists to remove. So
+      // the count is of distinct repairs, which for spec repairs is precisely
+      // the Appraisal page's figure. (Generated schedules are internally
+      // consistent and produce none of the per-unit kind; if two options ever
+      // did report an identically worded unit repair it would be counted once.)
+      for (const rep of p.repairs) {
+        const line = `${rep.field}: ${rep.from} → ${rep.to}`;
+        if (!repairs.includes(line)) repairs.push(line);
       }
     }
-    return m;
+    return { profits, repairs, errors };
   }, [options, project]);
 
   if (!project) return null;
@@ -71,6 +95,20 @@ export default function OptionsView() {
       </div>
       {optionsStale && options.length > 0 && (
         <div className="warn-box">Building or pricing has changed since these options were generated. Regenerate.</div>
+      )}
+      {repairs.length > 0 && (
+        <div className="warn-box">
+          <div>
+            Priced from repaired inputs — {repairs.length} input repair(s) applied. The Appraisal page lists them.
+          </div>
+        </div>
+      )}
+      {errors.length > 0 && (
+        <div className="warn-box">
+          <div>
+            {errors.length} option(s) could not be priced: {errors[0]}.
+          </div>
+        </div>
       )}
 
       {options.length === 0 ? (
