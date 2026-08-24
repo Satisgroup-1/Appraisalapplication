@@ -15,6 +15,7 @@ Columns: when (UTC) · outcome · item · title · rework rounds · what happene
 | 2026-08-24 06:30 | ABANDONED | D3 | Validate cost-line discriminants in sanitizeSpec, and stop swallowing engine failures on the Appraisal page | 3 | Reviewer withheld approval after 3 rounds: runAppraisalForView drops the repairs it had already collected when a later stage throws, sanitizeSpec still throws outright on a non-array devCosts, the new test carries a false comment about H01's position, and the incidence rule's forward-compatibility hazard was left undocumented. Working tree reverted to 41d6e58; nothing committed. |
 | 2026-08-24 07:35 | LANDED | D11 | Reject duplicate cost-line codes in the sanitiser and add an auditor tripwire that catches them | 0 | sanitizeSpec now de-dups devCosts by code (keeps the FIRST occurrence, reports each dropped copy as a repair) and a new costs-duplicate-codes tripwire fails on any spec still carrying a repeated code. A duplicated D01 previously swung S1 net profit from +779,614.9968750654 to -1,671,760.18 (-£2,451,375) silently against a green audit. Clean baseline 61→62 checks; 5 D11 tests confirmed failing-first. No golden pin moved. |
 | 2026-08-24 08:51 | LANDED | A5 | Report investor ROI on both committed and drawn capital, in every profit mode | 0 | `investorCapital` was `mode === 'waterfall' ? drawnPeak : committed`, so an economically identical deal (no pref, 50/50 residual, equity 5,000,000 at investorShare 0.5) reported the same S1 investorProfit of 468,825.94 as 18.753% in simple mode and 24.672% in waterfall - 5.92 points apart on a presentation switch - while the investor's drawn peak and the developer's committed summed to 4,400,218.69, which is neither the 5,000,000 committed nor the 3,800,437.38 drawn. `WaterfallResult` now carries investorCommitted / investorDrawnPeak / developerCommitted / developerDrawnPeak and four ROI figures (on committed, on drawn, and their pa pair), each null on a zero base per the A9 precedent; both parties' peaks come from one traversal of the same `equityMonth` series. Additive, so stored projects load unchanged (demo S1 still 700,000 capital, ROI 0.556867854910761, profit 389,807.4984375327). Audit checks 62 -> 65: +3, one capital-basis reconciliation per profit scenario (wf-s1/s2/s4-capital); failCount unchanged at 0. 258->265 tests; tests/roi.test.ts 7 tests, all 7 confirmed failing at 0b2a57e. No golden pin in tests/dcf.test.ts moved. |
+| 2026-08-24 10:32 | LANDED | NEW-sanitised-spec-everywhere | Price every screen from the repaired spec: one appraisal entry point for Options, Pricing and Appraisal | 0 | New pure module `src/core/appraise.ts`; `appraiseProject(input, {audit?})` runs sanitizeSpec -> repairSchedule -> runAppraisal -> auditAppraisal (audit opt-in, since 65 re-derivations per option card is not free), never throws, and returns the result **together with the repaired spec and schedule it was computed from**, the repairs and an error string. `OptionsView` priced the card's "S1 profit" from the RAW spec inside a bare `catch {}` and `PricingView` briefed the finance-research agent from the same raw figure, so only `AppraisalView` sanitised or disclosed anything. `PctField` has no min/max, so 450 in the bridge-rate box (4.5 = 450% pa) and 90 in the agent-fee box (0.9 of GDV) need no file editing: `full_max_units` then read -7,365,660.64 on the Options grid against +431,604.10 on the Appraisal page under "65 checks, 0 fails, 2 input repairs applied" - a 7.80m sign flip; `full_family` -7,346,488.69 vs +451,889.79; `DEMO_SCHEDULE` -7,173,576.86 vs -558,799.21. Reproduced again with D11's duplicated D01: card -1,671,760.18 vs appraisal +779,614.997. The research brief is now read ENTIRELY from the repaired spec - an earlier cut sent the repaired GDV/facility with the raw `purchasePrice`/`bridgeLtv`, asking for bridge terms at 700% LTV against a facility sized at the clamped 100%. "Nothing to price" (`error: null`) stays distinct from "pricing failed", and on failure the repairs already collected are reported rather than discarded with the exception; a failed run no longer reads "No option selected yet." A zero-dwelling option (0.3-scaled `DEMO_BUILDING`) no longer prints -2,790,709.02 - the sunk cost of building nothing - beside its own "Not viable - no dwellings" badge. Clean demo unchanged: 779,614.9968750654, 65 checks / 0 fails / 0 repairs, all 8 demo options bit-identical. 265 -> 293 tests (new `tests/appraise.test.ts`). No financial default and no golden pin moved; `tests/dcf.test.ts` untouched. |
 
 ## Abandoned: D3
 
@@ -276,3 +277,59 @@ on in that change:**
   `'duplicated code: '` even when there are no duplicates, but the `ok()` helper
   (audit.ts:270) sets detail to undefined on pass, so the empty-join string is
   never surfaced. Only real codes appear, and only on failure.
+
+**Raised 2026-08-24 by the NEW-sanitised-spec-everywhere reviewer (one appraisal
+entry point). Not acted on.**
+
+- **The Options repair COUNT still de-duplicates, so it can under-report.**
+  `OptionsView` filters repair strings before counting (`if
+  (!repairs.includes(line))`, `OptionsView.tsx:51-54`), so an identical repair
+  emitted twice for one spec is counted once. Measured: `DEFAULT_PRICING` with
+  `D01` present three times gives `sanitizeSpec` **two** `cost line D01
+  duplicated->removed` repairs, so the Appraisal audit strip reads "2 input
+  repairs applied" while the Options warn-box reads "1 input repair(s) applied".
+  Fix: count one option's `repairs.length` — every option is priced from the
+  same spec, and generated schedules produce no schedule repairs (verified
+  `repairs: []` on all 8 demo options for both the clean and the typo spec) —
+  instead of de-duplicating across the set. Same divergence family this item
+  exists to remove, but a count only: the profit figures agree.
+- **`PricingView`'s `!option` path still briefs the research agent from the raw
+  finance block** (`deal` initialiser, `PricingView.tsx:132`). With `bridge.ltv
+  = 7` and no generated option, `electron/estimate.ts:344` renders "700% LTV" in
+  the prompt. Self-consistently raw (facility 0, GDV 0), so not the
+  half-repaired brief that was refused, but the fat-finger value still reaches
+  the agent. Fixing it needs a sanitised-spec-without-a-result channel, which
+  criterion 5 and the `spec: null whenever result is` docblock deliberately
+  forbid — a design question for the backlog, not a patch.
+- **A zero-dwelling option now makes the finance research FAIL outright**, while
+  `option === null` proceeds with "a GDV not yet established". `generateOptions`
+  emits these — on a 0.3-scaled `DEMO_BUILDING`, `full_max_units`,
+  `full_balanced` and `full_family` all come back with `schedule: []`.
+  `appraiseProject` classifies the empty schedule as nothing-to-price (`error
+  === null`) and the view converts that non-error into a thrown error, so a
+  project whose `options[0]` is non-viable cannot research finance rates at all.
+  Falling back to the unpriced brief in that case would match the module's own
+  classification; the current message is at least honest and tested.
+- **Pre-existing, not this change: `whole_house` on `DEFAULT_PRICING` audits
+  63 pass / 1 FAIL** — `cf-retention: withheld GBP30,370.3 vs released GBP0`.
+  Its `pcMonth` is 112 and the defects-period release at month 118 falls past
+  the model horizon, so the retention pot never empties and the withheld =
+  released identity is genuinely broken for that option. Reproduced identically
+  at `2dfdf20` through the old sanitizeSpec -> repairSchedule -> runAppraisal ->
+  auditAppraisal chain. AUDIT.md 6.9 mentions it in passing; it has no row in
+  IMPROVEMENTS.md and should get one.
+- **Pre-existing: the last raw-spec-derived money figures on screen.**
+  `PricingView`'s "SDLT computed" readOnly field (`PricingView.tsx:505`) and the
+  B04 "auto:" cell (`PricingView.tsx:911-912`) derive from the RAW `fin`, so on
+  a spec whose `purchasePrice` the sanitiser clamps, that display is not the
+  SDLT the engine charges. Defensible on the page where the user is editing the
+  raw input, but they are the last two.
+- **The source-scraping assertion in `tests/appraise.test.ts` is brittle.**
+  `briefFieldAfterPricing` extracts `<field>: <expr>,` by regex and evaluates it
+  with `new Function`, so any reformatting of `runFinanceEstimate` — a
+  trailing-comma-free last field, or a comment containing `purchasePrice: x,` —
+  changes the match count. It fails loudly rather than silently (the
+  `reads.length === 1` assertion), so it is safe, but a future refactor will pay
+  for it.
+- **No `LOOP-LOG.md` row existed at review time**, correctly per the standing
+  decision that the `LANDED` row is written only after the push succeeds.
