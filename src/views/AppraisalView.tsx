@@ -9,7 +9,7 @@ import { buildExportInputs, buildModelV2 } from '../core/exportPayload';
 import type { AuditReport, AuditRepair } from '../core/audit';
 import { DEMO_SCHEDULE } from '../core/demo';
 import type { AppraisalResult, PricingSpec, ScheduleRow } from '../core/types';
-import { fmtGBP, fmtNum, fmtPct, useStore } from '../state/store';
+import { fmtGBP, fmtMonthsOr, fmtNum, fmtNumOr, fmtPct, fmtPctOr, useStore } from '../state/store';
 
 type Tab = 'summary' | 'costs' | 'cashflow' | 'scenarios' | 'sensitivity';
 
@@ -208,11 +208,11 @@ function KpiRow({ result }: { result: AppraisalResult }) {
     { k: 'GDV', v: fmtGBP(totals.gdv) },
     { k: 'Total costs inc. finance', v: fmtGBP(finance.totalCostsAfterFinance) },
     { k: 'S1 net profit', v: fmtGBP(sc.s1.netProfit), neg: sc.s1.netProfit < 0 },
-    { k: 'Profit on GDV', v: fmtPct(sc.s1.profitOnGdv), neg: sc.s1.profitOnGdv < 0 },
-    { k: 'Profit on cost', v: fmtPct(sc.s1.profitOnCost), neg: sc.s1.profitOnCost < 0 },
+    { k: 'Profit on GDV', v: fmtPctOr(sc.s1.profitOnGdv), neg: (sc.s1.profitOnGdv ?? 0) < 0 },
+    { k: 'Profit on cost', v: fmtPctOr(sc.s1.profitOnCost), neg: (sc.s1.profitOnCost ?? 0) < 0 },
     { k: 'Months to PC', v: String(result.programme.pcMonth) },
     { k: 'Peak dev loan', v: fmtGBP(finance.peakDevBalance) },
-    { k: 'LTGDV at peak', v: fmtPct(finance.ltgdvAtPeak), neg: !finance.ltgdvOk },
+    { k: 'LTGDV at peak', v: fmtPctOr(finance.ltgdvAtPeak), neg: finance.ltgdvOk === false },
   ];
   return (
     <div className="kpi-row">
@@ -258,30 +258,30 @@ function SummaryTab({ result }: { result: AppraisalResult }) {
             <tr>
               <td>S1: Immediate sale at PC</td>
               <td className="num">{fmtGBP(scenarios.s1.netProfit)}</td>
-              <td className="num">{fmtPct(scenarios.s1.profitOnGdv)}</td>
+              <td className="num">{fmtPctOr(scenarios.s1.profitOnGdv)}</td>
               <td className="num">{fmtPct(scenarios.s1.investorRoi)}</td>
               <td className="num">{scenarios.s1.durationMonths}</td>
             </tr>
             <tr>
               <td>S2: Delayed sales (dev loan)</td>
               <td className="num">{fmtGBP(scenarios.s2.netProfit)}</td>
-              <td className="num">{fmtPct(scenarios.s1.gdvAdjusted === 0 ? 0 : scenarios.s2.netProfit / scenarios.s1.gdvAdjusted)}</td>
+              <td className="num">{fmtPctOr(scenarios.s1.gdvAdjusted === 0 ? null : scenarios.s2.netProfit / scenarios.s1.gdvAdjusted)}</td>
               <td className="num">{fmtPct(scenarios.s2.investorRoi)}</td>
-              <td className="num">{scenarios.s2.totalDurationMonths}</td>
+              <td className="num">{fmtMonthsOr(scenarios.s2.totalDurationMonths)}</td>
             </tr>
             <tr>
               <td>S3: Refinance &amp; rent (pa cashflow)</td>
               <td className="num">{fmtGBP(scenarios.s3.netAnnualCashflow)}</td>
               <td className="num">-</td>
-              <td className="num">{fmtPct(scenarios.s3.cashOnCash)}</td>
+              <td className="num">{fmtPctOr(scenarios.s3.cashOnCash)}</td>
               <td className="num">hold</td>
             </tr>
             <tr>
               <td>S4: Refinance then delayed sales</td>
               <td className="num">{fmtGBP(scenarios.s4.netProfit)}</td>
-              <td className="num">{fmtPct(scenarios.s1.gdvAdjusted === 0 ? 0 : scenarios.s4.netProfit / scenarios.s1.gdvAdjusted)}</td>
+              <td className="num">{fmtPctOr(scenarios.s1.gdvAdjusted === 0 ? null : scenarios.s4.netProfit / scenarios.s1.gdvAdjusted)}</td>
               <td className="num">{fmtPct(scenarios.s4.investorRoi)}</td>
-              <td className="num">{scenarios.s2.totalDurationMonths}</td>
+              <td className="num">{fmtMonthsOr(scenarios.s2.totalDurationMonths)}</td>
             </tr>
           </tbody>
         </table>
@@ -300,7 +300,9 @@ function SummaryTab({ result }: { result: AppraisalResult }) {
             <Row k="Dev loan payoff at PC" v={fmtGBP(finance.devPayoffAtPC)} />
             <Row
               k="LTGDV at peak"
-              v={`${fmtPct(finance.ltgdvAtPeak)} ${finance.ltgdvOk ? '(ok)' : '(OVER COVENANT)'}`}
+              v={`${fmtPctOr(finance.ltgdvAtPeak)} ${
+                finance.ltgdvOk === null ? '(not assessed)' : finance.ltgdvOk ? '(ok)' : '(OVER COVENANT)'
+              }`}
             />
           </tbody>
         </table>
@@ -570,8 +572,8 @@ function ScenariosTab({ result }: { result: AppraisalResult }) {
             <Row k="GDV (indexed to PC, price lever applied)" v={fmtGBP(sc.s1.gdvAdjusted)} />
             <Row k="Total costs after finance" v={fmtGBP(result.finance.totalCostsAfterFinance)} />
             <Row k="NET PROFIT" v={fmtGBP(sc.s1.netProfit)} total />
-            <Row k="Profit on cost" v={fmtPct(sc.s1.profitOnCost)} />
-            <Row k="Profit on GDV" v={fmtPct(sc.s1.profitOnGdv)} />
+            <Row k="Profit on cost" v={fmtPctOr(sc.s1.profitOnCost)} />
+            <Row k="Profit on GDV" v={fmtPctOr(sc.s1.profitOnGdv)} />
             <Row k="Investor profit share" v={fmtGBP(sc.s1.investorProfit)} />
             <Row k="Investor ROI" v={fmtPct(sc.s1.investorRoi)} />
             <Row k="Investor ROI per annum" v={fmtPct(sc.s1.investorRoiPa)} />
@@ -592,9 +594,9 @@ function ScenariosTab({ result }: { result: AppraisalResult }) {
             <Row k="Net annual rent (after void & mgmt)" v={fmtGBP(sc.s3.netAnnualRent)} />
             <Row k="Annual mortgage interest" v={fmtGBP(sc.s3.annualInterest)} />
             <Row k="NET ANNUAL CASHFLOW" v={fmtGBP(sc.s3.netAnnualCashflow)} total />
-            <Row k="Interest cover" v={fmtNum(sc.s3.interestCover, 2)} />
+            <Row k="Interest cover" v={fmtNumOr(sc.s3.interestCover, 2)} />
             <Row k="Equity remaining in deal" v={fmtGBP(sc.s3.equityRemaining)} />
-            <Row k="Cash-on-cash return" v={fmtPct(sc.s3.cashOnCash)} />
+            <Row k="Cash-on-cash return" v={fmtPctOr(sc.s3.cashOnCash)} />
             <Row k="Unrealised development profit (let basis)" v={fmtGBP(sc.s3.unrealisedProfit)} total />
           </tbody>
         </table>
@@ -603,7 +605,7 @@ function ScenariosTab({ result }: { result: AppraisalResult }) {
         <h3 className="section">S2: Delayed sales (dev loan rolls)</h3>
         <table className="data">
           <tbody>
-            <Row k="Months to sell out" v={String(sc.s2.monthsToSellOut)} />
+            <Row k="Months to sell out" v={fmtMonthsOr(sc.s2.monthsToSellOut)} />
             <Row k="Months until loan repaid" v={String(sc.s2.monthsToRepay)} />
             <Row k="Extra interest after PC" v={fmtGBP(sc.s2.extraInterest)} />
             {sc.s2.hpiUplift !== 0 && <Row k="HPI uplift on later sales" v={fmtGBP(sc.s2.hpiUplift)} />}
@@ -613,7 +615,7 @@ function ScenariosTab({ result }: { result: AppraisalResult }) {
             <Row k="NET PROFIT" v={fmtGBP(sc.s2.netProfit)} total />
             <Row k="Investor profit share" v={fmtGBP(sc.s2.investorProfit)} />
             <Row k="Investor ROI" v={fmtPct(sc.s2.investorRoi)} />
-            <Row k="Total duration (months)" v={String(sc.s2.totalDurationMonths)} />
+            <Row k="Total duration (months)" v={fmtMonthsOr(sc.s2.totalDurationMonths)} />
           </tbody>
         </table>
         <WaterfallTable w={sc.s2.waterfall} />
@@ -660,7 +662,7 @@ function SensitivityTab({ result }: { result: AppraisalResult }) {
               <td className="num" style={r.netProfit < 0 ? { color: 'var(--fail)' } : undefined}>
                 {fmtGBP(r.netProfit)}
               </td>
-              <td className="num">{fmtPct(r.profitOnGdv)}</td>
+              <td className="num">{fmtPctOr(r.profitOnGdv)}</td>
             </tr>
           ))}
         </tbody>

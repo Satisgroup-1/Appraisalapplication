@@ -426,7 +426,20 @@ export function auditAppraisal(r: AppraisalResult, spec: PricingSpec, schedule: 
     '',
   );
   ok('fin-payoff', 'Dev payoff = balance at PC × (1 + exit fee)', closeAbs(r.finance.devPayoffAtPC, r.finance.devBalanceAtPC * (1 + f.devLoan.exitFee), 0.02), '');
-  ok('fin-ltgdv', 'LTGDV = peak balance / GDV, covenant flag consistent', (r.totals.gdv === 0 || closeAbs(r.finance.ltgdvAtPeak, r.finance.peakDevBalance / r.totals.gdv, 1e-6)) && r.finance.ltgdvOk === r.finance.ltgdvAtPeak <= f.devLoan.maxLtgdv, '');
+  // The ratio is null exactly when there is no GDV to divide by; the covenant
+  // verdict is null when the ratio is, or when no facility is estimated.
+  const ltgdvExpected = r.totals.gdv === 0 ? null : r.finance.peakDevBalance / r.totals.gdv;
+  const ltgdvOkExpected =
+    ltgdvExpected === null || r.finance.devFacilityNil ? null : ltgdvExpected <= f.devLoan.maxLtgdv;
+  ok(
+    'fin-ltgdv',
+    'LTGDV = peak balance / GDV, covenant flag consistent',
+    (ltgdvExpected === null
+      ? r.finance.ltgdvAtPeak === null
+      : r.finance.ltgdvAtPeak !== null && closeAbs(r.finance.ltgdvAtPeak, ltgdvExpected, 1e-6)) &&
+      r.finance.ltgdvOk === ltgdvOkExpected,
+    `${r.finance.ltgdvAtPeak} vs ${ltgdvExpected}, flag ${r.finance.ltgdvOk} vs ${ltgdvOkExpected}`,
+  );
 
   // --- scenarios ---
   const s = r.scenarios;
@@ -523,6 +536,84 @@ export function auditAppraisal(r: AppraisalResult, spec: PricingSpec, schedule: 
   wfCheck('s1', s.s1.waterfall, s.s1.netProfit);
   wfCheck('s2', s.s2.waterfall, s.s2.netProfit);
   wfCheck('s4', s.s4.waterfall, s.s4.netProfit);
+
+  // --- plausibility (E3) ---
+  // Everything above re-derives the model and compares it against itself, so a
+  // defect that is arithmetically consistent survives: the SDLT-doubling bug
+  // did exactly that. These checks instead ask whether the answer can be true
+  // of any real scheme, which is how A4, A8, A9 and the ICR all hid in plain
+  // sight while every conservation identity held.
+  ok(
+    'plaus-facility',
+    'Dev facility estimate and its arrangement fee are never negative',
+    r.finance.devFacilityEstimate >= 0 && r.finance.devArrangementFee >= 0,
+    `facility ${gbp(r.finance.devFacilityEstimate)}, fee ${gbp(r.finance.devArrangementFee)}`,
+  );
+  ok(
+    'plaus-finance-cost',
+    'Finance is a cost, never income',
+    r.finance.totalFinanceCosts >= 0,
+    gbp(r.finance.totalFinanceCosts),
+  );
+  const unfunded = r.cashflow.filter((m) => m.fundingGap);
+  ok(
+    'plaus-funded',
+    'Every month of spend has a funding source',
+    unfunded.length === 0,
+    unfunded.length === 0
+      ? ''
+      : `month${unfunded.length > 1 ? 's' : ''} ${unfunded.map((m) => m.month).join(', ')} short by up to ${gbp(
+          Math.max(...unfunded.map((m) => m.fundingShortfall)),
+        )}`,
+  );
+  ok(
+    'plaus-gap-amount',
+    'The flagged funding gap and its amount agree',
+    r.cashflow.every((m) => m.fundingGap === m.fundingShortfall > 0 && m.fundingShortfall >= 0),
+    '',
+  );
+  // Client decision: cover below 100% only, no covenant test. Note what is
+  // being audited — NOT whether the deal is good. An ICR of 0.87 is a true
+  // statement about the demo scheme, and the auditor reports model defects,
+  // not weak deals. What would be a defect is the model presenting an
+  // unfundable refinance as a live exit in silence, so the check is that the
+  // shortfall is FLAGGED.
+  const icrFlagged = s.s3.interestCover === null || s.s3.interestCover >= 1 || /interest cover/i.test(r.warnings.join(' '));
+  ok(
+    'plaus-icr',
+    'S3 interest cover below 100% is never left unflagged',
+    icrFlagged,
+    s.s3.interestCover === null
+      ? ''
+      : `interest cover ${s.s3.interestCover.toFixed(2)} — net rent ${gbp(s.s3.netAnnualRent)} against interest ${gbp(
+          s.s3.annualInterest,
+        )} — and no warning says so`,
+  );
+  // A ratio may be a number or explicitly not applicable. What it may never be
+  // is a zero standing in for a division that could not be done — that is what
+  // let a scheme with no sale prices pass the LTGDV covenant.
+  const naOk = (ratio: number | null, denominator: number) => (denominator === 0 ? ratio === null : ratio !== null);
+  ok(
+    'plaus-ratios',
+    'No ratio reports a value where its denominator is zero',
+    naOk(r.finance.ltgdvAtPeak, r.totals.gdv) &&
+      naOk(s.s1.profitOnGdv, s.s1.gdvAdjusted) &&
+      naOk(s.s1.profitOnCost, r.finance.totalCostsAfterFinance) &&
+      naOk(s.s3.interestCover, s.s3.annualInterest) &&
+      naOk(s.s3.cashOnCash, s.s3.equityRemaining) &&
+      // The verdict is not-applicable exactly when the ratio is, or when there
+      // is no facility to assess. A `false` here is a real covenant breach and
+      // must stay one.
+      (r.finance.ltgdvOk === null) === (r.finance.ltgdvAtPeak === null || r.finance.devFacilityNil),
+    '',
+  );
+  ok(
+    'plaus-duration',
+    'A sell-out month is reported only when sales are modelled',
+    (f.sales.velocityPerMonth === 0) === (s.s2.monthsToSellOut === null) &&
+      (s.s2.monthsToSellOut === null) === (s.s2.totalDurationMonths === null),
+    `velocity ${f.sales.velocityPerMonth}, sell-out ${s.s2.monthsToSellOut}, duration ${s.s2.totalDurationMonths}`,
+  );
 
   // --- sensitivity: grids reconcile with the scenarios they claim to vary ---
   const zeroRow = r.sensitivity.grid1.find((g) => g.priceMove === 0);

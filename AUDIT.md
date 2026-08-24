@@ -271,6 +271,65 @@ A third instance of the §6.2 finding 9 export class was caught here: the workbo
 
 Coverage: `tests/costincidence.test.ts` (21 tests) — linear scaling with the hold, cost lines and cashflow sharing one hold period, per-unit-per-month scaling, horizon clamping, zero velocity, the grid-2 term recomputed cell by cell, legacy lump behaviour, the incidence split on both bases, S3's reconciliation, the untagged-spec compatibility guarantee, and three seeded-corruption cases. Nine were confirmed to fail against the pre-fix engine. The audit grew from 48 to 53 checks.
 
+### 6.6 Guard rails on degenerate inputs, and plausibility checks (2026-08-24)
+
+Four defects with one shape: a degenerate input produced a confident-looking
+number instead of an explicit "not applicable", and nothing on screen said so.
+The auditor could not catch any of them, because every one was arithmetically
+self-consistent — the same blind spot that let the SDLT-doubling bug through.
+
+| # | Severity | Defect | Fix |
+|---|---|---|---|
+| 15 | MEDIUM | The E29 facility estimate (`totalPreFinance - equity - bridgeAdvance + estRedemption`) was unfloored. With £6m of equity against ~£5.1m of cost it read **-£812,718**, and the arrangement fee at 1.5% became **-£12,191 of phantom finance *income*** netted off total costs. No warning fired: a cash-rich deal was paid to arrange a facility. | The estimate is floored at zero and the fee priced off the floored figure, so finance can never be income. The E29 basis is unchanged — it is faithful to how facilities are priced at signing. `FinanceSummary.devFacilityNil` carries the state onward. |
+| 16 | MEDIUM | `velocityPerMonth = 0` returned `monthsToSellOut = 0`, so S2 reported `totalDurationMonths` **15 — "sold out at completion"** — beside `monthsToRepay '36+'` and **£1,164,090** of extra interest. The duration headline and the interest bill described different universes, and the sell-out warning was gated on `velocity > 0` so it could never reach this case. | `monthsToSellOut` and `totalDurationMonths` are `number \| null`; zero velocity is `null` — no sales modelled — and warns, naming the interest figure and pointing at S3. The pref horizon falls back to the sell-down window, which is what it already resolved to. |
+| 17 | MEDIUM | `fundingGap` was computed for every month and surfaced **nowhere** — no warning, no UI element, no audit check. Pre-construction spend above bridge + equity is simply unfunded: money out with no source and no interest charged. | `MonthRow.fundingShortfall` quantifies each gap, `runAppraisal` warns with the months and the peak amount, and `plaus-funded` fails the audit. On a zero-equity demo probe the peak shortfall is **£940,782** across months 1-3. |
+| 18 | LOW | `ltgdvAtPeak` guarded division by returning 0, and `ltgdvOk` then read `0 <= maxLtgdv` — **`true`**. A schedule with no sale prices *passed the LTGDV covenant*. Same shape for `profitOnCost`, `profitOnGdv`, `interestCover` and `cashOnCash`. | Those five are `number \| null` and the covenant verdict is `boolean \| null`: not applicable when the ratio is, or when no facility is estimated. The UI renders `n/a`, and "not assessed" rather than "(ok)" on the covenant. A real breach stays `false` — pinned by a test, because the not-applicable path is exactly where a breach could get swallowed. |
+
+Notes:
+
+- **A4's written fix was to "skip the facility entirely when the estimate is
+  nil". The probe showed that would be wrong.** With £6m of equity the cashflow
+  still draws up to **£1,446,776**, because equity is capped at
+  `cumNeed - bridgeAdvance` and the bridge must still be redeemed at
+  construction start. So a real facility exists while the estimate reads nil.
+  Flooring removes the phantom income; it leaves that draw priced at a £0
+  arrangement fee, which is an understatement. Rather than paper over it, the
+  divergence warns explicitly. **Residual:** the estimate basis and the actual
+  draw can disagree, and only the warning connects them. Sizing the facility
+  from the cashflow instead of from E29 is the real fix and is a schema-level
+  change to how the fee is charged.
+- **The ICR check is not a check on the deal.** A7's decision is to warn below
+  100% cover only. The demo's ICR of 0.87 is a *true statement* about the
+  scheme, not a model defect, so `plaus-icr` does not fail on it — it fails
+  only when cover is below 1 and **no warning says so**. A first pass had it
+  failing on the ratio itself, which broke five existing "the audit is clean on
+  a healthy appraisal" tests and, correctly read, showed the check was
+  conflating "the model is wrong" with "the deal is weak".
+- **No demo figure moved and no golden pin was touched.** Every fix is gated on
+  a degenerate state the demo is not in: the demo's facility estimate stays
+  £3,787,281.62, its fee £56,809.22, its sell-out 6 months and its LTGDV
+  0.63745. The one visible change on the demo is the new ICR warning, which is
+  the A7 decision being honoured.
+- **NIA ≤ GIA is already covered** by §6.3's `makeOption` tripwire, and the
+  data lives on the option rather than the appraisal, so it is not duplicated
+  in `auditAppraisal`.
+
+The seven new plausibility checks (`plaus-facility`, `plaus-finance-cost`,
+`plaus-funded`, `plaus-gap-amount`, `plaus-icr`, `plaus-ratios`,
+`plaus-duration`) are the E3 answer: they ask whether an answer *could be true
+of a real scheme*, where every other check asks only whether the model agrees
+with itself. `plaus-ratios` also caught a defect in its own first draft —
+`a !== true === b` parses as `(a !== true) === b`, which would have failed a
+genuine covenant breach. That is now pinned.
+
+Coverage: `tests/guardrails.test.ts` (23 tests) — the over-equitised probe, the
+nil-estimate-with-a-real-draw divergence, zero velocity, quantified funding
+gaps and the peak figure in the warning, every not-applicable ratio, the ICR
+warning and its silence once cover clears, a real covenant breach staying a
+breach, and each new audit check in both its passing and failing state.
+Eighteen were confirmed to fail against the pre-fix engine. The audit grew from
+53 to 61 checks; the suite from 228 to 251 tests.
+
 ## 7. Re-running the audit
 
 ```bash

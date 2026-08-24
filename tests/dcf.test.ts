@@ -78,7 +78,10 @@ describe('B. model v2 regression: finance (S-curve + retention + deposit interes
 describe('B. model v2 regression: scenarios', () => {
   it('S1 immediate sale', () => {
     close(result.scenarios.s1.netProfit, 779614.9968750654); // -£22.36
-    close(result.scenarios.s1.profitOnGdv, 0.12477376194132116, 1e-9);
+    // The ratio is nullable now (A9: no GDV means not applicable). The demo has
+    // GDV, so it must be a real number — asserted, not assumed.
+    expect(result.scenarios.s1.profitOnGdv).not.toBeNull();
+    close(result.scenarios.s1.profitOnGdv!, 0.12477376194132116, 1e-9);
   });
   it('S2 delayed sales', () => {
     close(result.scenarios.s2.extraInterest, 71459.06678384484);

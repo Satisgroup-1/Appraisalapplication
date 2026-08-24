@@ -208,3 +208,15 @@ export const fmtPct = (v: number, dp = 1) => `${(v * 100).toFixed(dp)}%`;
 
 export const fmtNum = (v: number, dp = 0) =>
   v.toLocaleString('en-GB', { minimumFractionDigits: dp, maximumFractionDigits: dp });
+
+// A ratio the model could not compute (a zero denominator) or that does not
+// apply (no facility, no sales) must read as such. A formatted 0.0% is the
+// defect these replace: it looks like a measurement and passes for a good one.
+export const NOT_APPLICABLE = 'n/a';
+
+export const fmtPctOr = (v: number | null, dp = 1) => (v === null ? NOT_APPLICABLE : fmtPct(v, dp));
+
+export const fmtNumOr = (v: number | null, dp = 0) => (v === null ? NOT_APPLICABLE : fmtNum(v, dp));
+
+/** Months that may not exist (no sell-out because no sales are modelled). */
+export const fmtMonthsOr = (v: number | null) => (v === null ? NOT_APPLICABLE : String(v));

@@ -360,6 +360,7 @@ describe('waterfall', () => {
       devInterest: 0,
       devBalance: 0,
       fundingGap: false,
+      fundingShortfall: 0,
       vatPaid: 0,
       vatReclaimed: 0,
       vatLoanBalance: 0,

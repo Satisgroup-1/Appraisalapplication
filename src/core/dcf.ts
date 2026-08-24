@@ -354,8 +354,16 @@ export function computeCashflow(
   // E29 facility = F87 - equity - advance + est. redemption. The arrangement
   // fee is set on the committed facility at signing, which is itself an
   // estimate — so the estimate basis is faithful to how facilities are priced.
-  const devFacilityEstimate = dev.totalPreFinance - f.equity.total - bridgeAdvance + estRedemption;
-  const devArrangementFee = f.devLoan.arrangementFee * devFacilityEstimate;
+  // A4: unfloored, this went NEGATIVE on an over-equitised scheme (-£812,718
+  // with £6m of equity against ~£5.1m of cost) and the arrangement fee below
+  // became phantom finance INCOME of -£12,191, quietly reducing total costs.
+  // The E29 basis itself is kept — it is faithful to how facilities are priced
+  // at signing — so the floor is the fix, and `devFacilityNil` carries the
+  // "no facility estimated" state on to the covenant and the warnings.
+  const devFacilityRaw = dev.totalPreFinance - f.equity.total - bridgeAdvance + estRedemption;
+  const devFacilityEstimate = Math.max(0, devFacilityRaw);
+  const devFacilityNil = devFacilityEstimate === 0;
+  const devArrangementFee = devFacilityEstimate * f.devLoan.arrangementFee;
 
   // Cost-line splits that get their own timing.
   const sumWhere = (grp: { lines: { code: string; label: string; amount: number }[] }, pred: (c: string, l: string) => boolean) =>
@@ -503,7 +511,10 @@ export function computeCashflow(
     devBalance = m > pcMonth ? 0 : prevDevBal + devInterest + devDrawdown;
     if (m === 1) devBalance = devDrawdown; // E28 = E26
 
-    const fundingGap = m < conStartMonth && cumNeed > bridgeAdvance + f.equity.total;
+    // A8: the amount, not just the flag. No dev loan draws before construction
+    // start, so anything above bridge + equity here is spend with no source.
+    const fundingShortfall = m < conStartMonth ? Math.max(0, cumNeed - bridgeAdvance - f.equity.total) : 0;
+    const fundingGap = fundingShortfall > 0;
 
     rows.push({
       month: m,
@@ -518,6 +529,7 @@ export function computeCashflow(
       devInterest,
       devBalance,
       fundingGap,
+      fundingShortfall,
       vatPaid,
       vatReclaimed,
       vatLoanBalance,
@@ -543,7 +555,9 @@ export function computeCashflow(
   const devExitFee = devBalanceAtPC * f.devLoan.exitFee; // C39
   const devPayoffAtPC = devBalanceAtPC + devExitFee; // C40
   const peakDevBalance = Math.max(...rows.map((r) => r.devBalance)); // C41
-  const ltgdvAtPeak = totals.gdv === 0 ? 0 : peakDevBalance / totals.gdv; // C42
+  // A9: with no GDV there is nothing to divide by, and the old zero then read
+  // as 0 <= maxLtgdv, i.e. a PASS on a scheme with no sale prices at all.
+  const ltgdvAtPeak = totals.gdv === 0 ? null : peakDevBalance / totals.gdv; // C42
   const retentionHeldPeak = Math.max(...rows.map((r) => r.retentionBalance));
   const depositInterestRetention = rows.reduce((s, r) => s + r.depositInterest, 0);
   const totalFinanceCosts =
@@ -575,7 +589,10 @@ export function computeCashflow(
       devPayoffAtPC,
       peakDevBalance,
       ltgdvAtPeak,
-      ltgdvOk: ltgdvAtPeak <= f.devLoan.maxLtgdv,
+      // Not applicable when the ratio is (no GDV) or when no facility is
+      // estimated: neither state is a covenant pass.
+      ltgdvOk: ltgdvAtPeak === null || devFacilityNil ? null : ltgdvAtPeak <= f.devLoan.maxLtgdv,
+      devFacilityNil,
       vatOnPurchase,
       vatLoanFee,
       vatLoanInterest: vatLoanInterestTotal,
@@ -730,8 +747,8 @@ export function computeScenarios(
     gdvAdjusted,
     hpiIndexAtPc,
     netProfit: netProfit1,
-    profitOnCost: fin.totalCostsAfterFinance === 0 ? 0 : netProfit1 / fin.totalCostsAfterFinance,
-    profitOnGdv: gdvAdjusted === 0 ? 0 : netProfit1 / gdvAdjusted,
+    profitOnCost: fin.totalCostsAfterFinance === 0 ? null : netProfit1 / fin.totalCostsAfterFinance,
+    profitOnGdv: gdvAdjusted === 0 ? null : netProfit1 / gdvAdjusted,
     investorProfit: wf1.investorProfit,
     developerProfit: wf1.developerProfit,
     investorRoi: wf1.investorRoi,
@@ -753,13 +770,16 @@ export function computeScenarios(
     monthlyRate: f.devLoan.ratePa / 12,
     depositRatePa: f.depositRatePa,
   });
-  const monthsToSellOut = f.sales.velocityPerMonth === 0 ? 0 : Math.ceil(totals.units / f.sales.velocityPerMonth); // F33
+  // A6: zero velocity used to report month 0 — "sold out at completion" —
+  // beside a loan that never repays and £1.16m of extra interest. There is no
+  // sell-out month, so say so rather than naming one.
+  const monthsToSellOut = f.sales.velocityPerMonth === 0 ? null : Math.ceil(totals.units / f.sales.velocityPerMonth); // F33
   const repayMonthsOf = (bal: number[]): number | '36+' =>
     bal.length >= SELLDOWN_MONTHS && bal[SELLDOWN_MONTHS - 1] > 0.01 ? '36+' : bal.filter((b) => b > 0.01).length + 1;
   const monthsToRepay = repayMonthsOf(sd2.closingBalances); // F34
   // Distributions cannot happen until the units are sold AND the loan is
   // repaid — the pref accrues to whichever comes later.
-  const exitAfterPc2 = Math.max(monthsToSellOut, monthsToRepay === '36+' ? SELLDOWN_MONTHS : monthsToRepay);
+  const exitAfterPc2 = Math.max(monthsToSellOut ?? SELLDOWN_MONTHS, monthsToRepay === '36+' ? SELLDOWN_MONTHS : monthsToRepay);
   const netProfit2 = netProfit1 + sd2.hpiUplift + sd2.depositInterest - sd2.totalInterest; // F36 + HPI + deposit interest
   const wf2 = computeWaterfall(f, rows, netProfit2, prog.pcMonth + exitAfterPc2);
   const s2 = {
@@ -771,7 +791,7 @@ export function computeScenarios(
     netProfit: netProfit2,
     investorProfit: wf2.investorProfit, // F37
     investorRoi: wf2.investorRoi, // F38
-    totalDurationMonths: prog.pcMonth + monthsToSellOut, // F39
+    totalDurationMonths: monthsToSellOut === null ? null : prog.pcMonth + monthsToSellOut, // F39
     waterfall: wf2,
   };
 
@@ -803,9 +823,9 @@ export function computeScenarios(
     netAnnualRent,
     annualInterest,
     netAnnualCashflow,
-    interestCover: annualInterest === 0 ? 0 : netAnnualRent / annualInterest, // F51
+    interestCover: annualInterest === 0 ? null : netAnnualRent / annualInterest, // F51
     equityRemaining,
-    cashOnCash: equityRemaining === 0 ? 0 : netAnnualCashflow / equityRemaining, // F53
+    cashOnCash: equityRemaining === 0 ? null : netAnnualCashflow / equityRemaining, // F53
     // Value uplift if refinanced and held, against the costs a HOLD actually
     // incurs — not the sale case's profit, which charged agent fees on a sale
     // that never happens.
@@ -829,7 +849,7 @@ export function computeScenarios(
   });
   const netProfit4 = netProfit1 + sd4.hpiUplift + sd4.depositInterest - refiFeeRolled - sd4.totalInterest; // F72 + HPI + deposit
   const repay4 = repayMonthsOf(sd4.closingBalances);
-  const exitAfterPc4 = Math.max(monthsToSellOut, repay4 === '36+' ? SELLDOWN_MONTHS : repay4);
+  const exitAfterPc4 = Math.max(monthsToSellOut ?? SELLDOWN_MONTHS, repay4 === '36+' ? SELLDOWN_MONTHS : repay4);
   const wf4 = computeWaterfall(f, rows, netProfit4, prog.pcMonth + exitAfterPc4);
   const s4 = {
     refiPrincipal,
@@ -875,7 +895,7 @@ export function computeSensitivity(
     return {
       priceMove: p,
       netProfit,
-      profitOnGdv: gdvBase === 0 ? 0 : netProfit / (gdvBase * (1 + p)),
+      profitOnGdv: gdvBase === 0 ? null : netProfit / (gdvBase * (1 + p)),
     };
   });
 
@@ -995,6 +1015,54 @@ export function runAppraisal(schedule: ScheduleRow[], spec: PricingSpec, roomAre
   ) {
     warnings.push(
       `Sell-out takes longer than the ${SELLDOWN_MONTHS}-month scenario horizon, so delayed-sale interest is understated.`,
+    );
+  }
+  // A6 — the case the old sell-out warning could never reach, because it was
+  // gated on velocity > 0. Zero velocity is not a fast sale, it is no sale.
+  if (f.sales.velocityPerMonth === 0) {
+    warnings.push(
+      `Sales velocity is zero, so no sales are modelled: scenarios 2 and 4 have no sell-out month and their duration is not applicable. The development loan is never repaid from sales, which is why the delayed-sale interest is £${Math.round(
+        scenarios.s2.extraInterest,
+      ).toLocaleString('en-GB')}. Set a velocity, or read scenario 3 (refinance and hold) instead.`,
+    );
+  }
+  // A8 — pre-construction months whose spend exceeds bridge + equity. No dev
+  // loan draws that early, so the money is spent with no source and no
+  // interest charged: previously computed every month and surfaced nowhere.
+  const gapMonths = rows.filter((r) => r.fundingGap);
+  if (gapMonths.length > 0) {
+    const peakGap = Math.max(...gapMonths.map((r) => r.fundingShortfall));
+    warnings.push(
+      `Month${gapMonths.length > 1 ? 's' : ''} ${gapMonths
+        .map((r) => r.month)
+        .join(', ')} ${gapMonths.length > 1 ? 'are' : 'is'} unfunded: pre-construction spend exceeds the bridge advance plus committed equity by up to £${Math.round(
+        peakGap,
+      ).toLocaleString('en-GB')}. No development loan draws before construction starts, so this shortfall carries no finance cost in the model. Add equity, raise the bridge, or arrange a stretch facility.`,
+    );
+  }
+  // A4 — the estimate is floored, so a cash-rich scheme no longer books
+  // negative finance income. But the cashflow can still draw the facility to
+  // redeem the bridge, and that draw is then priced at a £0 arrangement fee.
+  if (finance.devFacilityNil && finance.peakDevBalance > 0.01) {
+    warnings.push(
+      `No development facility is estimated (committed equity covers the costs), yet the cashflow still draws up to £${Math.round(
+        finance.peakDevBalance,
+      ).toLocaleString(
+        'en-GB',
+      )} to redeem the bridge at construction start. The arrangement fee is therefore £0 and the LTGDV covenant is not assessed, so facility costs are understated. Fund the bridge redemption from equity, or set the facility size by hand.`,
+    );
+  }
+  // A7 — client decision: warn below 100% cover only. No stress rate, no
+  // covenant test, no capping of the advance.
+  if (scenarios.s3.interestCover !== null && scenarios.s3.interestCover < 1) {
+    warnings.push(
+      `Scenario 3 interest cover is ${scenarios.s3.interestCover.toFixed(
+        2,
+      )}: net rent of £${Math.round(scenarios.s3.netAnnualRent).toLocaleString(
+        'en-GB',
+      )} does not cover mortgage interest of £${Math.round(scenarios.s3.annualInterest).toLocaleString(
+        'en-GB',
+      )}, so the refinance-and-hold exit is cashflow-negative and no lender would advance on these terms.`,
     );
   }
   if (spec.buildCostMode === 'roomRates' && !roomAreas) {

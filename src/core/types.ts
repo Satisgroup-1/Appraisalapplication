@@ -444,7 +444,12 @@ export interface MonthRow {
   devDrawdown: number;
   devInterest: number;
   devBalance: number;
+  /** True when this month's cumulative spend exceeds bridge + equity and no
+   *  dev loan draws yet: the spend has no funding source. */
   fundingGap: boolean;
+  /** The amount `fundingGap` is short by, so the gap can be reported rather
+   *  than merely flagged. Zero whenever `fundingGap` is false. */
+  fundingShortfall: number;
   /** VAT paid on the purchase this month (month 1 when opted to tax). */
   vatPaid: number;
   /** VAT reclaim landing this month. */
@@ -467,15 +472,25 @@ export interface FinanceSummary {
   bridgeInterestTotal: number;
   bridgeExitFee: number;
   bridgeRedemptionTotal: number;
+  /** Estimated facility at signing (E29), floored at zero: a cash-rich scheme
+   *  needs no facility, and a negative estimate used to price the arrangement
+   *  fee as finance income. */
   devFacilityEstimate: number;
+  /** True when no facility is estimated. The cashflow may still draw the loan
+   *  to redeem the bridge, in which case `runAppraisal` warns. */
+  devFacilityNil: boolean;
   devArrangementFee: number;
   devInterestTotal: number;
   devBalanceAtPC: number;
   devExitFee: number;
   devPayoffAtPC: number;
   peakDevBalance: number;
-  ltgdvAtPeak: number;
-  ltgdvOk: boolean;
+  /** Peak dev balance / GDV. `null` when there is no GDV to divide by — a
+   *  not-applicable state, never a passing zero. */
+  ltgdvAtPeak: number | null;
+  /** Covenant verdict. `null` when the ratio is not applicable (no GDV) or no
+   *  facility is estimated, so a degenerate scheme cannot read as compliant. */
+  ltgdvOk: boolean | null;
   /** VAT paid on the purchase (0 unless opted to tax). Nets to zero at reclaim. */
   vatOnPurchase: number;
   vatLoanFee: number;
@@ -514,8 +529,10 @@ export interface ScenarioResults {
     /** Cumulative HPI index at PC applied to today's GDV. */
     hpiIndexAtPc: number;
     netProfit: number;
-    profitOnCost: number;
-    profitOnGdv: number;
+    /** `null` when there are no costs to divide by. */
+    profitOnCost: number | null;
+    /** `null` when there is no GDV to divide by. */
+    profitOnGdv: number | null;
     investorProfit: number;
     developerProfit: number;
     investorRoi: number;
@@ -524,7 +541,9 @@ export interface ScenarioResults {
     waterfall: WaterfallResult;
   };
   s2: {
-    monthsToSellOut: number;
+    /** `null` when sales velocity is zero: no sales are modelled, so there is
+     *  no sell-out month. Never 0, which read as "sold out at completion". */
+    monthsToSellOut: number | null;
     monthsToRepay: number | '36+';
     extraInterest: number;
     /** Extra value from HPI between PC and each unit's sale month. */
@@ -534,7 +553,8 @@ export interface ScenarioResults {
     netProfit: number;
     investorProfit: number;
     investorRoi: number;
-    totalDurationMonths: number;
+    /** PC month + sell-out. `null` when no sales are modelled. */
+    totalDurationMonths: number | null;
     waterfall: WaterfallResult;
   };
   s3: {
@@ -553,9 +573,11 @@ export interface ScenarioResults {
     netAnnualRent: number;
     annualInterest: number;
     netAnnualCashflow: number;
-    interestCover: number;
+    /** Net rent / mortgage interest. `null` when nothing is borrowed. */
+    interestCover: number | null;
     equityRemaining: number;
-    cashOnCash: number;
+    /** Net cashflow / equity left in. `null` when no equity remains. */
+    cashOnCash: number | null;
     unrealisedProfit: number;
   };
   s4: {
@@ -575,7 +597,7 @@ export interface ScenarioResults {
 export interface SensitivityResults {
   fixedCostBase: number;
   /** Grid 1: price movement -> S1 net profit & profit on GDV. */
-  grid1: { priceMove: number; netProfit: number; profitOnGdv: number }[];
+  grid1: { priceMove: number; netProfit: number; profitOnGdv: number | null }[];
   /** Grid 2: price movement x sales velocity -> approx S2 net profit. */
   grid2: { priceMove: number; profits: { velocity: number; netProfit: number }[] }[];
   grid2Velocities: number[];

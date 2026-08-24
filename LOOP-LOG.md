@@ -9,6 +9,7 @@ Columns: when (UTC) · outcome · item · title · rework rounds · what happene
 | When | Outcome | Item | Title | Rounds | Note |
 |---|---|---|---|---|---|
 | 2026-08-24 02:24 | SETUP | — | Loop established: planner, builder, reviewer; hourly Routine | 0 | Baseline before the first cycle: 228 tests, 53 audit checks, 9 of 37 findings closed |
+| 2026-08-24 03:25 | LANDED | 5 | Guard rails on degenerate inputs, and the plausibility checks that catch them (A4, A6, A8, A9 + E3) | 1 | 228→251 tests, 53→61 audit checks. 18 tests confirmed failing first. One rework round: `plaus-icr` initially failed on the demo's real ICR of 0.87, which broke five existing "audit is clean" tests and showed the check was conflating a weak deal with a model defect — recast as "below cover is never unflagged". No golden pin moved. |
 
 ## Awaiting the client
 

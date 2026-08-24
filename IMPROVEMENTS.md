@@ -72,7 +72,7 @@ case — the one the scenario exists to test — is the one it understates.
 Fix: express (F) lines as £/month (or £/unit/month) and accrue them over the actual hold, in
 both the cashflow and the S2/S4 profit bridge.
 
-### A4 — MEDIUM · Over-equitised schemes book a *negative* dev-loan arrangement fee
+### A4 — MEDIUM · ~~Over-equitised schemes book a *negative* dev-loan arrangement fee~~ · **FIXED 2026-08-24**
 `devFacilityEstimate = totalPreFinance − equity − bridgeAdvance + estRedemption`
 (`src/core/dcf.ts:253`) is unfloored. Demo with £6m equity against £5.1m of costs:
 
@@ -84,6 +84,13 @@ silently gets paid to arrange a facility it never draws.
 
 Fix: `Math.max(0, ...)` on the facility estimate, and skip the facility entirely (fee, exit
 fee, LTGDV covenant) when the estimate is nil.
+
+**Done** — estimate floored, fee priced off the floored figure, LTGDV not assessed when nil.
+Recorded in AUDIT.md §6.6 finding 15. **The "skip entirely" half of that fix was wrong**, and
+the probe said so: with £6m of equity the cashflow still draws **£1,446,776** to redeem the
+bridge, so a real facility exists while E29 reads nil. **Residual:** that draw is priced at a
+£0 arrangement fee. It now warns rather than being silent, but sizing the facility from the
+cashflow instead of from E29 is the actual fix and is a change to how the fee is charged.
 
 ### A5 — MEDIUM · Investor ROI changes 6 points when you switch profit mode, with no change in economics
 `src/core/dcf.ts:569` uses **drawn peak** capital in waterfall mode and **committed** capital in
@@ -100,7 +107,7 @@ the two agree, which is why the existing tests don't catch it.)
 
 Fix: one denominator for both modes. See question 4.
 
-### A6 — MEDIUM · `velocityPerMonth = 0` reports a sell-out that never happens
+### A6 — MEDIUM · ~~`velocityPerMonth = 0` reports a sell-out that never happens~~ · **FIXED 2026-08-24**
 `src/core/dcf.ts:643` returns `monthsToSellOut = 0` for zero velocity, so S2 shows:
 
 - `totalDurationMonths` = 15 (= PC month, i.e. "sold out at completion")
@@ -111,6 +118,9 @@ The duration headline and the interest bill describe different universes, and no
 (`runAppraisal`'s sell-out warning is gated on `velocity > 0`).
 
 Fix: treat zero velocity as "no sales modelled" — report `'36+'`/n-a for duration and warn.
+
+**Done** — `monthsToSellOut` and `totalDurationMonths` are nullable, zero velocity is `null`
+and warns with the interest figure. Recorded in AUDIT.md §6.6 finding 16.
 
 ### A7 — MEDIUM · No interest-cover covenant on the refinance
 The dev loan has an LTGDV covenant with a pass/fail flag; the refinance has none. On the demo
@@ -127,7 +137,13 @@ live exit when it is not fundable.
 Fix: a `minIcr` covenant input with the same pass/fail treatment as `ltgdvOk`, tested at a
 stressed rate, and cap the advance at the ICR-implied maximum.
 
-### A8 — MEDIUM · `fundingGap` is computed every month and surfaced nowhere
+**Partly done 2026-08-24 — and the rest is deliberately not being built.** The client's
+decision (question 9, `appraisal-loop.md`) is to warn below 100% cover only: no stressed rate,
+no covenant input, no capping of the advance. So the demo's ICR of 0.87 now raises a visible
+warning and `plaus-icr` fails if cover is below 1 and nothing says so — but there is no
+`minIcr` and there will not be one unless the client asks. AUDIT.md §6.6.
+
+### A8 — MEDIUM · ~~`fundingGap` is computed every month and surfaced nowhere~~ · **FIXED 2026-08-24**
 `src/core/dcf.ts:398` flags months where pre-construction costs exceed bridge + equity. No dev
 loan draws before construction start, so those costs are simply **unfunded** — spent with no
 source and no interest charged. `fundingGap` appears in `MonthRow` and then in no warning, no
@@ -136,11 +152,20 @@ UI element and no audit check (verified by grep across `src/views` and `src/core
 Fix: raise a `runAppraisal` warning and an audit check; ideally model a stretch facility or
 show the shortfall explicitly.
 
-### A9 — LOW · Covenant flags read "OK" on a zero-revenue scheme
+**Done** — `MonthRow.fundingShortfall` quantifies each gap, the warning names the months and
+the peak (£940,782 on a zero-equity demo probe), and `plaus-funded` fails the audit. Recorded
+in AUDIT.md §6.6 finding 17. **Residual:** the shortfall is reported, not funded — no stretch
+facility is modelled, so the months still carry no finance cost.
+
+### A9 — LOW · ~~Covenant flags read "OK" on a zero-revenue scheme~~ · **FIXED 2026-08-24**
 `ltgdvAtPeak` guards division by returning 0 when GDV is 0, and `ltgdvOk` then reads `true`
 (`src/core/dcf.ts:470`). A schedule with no sale prices passes the covenant. Same shape for
 `profitOnGdv` and `interestCover`. Make the guard produce an explicit not-applicable state
 rather than a passing zero.
+
+**Done** — `ltgdvAtPeak`, `profitOnCost`, `profitOnGdv`, `interestCover` and `cashOnCash` are
+`number | null`; `ltgdvOk` is `boolean | null`. The UI renders `n/a` and "not assessed". A real
+breach stays `false`, pinned by a test. Recorded in AUDIT.md §6.6 finding 18.
 
 ### A10 — MEDIUM · Retained commercial rent is refinanced on residential terms
 S3's `grossAnnualRent` is the whole schedule's rent, including the retained commercial unit
@@ -371,11 +396,15 @@ building it is a frozen window with an "Autosaved" label. Set `busy` around gene
 - **E2 — `crosscheck.sh` is not in CI.** AUDIT.md calls the LibreOffice cross-check the
   regression net that caught finding #6, and it runs only when someone remembers. Add a CI job
   with `libreoffice-calc` on ubuntu; it is the only thing verifying engine/workbook parity.
-- **E3 — The in-app auditor cannot catch a whole class of defect.** It re-derives cost lines,
-  identities and linkages, which is why the previously-fixed SDLT-doubling bug slipped through
-  ("conservation-consistent"). It has no *plausibility* checks. Cheap additions with real
-  reach: net-to-gross ≤ 1.0 per floor (C1), facility estimate ≥ 0 (A4), no unfunded months
-  (A8), ICR sanity (A7), covenant flags not passing on zero denominators (A9), NIA ≤ GIA.
+- ~~**E3 — The in-app auditor cannot catch a whole class of defect.**~~ **DONE 2026-08-24.**
+  Seven plausibility checks added — `plaus-facility`, `plaus-finance-cost`, `plaus-funded`,
+  `plaus-gap-amount`, `plaus-icr`, `plaus-ratios`, `plaus-duration` — taking the audit from 53
+  to 61 checks. They ask whether an answer *could be true of a real scheme*, where every other
+  check asks only whether the model agrees with itself. Net-to-gross ≤ 1.0 and NIA ≤ GIA were
+  already covered by §6.3's `makeOption` tripwire and live on the option, not the appraisal, so
+  they are not duplicated here. **Note on `plaus-icr`:** the auditor reports model defects, not
+  weak deals, so it checks that below-100% cover is *flagged*, not that cover clears. AUDIT.md
+  §6.6.
 - **E4 — Test coverage is deep but narrow.** 145 tests concentrate on the demo scheme and
   hand-computable probes. The findings above were all reachable because nothing exercises
   degenerate geometry (L-shaped, portrait, too-shallow floors), over-equitised funding, zero
@@ -415,7 +444,11 @@ building it is a frozen window with an "Autosaved" label. Set `busy` around gene
    let-basis cashflow; `(F)` converted to per-month-held rates driven by `Programme.holdMonths`.
    Recorded in AUDIT.md §6.5. **Residual:** the xlsx cell mapping has now produced the same
    export/engine divergence three times and wants a structural fix (see §6.5).
-5. **A4, A6, A8, A9 + E3** — guard rails and the plausibility checks that catch them.
+5. ~~**A4, A6, A8, A9 + E3** — guard rails and the plausibility checks that catch them.~~
+   **Done** — every degenerate state now reports itself instead of returning a confident zero,
+   and the auditor grew the plausibility checks that catch this whole class. Recorded in
+   AUDIT.md §6.6. **Residuals:** the facility estimate can still diverge from the actual draw
+   (warned, not fixed — A4), and an unfunded month is reported but not funded (A8).
 6. **C2, C3, D3, D4, D8** — robustness; small diffs, removes silent failure.
 7. **A5, A7, A10, D5-D7** — model conventions and persistence.
 8. **B1-B7, E1, E2, E4** — scope decisions and process, once the questions below are answered.
