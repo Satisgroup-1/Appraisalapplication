@@ -46,8 +46,16 @@ export interface Room {
   name: string;
   x: number;
   w: number;
+  /** Low-y edge. Habitable rooms take the window wall, bathroom and hall the
+   *  strip against the corridor; recorded rather than re-derived downstream. */
+  y: number;
   d: number;
+  /** Floor area INSIDE the envelope: the drawn rectangle clipped to the
+   *  building, so a room overhanging a notch is measured at its real size. */
   area: number;
+  /** Clipped footprint, present only where the drawn rectangle is not wholly
+   *  inside the envelope. Absent on the common rectangular floor. */
+  outline?: [number, number][];
   window: boolean;
 }
 
@@ -63,7 +71,14 @@ export interface PlannedUnit {
   x1: number;
   y0: number;
   y1: number;
+  /** GIA INSIDE the envelope. The layout engine proposes axis-aligned
+   *  rectangles on the bounding box; this is that rectangle clipped to the
+   *  building, so a non-rectangular floor cannot report more net area than it
+   *  physically has. */
   giaSqm: number;
+  /** Clipped footprint, present only where the unit rectangle overhangs the
+   *  envelope. Absent on the common rectangular floor. */
+  outline?: [number, number][];
   windows: number[];
   rooms: Room[];
 }

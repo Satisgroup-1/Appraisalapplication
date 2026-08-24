@@ -169,6 +169,18 @@ function makeOption(
   for (const c of compliance) {
     if (c.netToGrossNote) warnings.push(`Floor ${c.floor}: ${c.netToGrossNote}`);
   }
+  // Net area can never exceed the floor it sits on. The layout engine clips
+  // every unit to the envelope so this should be unreachable — it is kept as a
+  // standing tripwire because when it WAS reachable (units laid out on the
+  // bounding box of a non-rectangular floor) the only symptom was a quietly
+  // inflated GDV. Cheap to check, and it fails loudly instead.
+  for (const plan of floors) {
+    if (plan.niaSqm > plan.floorGiaSqm + 0.15) {
+      warnings.push(
+        `Floor ${plan.floor}: net internal area ${plan.niaSqm} sqm exceeds the floor's gross area ${plan.floorGiaSqm} sqm (net-to-gross ${(plan.netToGross * 100).toFixed(0)}%). The unit areas are wrong and GDV is overstated — do not rely on this option.`,
+      );
+    }
+  }
   return {
     id,
     title,

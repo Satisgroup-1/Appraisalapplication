@@ -219,6 +219,21 @@ Extraction of the model-v2 payload was verified output-identical to the original
 across four spec variants (default, VAT-loan, waterfall, HPI), so the exported sheet is
 unchanged.
 
+### 6.3 Non-rectangular envelopes (2026-08-24)
+
+| # | Severity | Defect | Fix |
+|---|---|---|---|
+| 11 | HIGH | The layout engine packs units on the envelope's **bounding box** and then measured those rectangles as if they were inside the building. On any non-rectangular floor that counted floor area the building does not have. Probe: an L-shaped floor (26x6 base plus a 13x7 leg, true area 247 sqm inside a 338 sqm bounding box) reported **NIA 306.8 sqm — 124% net-to-gross**, overstating GDV by ~24%, and the compliance report passed units sitting in thin air. Not an edge case: the AI extractor is asked for `4-10 vertices` and DXF import takes whatever closed polyline it finds. | Every rectangle the engine proposes — each unit and each of its rooms — is clipped to the envelope polygon (`src/core/geom.ts`, Sutherland-Hodgman) before its area counts, and re-typed on the clipped area. A unit whose clipped area no longer supports any type in the strategy is **dropped rather than shrunk**, so such floors come out deliberately under-packed: conservative, and visible in the net-to-gross figure. The L-shaped probe now reports 83% net-to-gross; a U-shaped one 86%. Clipped units and rooms carry an `outline` and the schematic renders them as polygons, so the plan shows the footprint the areas were measured on. |
+
+Two things were needed to make this safe to land:
+
+- **Bit-exactness on rectangles.** Clipping a rectangle wholly inside its envelope must return the rectangle's own `w x d`, not the shoelace sum of the clipped ring: the ring's vertices come from interpolation, so the shoelace differs in the last floating-point digit — enough to flip a 1dp rounding and move a unit by 0.1 sqm. The first cut of the fix silently shifted the demo floor's NIA from 289.2 to 289.0. `rectClip` now returns the exact product when the rectangle is contained, and the demo building's unit areas, room areas and all eight option GDVs were diffed against git HEAD and are **identical**.
+- **A standing tripwire.** `makeOption` warns when any floor's NIA exceeds its GIA. Unreachable now, kept because while it *was* reachable the only symptom was a quietly inflated GDV.
+
+Coverage: `tests/geom.test.ts` (7 tests) checks the clipping against hand calculations, including a U-shaped floor where a horizontal band splits into two disconnected pieces — the case naive clipping gets wrong — plus a 400-rectangle sweep asserting the clipped area never exceeds either input, and the partition-conservation property the room tiling depends on. `tests/layout.test.ts` grew to 19 tests covering L/U shapes, the partial-clip cases real buildings have (chamfered corner, shallow notch, angled rear wall — these clip a unit without killing it, so they exercise the outline path), SVG rendering staying inside the envelope, and the pre-clipping demo figures pinned as regression values. Six of them were confirmed to fail against the unclipped engine.
+
+Still open, and deliberately not addressed here: the packer itself remains bounding-box based, so a notched floor is under-packed rather than optimally laid out (IMPROVEMENTS.md C1 notes this as the residual). A polygon-aware packer is a much larger change; measuring honestly came first.
+
 ## 7. Re-running the audit
 
 ```bash

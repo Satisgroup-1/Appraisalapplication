@@ -184,7 +184,7 @@ These are absent by design or never specified. Each needs a decision before it i
 
 ## C. Layout & compliance engine
 
-### C1 — HIGH · Non-rectangular floors are laid out on their bounding box, overstating NIA and GDV
+### C1 — HIGH · ~~Non-rectangular floors are laid out on their bounding box, overstating NIA and GDV~~ · **FIXED 2026-08-24**
 `planFloor` and `planFloorThrough` take `bounding(env.envelope)` (`src/core/layout.ts:42,268`)
 and lay units across the full rectangle, while `floorGiaSqm` is the true `polyArea`. Units are
 placed in space the building does not occupy.
@@ -386,7 +386,13 @@ building it is a frozen window with an "Autosaved" label. Set `busy` around gene
    `src/core/exportPayload.ts`, over-capacity schedules reported rather than truncated in
    silence, and `tests/export.test.ts` added (the export path previously had no unit test).
    Recorded in AUDIT.md §6.2.
-2. **C1 (+ the net-to-gross audit check)** — 24% GDV error on any non-rectangular building.
+2. ~~**C1 (+ the net-to-gross audit check)**~~ **Done** — units and rooms are clipped to
+   the envelope polygon (`src/core/geom.ts`); the L-shaped probe went from 124% to 83%
+   net-to-gross with the demo's figures bit-identical, and the NIA>GIA tripwire is in
+   `makeOption`. Recorded in AUDIT.md §6.3. **Residual:** the packer is still bounding-box
+   based, so a notched floor is under-packed (units that would overhang are dropped, not
+   reshaped) — conservative, and visible in net-to-gross. A polygon-aware packer is a
+   separate, larger job.
 3. **A1** — build cost inflation. Structural, changes every HPI-on appraisal.
 4. **A2, A3** — per-scenario cost attribution and time-based holding costs.
 5. **A4, A6, A8, A9 + E3** — guard rails and the plausibility checks that catch them.
