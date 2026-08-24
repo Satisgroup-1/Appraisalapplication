@@ -251,7 +251,7 @@ before planning.
 
 ## D. Application robustness & correctness
 
-### D1 — HIGH · The Excel export sends *unrepaired* inputs while the screen shows the repaired model
+### D1 — HIGH · ~~The Excel export sends *unrepaired* inputs while the screen shows the repaired model~~ · **FIXED 2026-08-24**
 `AppraisalView` computes the appraisal from `sanitizeSpec(pricing).spec`, but `exportXlsx`
 builds its payload from `project.pricing.finance` raw (`src/views/AppraisalView.tsx:55`).
 Probe — a spec with two fat-finger typos:
@@ -266,7 +266,7 @@ issue for `devCostLines`, which is also taken from the raw spec.
 
 Fix: sanitize once in `AppraisalView`, keep the cleaned spec in the memo, and export from it.
 
-### D2 — HIGH · The export silently truncates schedules over 30 units
+### D2 — HIGH · ~~The export silently truncates schedules over 30 units~~ · **FIXED 2026-08-24**
 `electron/xlsxExport.ts:157` does `schedule.slice(0, 30)` to fit `'1. Unit Import'` rows 7-36.
 Probe with 42 units:
 
@@ -382,7 +382,10 @@ building it is a frozen window with an "Autosaved" label. Set `busy` around gene
 
 ## Suggested order
 
-1. **D1, D2** — export/screen disagreement. Cheap, and it undermines trust in every export.
+1. ~~**D1, D2** — export/screen disagreement.~~ **Done** — payload construction extracted to
+   `src/core/exportPayload.ts`, over-capacity schedules reported rather than truncated in
+   silence, and `tests/export.test.ts` added (the export path previously had no unit test).
+   Recorded in AUDIT.md §6.2.
 2. **C1 (+ the net-to-gross audit check)** — 24% GDV error on any non-rectangular building.
 3. **A1** — build cost inflation. Structural, changes every HPI-on appraisal.
 4. **A2, A3** — per-scenario cost attribution and time-based holding costs.

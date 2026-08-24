@@ -20,7 +20,7 @@ import type {
   SensitivityResults,
   WaterfallResult,
 } from './types';
-import { SQM_TO_SQFT } from './rules';
+import { MAX_UNITS, SQM_TO_SQFT } from './rules';
 import { sdltForFinance } from './sdlt';
 
 export const MONTHS = 48; // '4. Cashflow' columns E..AZ
@@ -836,6 +836,15 @@ export function runAppraisal(schedule: ScheduleRow[], spec: PricingSpec, roomAre
   }
   if (spec.buildCostMode === 'roomRates' && !roomAreas) {
     warnings.push('No room-type areas for this schedule, so build cost falls back to the fixed D01 amount.');
+  }
+  if (totals.units > MAX_UNITS) {
+    // The workbook's '1. Unit Import' holds rows 7-36. The app's own model
+    // prices every unit, but an Excel export cannot carry more than MAX_UNITS,
+    // so say here exactly what sheets 1-6 would leave out.
+    const droppedGdv = schedule.slice(MAX_UNITS).reduce((s2, r) => s2 + r.unitGdv, 0);
+    warnings.push(
+      `${totals.units} units exceeds the ${MAX_UNITS}-unit capacity of the workbook's '1. Unit Import' sheet. This appraisal prices all ${totals.units}, but an Excel export carries only the first ${MAX_UNITS} into sheets 1-6, omitting £${Math.round(droppedGdv).toLocaleString('en-GB')} of GDV there. The '7. App Model v2' sheet always reflects the full schedule.`,
+    );
   }
 
   return {

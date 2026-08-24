@@ -197,6 +197,28 @@ cannot delete lines); a hand-built spec omitting them makes grid1(0%) diverge fr
 exactly the selling costs. Pre-existing behaviour, untouched by this change, exposure limited
 to test scaffolding.
 
+### 6.2 Audit of the application layer (2026-08-24)
+
+A full read-through of the app around the engine — renderer, store, Electron main, export
+path — recorded in IMPROVEMENTS.md as 28 findings. The two that break the export contract
+were fixed first, since both silently contradict figures the user has already been shown.
+
+| # | Severity | Defect | Fix |
+|---|---|---|---|
+| 9 | HIGH | The workbook export built its payload from the **raw** project spec while the appraisal screen priced the **sanitized** one, so any repair the audit strip reported was contradicted by the exported workbook. Probe: a spec with a 450% bridge rate and a 90% agent fee showed 50% / 20% on screen (both reported as repairs) and wrote **4.5 and 0.9** into `'2. Inputs'`!E18/E40. `devCostLines` came from the raw spec too, and every `'7. App Model v2'` assumption line described the unrepaired inputs. | Payload construction moved out of the view into `src/core/exportPayload.ts` (`buildExportInputs`, `buildModelV2`), both taking the spec as a parameter so there is **no code path to the unrepaired one**. `AppraisalView` now carries the sanitized spec out of the same memo that computes the result. `tests/export.test.ts` pins the repaired figures in the written file — and pins the pre-fix behaviour too, so the sanitize step cannot be dropped again. |
+| 10 | HIGH | A schedule longer than `'1. Unit Import'` (rows 7-36) was **silently truncated** by a hardcoded `slice(0, 30)`. Probe: a 42-unit scheme exported a workbook whose sheets 1-6 carried £14,994,974 of GDV against the engine's £20,992,963 — **£5,997,990 missing**, with no warning anywhere. The `>30 units` note that does exist lives on `ConversionOption.warnings`, so it never reaches a demo or hand-entered schedule, and never reaches the export path at all. | The limit is now the shared `MAX_UNITS`, and `exportWorkbook` returns an `ExportOutcome` (units total / written / dropped, and the GDV dropped) that travels back over IPC. `runAppraisal` warns above `MAX_UNITS` naming the omitted GDV; the export confirmation renders as a warning, not a success, and states the figures; the `'7. App Model v2'` sheet carries a `CAPACITY WARNING` row so a workbook reader sees the discrepancy next to the full-schedule numbers. |
+
+Both were reachable because **the export path had no unit test at all** — only
+`scripts/crosscheck.sh`, which needs LibreOffice and so runs by hand. `tests/export.test.ts`
+(13 tests) now exercises it against the real template and reads the bytes back; four of those
+tests were confirmed to fail against the pre-fix engine and exporter before the fix landed.
+`scripts/` is also now inside `tsconfig.json`'s `include`, so the crosscheck script is
+typechecked against the signatures it calls.
+
+Extraction of the model-v2 payload was verified output-identical to the original inline code
+across four spec variants (default, VAT-loan, waterfall, HPI), so the exported sheet is
+unchanged.
+
 ## 7. Re-running the audit
 
 ```bash

@@ -7,6 +7,7 @@
 import ExcelJS from 'exceljs';
 import { computeSdlt } from '../src/core/sdlt';
 import { isSdltLine } from '../src/core/dcf';
+import { MAX_UNITS, SQM_TO_SQFT } from '../src/core/rules';
 
 interface ScheduleRowIn {
   no: number;
@@ -15,6 +16,9 @@ interface ScheduleRowIn {
   type: string;
   sqm: number;
   salePsf: number;
+  /** Present when the caller sends full ScheduleRows; used so a reported
+   *  omission matches the engine's GDV exactly rather than re-deriving it. */
+  unitGdv?: number;
   buildMonths: number;
   monthlyRent: number;
   notes: string;
@@ -134,13 +138,24 @@ export interface ModelV2In {
   }[];
 }
 
+/** What the export actually managed to carry, so the caller can tell the user.
+ *  '1. Unit Import' holds rows 7-36, so a longer schedule cannot fit sheets
+ *  1-6 — the omission is reported rather than left silent. */
+export interface ExportOutcome {
+  unitsTotal: number;
+  unitsWritten: number;
+  unitsDropped: number;
+  /** GDV of the units sheets 1-6 could not carry. */
+  gdvDropped: number;
+}
+
 export async function exportWorkbook(
   templatePath: string,
   outPath: string,
   schedule: ScheduleRowIn[],
   inputs: InputsIn,
   modelV2?: ModelV2In | null,
-): Promise<void> {
+): Promise<ExportOutcome> {
   const wb = new ExcelJS.Workbook();
   await wb.xlsx.readFile(templatePath);
 
@@ -154,7 +169,14 @@ export async function exportWorkbook(
     }
   }
 
-  const rows = schedule.slice(0, 30);
+  const rows = schedule.slice(0, MAX_UNITS);
+  const dropped = schedule.slice(MAX_UNITS);
+  const outcome: ExportOutcome = {
+    unitsTotal: schedule.length,
+    unitsWritten: rows.length,
+    unitsDropped: dropped.length,
+    gdvDropped: dropped.reduce((s2, u) => s2 + (u.unitGdv ?? u.sqm * SQM_TO_SQFT * u.salePsf), 0),
+  };
   rows.forEach((u, i) => {
     const r = 7 + i;
     const set = (col: string, v: string | number) => {
@@ -277,6 +299,14 @@ export async function exportWorkbook(
 
     title('APP MODEL V2 — computed by Satis Appraisal');
     pair('Note', 'Sheets 1-6 recalculate with the workbook’s own (simplified) formulas; this sheet is the app’s model.');
+    if (outcome.unitsDropped > 0) {
+      // Sheets 1-6 are short of the full schedule; the figures below are not,
+      // so the discrepancy is stated where both are visible together.
+      pair(
+        'CAPACITY WARNING',
+        `Schedule has ${outcome.unitsTotal} units; '1. Unit Import' holds ${MAX_UNITS}. Sheets 1-6 omit ${outcome.unitsDropped} unit(s) and £${Math.round(outcome.gdvDropped).toLocaleString('en-GB')} of GDV. The figures on THIS sheet cover all ${outcome.unitsTotal}.`,
+      );
+    }
     r += 1;
     title('Assumptions');
     for (const a of modelV2.assumptions) pair('·', a);
@@ -312,4 +342,6 @@ export async function exportWorkbook(
   wb.calcProperties.fullCalcOnLoad = true;
 
   await wb.xlsx.writeFile(outPath);
+
+  return outcome;
 }

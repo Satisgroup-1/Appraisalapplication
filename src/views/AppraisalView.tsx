@@ -5,9 +5,10 @@
 import { useMemo, useState } from 'react';
 import { runAppraisal } from '../core/dcf';
 import { auditAppraisal, repairSchedule, sanitizeSpec } from '../core/audit';
+import { buildExportInputs, buildModelV2 } from '../core/exportPayload';
 import type { AuditReport, AuditRepair } from '../core/audit';
 import { DEMO_SCHEDULE } from '../core/demo';
-import type { AppraisalResult, ScheduleRow } from '../core/types';
+import type { AppraisalResult, PricingSpec, ScheduleRow } from '../core/types';
 import { fmtGBP, fmtNum, fmtPct, useStore } from '../state/store';
 
 type Tab = 'summary' | 'costs' | 'cashflow' | 'scenarios' | 'sensitivity';
@@ -20,6 +21,7 @@ export default function AppraisalView() {
   const [tab, setTab] = useState<Tab>('summary');
   const [useDemo, setUseDemo] = useState(false);
   const [exportMsg, setExportMsg] = useState<string | null>(null);
+  const [exportTruncated, setExportTruncated] = useState(false);
 
   const option = options.find((o) => o.id === selectedOptionId) ?? null;
   const rawSchedule: ScheduleRow[] | null = useDemo ? DEMO_SCHEDULE : option?.schedule ?? null;
@@ -29,101 +31,64 @@ export default function AppraisalView() {
   // Every appraisal runs through the automatic financial audit: inputs are
   // repaired where recoverable (and every repair reported), then the computed
   // result is re-derived check by check.
-  const { result, schedule, audit, repairs } = useMemo((): {
+  const { result, schedule, spec, audit, repairs } = useMemo((): {
     result: AppraisalResult | null;
     schedule: ScheduleRow[] | null;
+    /** The REPAIRED spec the result was computed from. The workbook export
+     *  must use this and not the raw project spec, or a reported repair
+     *  (e.g. a 450% bridge rate clamped to 50%) is shown on screen while the
+     *  exported '2. Inputs' still carries the unrepaired figure. */
+    spec: PricingSpec | null;
     audit: AuditReport | null;
     repairs: AuditRepair[];
   } => {
-    if (!rawSchedule || !rawSchedule.length || !pricing) return { result: null, schedule: null, audit: null, repairs: [] };
+    const empty = { result: null, schedule: null, spec: null, audit: null, repairs: [] };
+    if (!rawSchedule || !rawSchedule.length || !pricing) return empty;
     try {
-      const spec = sanitizeSpec(pricing);
+      const clean = sanitizeSpec(pricing);
       const sched = repairSchedule(rawSchedule);
-      const res = runAppraisal(sched.schedule, spec.spec, roomAreas);
-      const auditReport = auditAppraisal(res, spec.spec, sched.schedule);
-      return { result: res, schedule: sched.schedule, audit: auditReport, repairs: [...spec.repairs, ...sched.repairs] };
+      const res = runAppraisal(sched.schedule, clean.spec, roomAreas);
+      const auditReport = auditAppraisal(res, clean.spec, sched.schedule);
+      return {
+        result: res,
+        schedule: sched.schedule,
+        spec: clean.spec,
+        audit: auditReport,
+        repairs: [...clean.repairs, ...sched.repairs],
+      };
     } catch {
-      return { result: null, schedule: null, audit: null, repairs: [] };
+      return empty;
     }
   }, [rawSchedule, pricing, roomAreas]);
 
   if (!project) return null;
 
   async function exportXlsx() {
-    if (!schedule || !project) return;
+    if (!schedule || !project || !spec) return;
     setExportMsg(null);
-    const fin = project.pricing.finance;
-    const inputs = {
-      address: project.address || project.name,
-      ...fin,
-      devCostLines: project.pricing.devCosts.map((l) => ({ code: l.code, kind: l.kind, value: l.value, label: l.label })),
-      buildCostOverride: result?.devCosts.buildCostSource === 'roomRates' ? result.devCosts.buildCost : null,
-    };
-    // The '7. App Model v2' sheet mirrors exactly what this screen shows.
-    const modelV2 = result
-      ? {
-          assumptions: [
-            'Bridge advances against the purchase price only; SDLT, legals, valuation and design fees paid from equity',
-            'SDLT paid on completion (month 1)',
-            'Main contract drawn on a standard S-curve; architect & QS fees straight-lined to PC',
-            `Retention: ${(fin.retention.pctDuringWorks * 100).toFixed(1)}% withheld, ${(fin.retention.pctAfterPc * 100).toFixed(1)}% held ${fin.retention.releaseMonthsAfterPc} months after PC`,
-            'Post-construction holding costs straight-lined over the sell period',
-            fin.vat.optedToTax
-              ? `VAT on purchase at ${(fin.vat.ratePct * 100).toFixed(0)}%, reclaimed after ${fin.vat.reclaimLagMonths} months, funded by ${fin.vat.fundedBy === 'vatLoan' ? 'VAT loan' : 'equity'}`
-              : 'No VAT on purchase (seller not opted to tax)',
-            `Deposit interest at ${(fin.depositRatePa * 100).toFixed(2)}% pa on cash held`,
-            fin.hpi.enabled
-              ? `HPI applied: years 1-5 at ${fin.hpi.annualPct.map((r) => (r * 100).toFixed(1) + '%').join(', ')}${fin.hpi.region ? ` (${fin.hpi.region})` : ''}`
-              : 'HPI off: sale prices as entered',
-            fin.waterfall.mode === 'waterfall'
-              ? `Waterfall: ${(fin.waterfall.prefRatePa * 100).toFixed(1)}% pref (monthly compounding), then ${(fin.waterfall.residualInvestorPct * 100).toFixed(0)}% investor`
-              : `Simple profit split: ${(fin.equity.investorShare * 100).toFixed(0)}% investor`,
-            'Sales pacing uniform across units',
-          ],
-          summary: [
-            ['GDV (today)', Math.round(result.totals.gdv)],
-            ['GDV indexed to PC', Math.round(result.scenarios.s1.gdvAdjusted)],
-            ['Total costs pre-finance', Math.round(result.devCosts.totalPreFinance)],
-            ['Total finance costs', Math.round(result.finance.totalFinanceCosts)],
-            ['Deposit interest on retention pot', Math.round(result.finance.depositInterestRetention)],
-            ['Total costs after finance', Math.round(result.finance.totalCostsAfterFinance)],
-            ['Peak dev loan', Math.round(result.finance.peakDevBalance)],
-            ['Peak equity deployed', Math.round(result.finance.equityUsed)],
-            ['Months to PC', result.programme.pcMonth],
-          ] as [string, number][],
-          scenarios: [
-            ['S1 net profit (sell at PC)', Math.round(result.scenarios.s1.netProfit)],
-            ['S1 investor / developer', `${Math.round(result.scenarios.s1.waterfall.investorProfit)} / ${Math.round(result.scenarios.s1.waterfall.developerProfit)}`],
-            ['S2 net profit (delayed sales)', Math.round(result.scenarios.s2.netProfit)],
-            ['S2 HPI uplift on later sales', Math.round(result.scenarios.s2.hpiUplift)],
-            ['S3 net annual cashflow (refi & rent)', Math.round(result.scenarios.s3.netAnnualCashflow)],
-            ['S4 net profit (refi then sell)', Math.round(result.scenarios.s4.netProfit)],
-          ] as [string, string | number][],
-          cashflow: result.cashflow
-            .filter((r) => Math.abs(r.costs) > 0.005 || r.devBalance > 0 || r.retentionBalance > 0 || r.vatPaid > 0 || r.vatReclaimed > 0)
-            .map((r) => ({
-              month: r.month,
-              costs: r.costs,
-              cumCosts: r.cumCosts,
-              vatFlow: r.vatReclaimed - r.vatPaid,
-              retentionBalance: r.retentionBalance,
-              bridgeBalance: r.bridgeBalance,
-              equityCum: r.equityCum,
-              devDrawdown: r.devDrawdown,
-              devInterest: r.devInterest,
-              devBalance: r.devBalance,
-            })),
-        }
-      : null;
-    const path = await window.satis.exportXlsx(
+    setExportTruncated(false);
+    // Both payloads are built from the SANITIZED spec, so the workbook carries
+    // exactly the inputs this screen priced. See src/core/exportPayload.ts.
+    const inputs = buildExportInputs({ address: project.address || project.name, spec, result });
+    const modelV2 = result ? buildModelV2(spec, result) : null;
+    const out = await window.satis.exportXlsx(
       JSON.stringify(schedule),
       JSON.stringify(inputs),
       `${project.name.replace(/\s+/g, '_')}_${useDemo ? 'demo' : option?.id ?? 'appraisal'}`,
       modelV2 ? JSON.stringify(modelV2) : undefined,
     );
-    if (path) {
-      setExportMsg(`Workbook exported to ${path}. Sheets 1-6 recalculate in Excel; '7. App Model v2' carries this screen's model.`);
-      window.satis.showItemInFolder(path);
+    if (out) {
+      const base = `Workbook exported to ${out.path}. Sheets 1-6 recalculate in Excel; '7. App Model v2' carries this screen's model.`;
+      // A schedule longer than '1. Unit Import' can hold is truncated by the
+      // exporter; say so with the figure, rather than letting the user read a
+      // short workbook as the whole scheme.
+      setExportMsg(
+        out.unitsDropped > 0
+          ? `${base} NOTE: only ${out.unitsWritten} of ${out.unitsTotal} units fit sheets 1-6 — ${out.unitsDropped} unit(s) and ${fmtGBP(out.gdvDropped)} of GDV are omitted there. The v2 sheet and this screen cover all ${out.unitsTotal}.`
+          : base,
+      );
+      setExportTruncated(out.unitsDropped > 0);
+      window.satis.showItemInFolder(out.path);
     }
   }
 
@@ -173,7 +138,7 @@ export default function AppraisalView() {
             <button className="btn" onClick={exportXlsx}>
               Export Excel workbook
             </button>
-            {exportMsg && <div className="ok-box">{exportMsg}</div>}
+            {exportMsg && <div className={exportTruncated ? 'warn-box' : 'ok-box'}>{exportMsg}</div>}
           </div>
 
           <div className="tabs">

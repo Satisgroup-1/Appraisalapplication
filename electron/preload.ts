@@ -1,12 +1,19 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import type { AuthStatus } from './auth';
+import type { ExportOutcome } from './xlsxExport';
 
 export type { AuthStatus, AuthSource, ClaudeLogin, CliInfo } from './auth';
+export type { ExportOutcome } from './xlsxExport';
 
 export interface ImportedFile {
   name: string;
   ext: string;
   content: string; // utf-8 text for dxf, base64 for pdf/images
+}
+
+/** Where the workbook was written, plus what it could carry. */
+export interface XlsxExportResult extends ExportOutcome {
+  path: string;
 }
 
 export interface ProjectSummaryIpc {
@@ -61,7 +68,8 @@ const api = {
     inputsJson: string,
     suggestedName: string,
     modelV2Json?: string,
-  ): Promise<string | null> => ipcRenderer.invoke('export:xlsx', { scheduleJson, inputsJson, suggestedName, modelV2Json }),
+  ): Promise<XlsxExportResult | null> =>
+    ipcRenderer.invoke('export:xlsx', { scheduleJson, inputsJson, suggestedName, modelV2Json }),
   exportSvg: (svg: string, suggestedName: string): Promise<string | null> =>
     ipcRenderer.invoke('export:svg', svg, suggestedName),
   showItemInFolder: (p: string): Promise<void> => ipcRenderer.invoke('shell:showItem', p),
