@@ -62,7 +62,11 @@ if [[ -f LOOP-LOG.md ]]; then
   grep -E '^\| [0-9]{4}-[0-9]{2}-[0-9]{2}' LOOP-LOG.md | tail -$([[ $FULL == 1 ]] && echo 100 || echo 6) \
     | awk -F'|' '{printf "    %-17s %-10s %-6s %s\n", $2, $3, $4, $5}' | sed 's/  */ /3g'
 else
-  echo "  no LOOP-LOG.md yet — no cycle has recorded a result"
+  if [[ "$CUR" != "$BRANCH" ]]; then
+    echo "  no LOOP-LOG.md on this branch — the loop's log lives on $BRANCH"
+  else
+    echo "  no LOOP-LOG.md yet — no cycle has recorded a result"
+  fi
 fi
 rule
 
@@ -105,6 +109,8 @@ if [[ -f IMPROVEMENTS.md ]]; then
     printf '%s\n' "$ALL" | grep -P '\tdone\t' \
       | awk -F'\t' '{ printf "    %-4s %s\n", $1, substr($3, 1, 88) }'
   fi
+else
+  echo "  no IMPROVEMENTS.md on this branch — the backlog lives on $BRANCH"
 fi
 rule
 
