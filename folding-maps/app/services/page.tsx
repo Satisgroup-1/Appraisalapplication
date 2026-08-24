@@ -90,7 +90,7 @@ export default function ServicesPage() {
         <div className="container inner">
           <div>
             <span className="kicker">Enquiries</span>
-            <h2>Not sure which of these you need?</h2>
+            <h2>Start with the problem, not the service.</h2>
             <p>
               Describe the problem, not the solution, and we will tell you which kind of work
               it is, including when the answer is that it is not ours.

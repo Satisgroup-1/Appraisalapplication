@@ -57,7 +57,7 @@ const serviceCatalogue: Service[] = [
   {
     slug: 'ai-implementation', number: '02', group: 'Build', title: 'Custom AI Systems', shortTitle: 'Custom AI systems',
     promise: 'Bespoke AI systems engineered around real work, data and controls.',
-    summary: 'We design, build, integrate and launch purpose-built AI solutions from a bounded first release through to operational handover.',
+    summary: 'We design, build, integrate and launch purpose-built AI systems, from a bounded first release through to operational handover.',
     explanation: 'A custom implementation connects models to the surrounding software system. It includes data preparation, retrieval, orchestration, authentication, evaluation, observability, exception handling and user experience, not only prompts or an off-the-shelf workspace.',
     technologies: ['LLM orchestration', 'Secure APIs', 'Retrieval systems', 'Evaluation harnesses'],
     stages: [
@@ -191,7 +191,7 @@ const serviceCatalogue: Service[] = [
   {
     slug: 'enterprise-ai', number: '10', group: 'Enable', title: 'AI Adoption & Operating Model', shortTitle: 'AI adoption',
     promise: 'A scale-appropriate way to adopt AI across people, workflows and control functions.',
-    summary: 'We help growing teams and larger organisations embed useful AI without importing unnecessary complexity or losing local ownership.',
+    summary: 'We embed AI into how a growing team already works, without importing unnecessary complexity or moving ownership away from the people doing the job.',
     explanation: 'The operating model should fit the organisation. A growing business may need one accountable owner and a focused release rhythm, while a larger organisation needs shared platforms, reusable controls and federated business ownership. Both require role change, adoption evidence and measured value.',
     technologies: ['Adoption diagnostics', 'Role playbooks', 'Federated governance', 'Portfolio telemetry'],
     stages: [

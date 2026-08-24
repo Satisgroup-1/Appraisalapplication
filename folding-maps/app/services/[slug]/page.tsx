@@ -63,7 +63,13 @@ export default async function ServiceDetailPage({ params }: PageProps) {
           <div className="page-head">
             <div>
               <span className="kicker">What this is</span>
-              <h2 id="what-title">{service.summary}</h2>
+              {/* The summary is a sentence, not a headline: setting it at display
+                  size produced six lines of oversized type. The heading stays for
+                  the document outline; the sentence reads as a standfirst. */}
+              <h2 id="what-title" className="sr-only">
+                What this is
+              </h2>
+              <p className="lede">{service.summary}</p>
             </div>
             <div>
               <p className={styles.explanation}>{service.explanation}</p>
@@ -201,7 +207,7 @@ export default async function ServiceDetailPage({ params }: PageProps) {
         <div className="container inner">
           <div>
             <span className="kicker">Enquiries</span>
-            <h2>Have a constraint that looks like this?</h2>
+            <h2>Constraints like this one are where we start.</h2>
             <p>
               Send the situation, not a specification. The first response will tell you what we
               would need to know to scope it properly.

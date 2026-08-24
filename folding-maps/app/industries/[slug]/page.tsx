@@ -181,10 +181,11 @@ export default async function IndustryDetail({ params }: { params: Promise<{ slu
         <div className="container inner">
           <div>
             <span className="kicker">Enquiries</span>
-            <h2>Does this match how {industry.name.toLowerCase()} actually runs for you?</h2>
+            <h2>Sector notes generalise. Yours will differ.</h2>
             <p>
-              Sector notes generalise, and yours will differ in at least one way that
-              matters. Tell us which, and that is where we will start.
+              This page describes the sector in general terms, and your operation will
+              depart from it in at least one way that matters. Tell us which, and that is
+              where we start.
             </p>
           </div>
           <Link

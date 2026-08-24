@@ -76,7 +76,7 @@ export function ContactForm() {
 
       <div className="form-row">
         <label className="field">
-          <span className="field-label">What is this about?</span>
+          <span className="field-label">Subject</span>
           <select required name="interest" defaultValue="">
             <option value="" disabled>
               Select one
@@ -122,7 +122,7 @@ export function ContactForm() {
       </label>
 
       <label className="field">
-        <span className="field-label">What is the constraint?</span>
+        <span className="field-label">The constraint</span>
         <textarea
           required
           minLength={10}

@@ -14,7 +14,7 @@ export function NarrativeOpening({
       <span>{label}</span>
       <h2>{title}</h2>
       <div>{paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}</div>
-      {centralQuestion && <blockquote><b>The central question</b>{centralQuestion}</blockquote>}
+      {centralQuestion && <blockquote><b>What decides it</b>{centralQuestion}</blockquote>}
     </section>
   );
 }

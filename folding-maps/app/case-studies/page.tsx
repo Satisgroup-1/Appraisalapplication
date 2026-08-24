@@ -71,11 +71,11 @@ export default function Cases() {
         <div className="container inner">
           <div>
             <span className="kicker">Enquiries</span>
-            <h2>Recognise one of these?</h2>
+            <h2>The shape of the problem travels between sectors.</h2>
             <p>
-              The sector rarely matters as much as the shape of the problem. If one of these
-              accounts reads like your operation, the first conversation can start from
-              there.
+              If one of these accounts reads like your operation, the first conversation
+              can start from there. The sector matters less than the shape of the
+              coordination that is failing.
             </p>
           </div>
           <Link className="button" href="/contact">

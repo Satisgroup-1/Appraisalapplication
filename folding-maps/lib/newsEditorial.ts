@@ -54,7 +54,7 @@ export const newsEditorial: Record<string, NewsEditorial> = {
         paragraphs: [
           { text: 'The first difficulty for the finance team is that even adoption is not one number. The UK Business Data Survey reports AI use among businesses that handle digitised data, while separate government research measures use across the wider business population. The former found 41 percent use in its survey population; the latter found 16 percent of UK businesses using at least one AI technology. Different populations, definitions and survey designs explain much of the gap.', sources: [ukBusinessData, ukAdoption] },
           { text: 'Neither figure answers the chief financial officer. A business can count an employee researching with a general assistant and another firm running an embedded workflow under the same broad heading of AI use. One records access to a capability; the other may alter how work is controlled. The distinction means adoption can be an early signal of experimentation without being evidence of economic return.' },
-          { text: 'If the usage dashboard cannot establish value, management needs a narrower question: how much of that activity is connected to a business system and an accountable outcome?' },
+          { text: 'Where the usage dashboard cannot establish value, the narrower measure is the share of that activity connected to a business system and an accountable outcome.' },
         ],
         exhibits: [{ kind: 'evidence', view: 0, afterParagraph: 0 }],
       },
@@ -76,7 +76,7 @@ export const newsEditorial: Record<string, NewsEditorial> = {
         paragraphs: [
           { text: 'Once a material decision is selected, integration becomes less about moving data and more about allocating authority. Management must decide which record is authoritative, which fields are sufficient, which outputs may proceed without review and which exception stops the workflow. A confidence score has no operating value unless low confidence changes the route, owner or service expectation.' },
           { text: 'The strongest design usually combines ordinary software with bounded AI. Required fields, calculations and known notifications should remain deterministic. A model earns its place where language or variation makes fixed rules inadequate. Source attribution and evaluation then connect interpretation back to evidence, while an accountable person retains authority over consequential exceptions.' },
-          { text: 'This architecture gives the finance team something measurable: elapsed time from eligible input to accepted outcome, first-time quality, rework and exception effort. Yet it also creates cost and control obligations. Is a formal workflow always worth that burden?' },
+          { text: 'This architecture gives the finance team something measurable: elapsed time from eligible input to accepted outcome, first-time quality, rework and exception effort. Yet it also creates cost and control obligations. A formal workflow is not always worth that burden, and the threshold should be set before the work starts.' },
         ],
         exhibits: [{ kind: 'system', afterParagraph: 1 }],
       },
@@ -121,7 +121,7 @@ export const newsEditorial: Record<string, NewsEditorial> = {
         paragraphs: [
           { text: 'The fall in headline inference prices is substantial. Stanford reports that the cost of querying a model above a stated GPT-3.5-level MMLU threshold fell from about $20 per million tokens in November 2022 to $0.07 by October 2024. The comparison is historical and offers no guarantee of equivalent performance in a live workflow. Even with that caveat, it materially lowers the cost of testing.', sources: [stanfordIndex] },
           { text: 'For a smaller firm, the immediate benefit is option value. Tasks that could not justify an expensive experiment can now be benchmarked against representative documents, messages or decisions. Lower prices also make it practical to compare several model families before signing a long contract.' },
-          { text: 'The procurement team in the opening scene captured this input saving correctly. Its mistake was assuming that the input represented the whole service. What else belongs in the cost of an accepted task?' },
+          { text: 'The procurement team in the opening scene captured this input saving correctly. Its mistake was assuming that the input represented the whole service. The cost of an accepted task also carries review, exception handling, integration and monitoring.' },
         ],
         exhibits: [{ kind: 'evidence', view: 0, afterParagraph: 0 }],
       },
@@ -132,7 +132,7 @@ export const newsEditorial: Record<string, NewsEditorial> = {
         paragraphs: [
           { text: 'That wider cost chain includes retrieval, infrastructure, monitoring, review, retries, exception handling, support and the engineering required when a prompt, provider or model changes. These costs scale differently. Inference follows usage; specialist review follows error and consequence; integration and control create fixed commitments before the first task is accepted.' },
           { text: 'Cost per accepted task therefore exposes false savings. A model that costs half as much but doubles correction effort is not cheaper. A highly accurate model may also be uneconomic if its rare failures require every output to pass through an expensive specialist. The appropriate comparison holds the business outcome and acceptance standard constant.' },
-          { text: 'This explains the longer queue in the procurement vignette, but it raises a sourcing question. If operating cost dominates the model bill, does an open-weight deployment create control or simply transfer more responsibility to the buyer?' },
+          { text: 'This explains the longer queue in the procurement vignette, but it raises a sourcing question. Where operating cost dominates the model bill, an open-weight deployment transfers responsibility to the buyer at least as much as it creates control.' },
         ],
       },
       {
@@ -199,7 +199,7 @@ export const newsEditorial: Record<string, NewsEditorial> = {
         paragraphs: [
           { text: 'That observation usually exposes work that can be removed, standardised or validated. Ordinary workflow software should handle required fields, fixed calculations, known notifications and state changes. With those controls in place, the model faces fewer occasions on which it must infer what the organisation meant.' },
           { text: 'In the customer enquiry, address validation can expose the conflict, the current policy can be versioned and the credit hold can become a controlled field. AI may still help interpret free text or prepare a response, but it no longer has to invent the process while executing it.' },
-          { text: 'This combined design is less theatrical than a general agent and more dependable. Once the workflow has a stable state and explicit exceptions, management can address the consequential question the demonstration avoided: what authority should the model receive?' },
+          { text: 'This combined design is less theatrical than a general agent and more dependable. Once the workflow has a stable state and explicit exceptions, management can settle the point the demonstration avoided, which is how much authority the model should receive.' },
         ],
       },
       {
@@ -386,7 +386,7 @@ export const newsEditorial: Record<string, NewsEditorial> = {
         paragraphs: [
           { text: 'The first question for the investment committee is what would have happened without the release. A representative baseline should cover eligible volume, elapsed time, hands-on effort, error, rework and service. One difficult week can flatter the project; staff estimates alone can create precision without a dependable denominator.' },
           { text: 'Where data is weak, the correct response is not to invent a stronger baseline. Management should record the uncertainty, identify the measures the pilot can improve and state the range of outcomes consistent with current knowledge.' },
-          { text: 'The 100-hour claim assumes full adoption, stable demand and no new work. Once those assumptions are tested, how much of the theoretical saving remains available for the business to use?' },
+          { text: 'The 100-hour claim assumes full adoption, stable demand and no new work. Testing those assumptions establishes how much of the theoretical saving remains available for the business to use.' },
         ],
       },
       {

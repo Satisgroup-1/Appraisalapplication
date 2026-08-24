@@ -154,10 +154,10 @@ export default function About() {
         <div className="container inner">
           <div>
             <span className="kicker">Enquiries</span>
-            <h2>Have a problem that has outlasted two attempts to fix it?</h2>
+            <h2>The problems worth calling us about have outlasted two attempts to fix them.</h2>
             <p>
-              Those are the ones worth talking about. Tell us what has already been tried and
-              why it did not hold.
+              Tell us what has already been tried and why it did not hold. That history is
+              usually the most informative thing in a first conversation.
             </p>
           </div>
           <Link className="button" href="/contact">

@@ -1193,3 +1193,7 @@ html[data-reading-mode='advanced'] [data-report-mode='simple'] { display: none; 
 .report h1 { max-width: 21ch; }
 .report > .lede { max-width: 62ch; }
 .report > .caveat { max-width: 62ch; }
+
+/* A standfirst in a page-head sits with the heading, so it should not carry the
+   paragraph's default trailing margin. */
+.page-head .lede { margin-bottom: 0; }

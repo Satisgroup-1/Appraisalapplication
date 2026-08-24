@@ -69,10 +69,11 @@ export default function News() {
         <div className="container inner">
           <div>
             <span className="kicker">Enquiries</span>
-            <h2>Disagree with one of these?</h2>
+            <h2>Disagreement is the more useful reply.</h2>
             <p>
-              That is a more useful conversation than agreement. If your operation
-              contradicts an argument here, we would rather hear it than defend the piece.
+              These are arguments, not conclusions, and they are better for being tested
+              against a real operation. If your own data contradicts one, we would sooner
+              hear it than defend the piece.
             </p>
           </div>
           <Link className="button" href="/contact">

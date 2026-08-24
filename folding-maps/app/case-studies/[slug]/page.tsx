@@ -194,7 +194,7 @@ export default async function CaseDetail({ params }: { params: Promise<{ slug: s
         <div className="container inner">
           <div>
             <span className="kicker">Enquiries</span>
-            <h2>Where is the work getting stuck for you?</h2>
+            <h2>Tell us where the work is getting stuck.</h2>
             <p>
               If this account resembles your operation, the useful first step is a
               conversation about the differences, not the similarities.
