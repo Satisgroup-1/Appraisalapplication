@@ -13,6 +13,7 @@ Columns: when (UTC) · outcome · item · title · rework rounds · what happene
 | 2026-08-24 03:51 | ABANDONED | A4+A8 | Floor the development facility at zero, and disclose pre-construction spend that nothing funds | 0 | Reviewer APPROVED, but the work collided: origin advanced 6 commits mid-cycle and the 03:25 guard-rails cycle had already landed both fixes. Rebase conflicted in 5 files and would have deleted `tests/guardrails.test.ts`. Reset to `f786ce2` rather than force-push over another cycle's work. Base verified green: tsc clean, 251 tests. |
 | 2026-08-24 04:33 | LANDED | C3 | Zero-dwelling conversion options must not report as NDSS-compliant | 0 | 251→253 tests. allCompliant was `compliance.every(allPass)`, vacuously true over the empty units array of an unplannable envelope, so a £0-GDV option that builds nothing showed a green "NDSS compliant" badge. Now `residentialUnits > 0 && every(allPass)`; zero-dwelling options carry a warning and read "Not viable - no dwellings". Confirmed failing-first on a 3m-deep shallow floor. No-op on the demo: all 8 options keep bit-identical flags. No golden pin moved. |
 | 2026-08-24 06:30 | ABANDONED | D3 | Validate cost-line discriminants in sanitizeSpec, and stop swallowing engine failures on the Appraisal page | 3 | Reviewer withheld approval after 3 rounds: runAppraisalForView drops the repairs it had already collected when a later stage throws, sanitizeSpec still throws outright on a non-array devCosts, the new test carries a false comment about H01's position, and the incidence rule's forward-compatibility hazard was left undocumented. Working tree reverted to 41d6e58; nothing committed. |
+| 2026-08-24 07:35 | LANDED | D11 | Reject duplicate cost-line codes in the sanitiser and add an auditor tripwire that catches them | 0 | sanitizeSpec now de-dups devCosts by code (keeps the FIRST occurrence, reports each dropped copy as a repair) and a new costs-duplicate-codes tripwire fails on any spec still carrying a repeated code. A duplicated D01 previously swung S1 net profit from +779,614.9968750654 to -1,671,760.18 (-£2,451,375) silently against a green audit. Clean baseline 61→62 checks; 5 D11 tests confirmed failing-first. No golden pin moved. |
 
 ## Abandoned: D3
 
@@ -201,3 +202,27 @@ commercial conventions the loop refuses to invent:**
   needs the client's word on how their lenders actually charge it.
 
 The loop will add new entries here if a cycle hits something it refuses to decide alone.
+
+**Raised 2026-08-24 by the D11 reviewer (duplicate cost codes). Not acted on.**
+
+- **Pre-existing, out of scope: two call sites bypass the sanitiser.**
+  `OptionsView.tsx:27` (`runAppraisal(o.schedule, project.pricing, ...)`) and
+  `PricingView.tsx:130` call `runAppraisal` on the RAW, un-sanitised spec, not
+  `sanitizeSpec(...).spec`. A stored project carrying a duplicate cost code would
+  therefore still show the doubled (wrong) cost in the Options net-profit list
+  and the Pricing preview, because those two call sites bypass the new de-dup
+  entirely and never invoke `auditAppraisal` (so the tripwire cannot warn there
+  either). Only `AppraisalView` (lines 48-51) benefits from the fix. This is a
+  variant of the already-logged IMPROVEMENTS.md:289 divergence and a reasonable
+  backlog candidate; it is not introduced by this change.
+- **Deliberately-scoped residual: root-cause by-code resolution left in place.**
+  `audit.ts:314`, `allLines.find((l) => l.code === specLine.code)` in
+  costs-lines, compares a doubled line against itself when handed an unsanitised
+  dup spec. The spec explicitly declared a broader rework out of scope; the new
+  costs-duplicate-codes tripwire guards it. Confirmed: on an unsanitised
+  D01-dup spec, costs-lines still PASSES while costs-duplicate-codes FAILS
+  (failCount 1), so the blindness is now caught.
+- **Minor cosmetic (no action needed).** The tripwire builds a detail string
+  `'duplicated code: '` even when there are no duplicates, but the `ok()` helper
+  (audit.ts:270) sets detail to undefined on pass, so the empty-join string is
+  never surfaced. Only real codes appear, and only on failure.
