@@ -17,6 +17,8 @@ Columns: when (UTC) · outcome · item · title · rework rounds · what happene
 | 2026-08-24 08:51 | LANDED | A5 | Report investor ROI on both committed and drawn capital, in every profit mode | 0 | `investorCapital` was `mode === 'waterfall' ? drawnPeak : committed`, so an economically identical deal (no pref, 50/50 residual, equity 5,000,000 at investorShare 0.5) reported the same S1 investorProfit of 468,825.94 as 18.753% in simple mode and 24.672% in waterfall - 5.92 points apart on a presentation switch - while the investor's drawn peak and the developer's committed summed to 4,400,218.69, which is neither the 5,000,000 committed nor the 3,800,437.38 drawn. `WaterfallResult` now carries investorCommitted / investorDrawnPeak / developerCommitted / developerDrawnPeak and four ROI figures (on committed, on drawn, and their pa pair), each null on a zero base per the A9 precedent; both parties' peaks come from one traversal of the same `equityMonth` series. Additive, so stored projects load unchanged (demo S1 still 700,000 capital, ROI 0.556867854910761, profit 389,807.4984375327). Audit checks 62 -> 65: +3, one capital-basis reconciliation per profit scenario (wf-s1/s2/s4-capital); failCount unchanged at 0. 258->265 tests; tests/roi.test.ts 7 tests, all 7 confirmed failing at 0b2a57e. No golden pin in tests/dcf.test.ts moved. |
 | 2026-08-24 10:32 | LANDED | NEW-sanitised-spec-everywhere | Price every screen from the repaired spec: one appraisal entry point for Options, Pricing and Appraisal | 0 | New pure module `src/core/appraise.ts`; `appraiseProject(input, {audit?})` runs sanitizeSpec -> repairSchedule -> runAppraisal -> auditAppraisal (audit opt-in, since 65 re-derivations per option card is not free), never throws, and returns the result **together with the repaired spec and schedule it was computed from**, the repairs and an error string. `OptionsView` priced the card's "S1 profit" from the RAW spec inside a bare `catch {}` and `PricingView` briefed the finance-research agent from the same raw figure, so only `AppraisalView` sanitised or disclosed anything. `PctField` has no min/max, so 450 in the bridge-rate box (4.5 = 450% pa) and 90 in the agent-fee box (0.9 of GDV) need no file editing: `full_max_units` then read -7,365,660.64 on the Options grid against +431,604.10 on the Appraisal page under "65 checks, 0 fails, 2 input repairs applied" - a 7.80m sign flip; `full_family` -7,346,488.69 vs +451,889.79; `DEMO_SCHEDULE` -7,173,576.86 vs -558,799.21. Reproduced again with D11's duplicated D01: card -1,671,760.18 vs appraisal +779,614.997. The research brief is now read ENTIRELY from the repaired spec - an earlier cut sent the repaired GDV/facility with the raw `purchasePrice`/`bridgeLtv`, asking for bridge terms at 700% LTV against a facility sized at the clamped 100%. "Nothing to price" (`error: null`) stays distinct from "pricing failed", and on failure the repairs already collected are reported rather than discarded with the exception; a failed run no longer reads "No option selected yet." A zero-dwelling option (0.3-scaled `DEMO_BUILDING`) no longer prints -2,790,709.02 - the sunk cost of building nothing - beside its own "Not viable - no dwellings" badge. Clean demo unchanged: 779,614.9968750654, 65 checks / 0 fails / 0 repairs, all 8 demo options bit-identical. 265 -> 293 tests (new `tests/appraise.test.ts`). No financial default and no golden pin moved; `tests/dcf.test.ts` untouched. |
 
+| 2026-08-24 11:32 | LANDED | D4 | Validate the three unchecked enum inputs in sanitizeSpec, and stop the auditor losing checks to a bad one | 0 | `sanitizeSpec` validated only `sdlt.regime`; `buildCostMode`, `vat.fundedBy` and `waterfall.mode` are each read in dcf.ts as `=== 'literal'`, so a corrupt value silently took the else-branch and every one of the three flattered the deal. On `full_balanced` of DEMO_BUILDING against a 0-repair / 65-check / S1 2,079,630.1602789517 baseline: `buildCostMode: 'typo'` gave 0 repairs, 65/0 and S1 2,331,378.373762631 (+GBP251,748.21, D01 falling back to the fixed 2,305,099 instead of the room-rate build-up, -GBP221,661.94 of build cost); `waterfall.mode: 'typo'` gave 62/0 - three checks FEWER - paying the simple 1,039,815.08 while the result carried 'typo' back out, so WaterfallTable rendered nothing (a real waterfall pays 1,072,525.53); `vat.fundedBy: 'typo'` gave S1 2,058,321.90 against 2,041,265.01 on a real 'vatLoan', GBP17,056.89 of fee and interest nobody was charged for a facility the file claimed. `fixEnum` now resolves all four with a reported repair; for the three new ones the fallback IS the branch the engine already took, so no stored figure moves - disclosure, not a re-price. `sdlt.regime` is the exception and is documented as such: an unrecognised regime takes the AUTOMATIC arm, `computeSdlt` has no default case and the appraisal goes NaN (raw NaN vs sanitised 2,079,630.1602789517), so 'manual' is justified by keeping the solicitor's typed B04. Second hole, same instrument: the auditor's simple-split gate was `mode === 'simple'` while the engine's is `mode === 'waterfall' && netProfit > 0`, so a LOSS-MAKING waterfall - shared pro rata because no pref is payable out of a negative number - also lost wf-s1/s2/s4-simple; at priceAdjust -0.5 with pref 0.08 / residual 0.7, S1 -1,795,885.48 and investor -897,942.74 = netProfit x 0.5, reported 62 against 65 for the identical loss papered as a simple split. The gate is now the literal negation of the engine's. New `inputs-enums` tripwire (D11 mould) fails on any spec still carrying a bad discriminant - defence in depth, not a live catch: D12 landed mid-cycle so every screen now audits a sanitised spec, and the code comments say so rather than repeating the closed OptionsView/PricingView rationale. Incidental: the auditor THREW on a raw bad SDLT regime because B04 was undefined and `gbp()` died on `undefined.toLocaleString()`; `gbp()` is now total, byte-identical for every finite value and for NaN. Exact count pins 65 -> 66 in two suites - appaudit.test.ts's clean-spec pin and both of D12's appraise.test.ts pins, re-measured after the merge - the +1 being the new tripwire passing, failCount still 0, no existing check changed verdict. 293 -> 300 tests; tests/enums.test.ts, 6 of its 7 confirmed failing at 2dfdf20 (F2 passes both sides by design, pinning that a PROFITABLE waterfall is still not reconciled as a simple split). No golden pin in tests/dcf.test.ts moved and no financial default changed. AUDIT.md 6.10. |
+
 ## Abandoned: D3
 
 The work itself was reverted — `git checkout -- . && git clean -fd` against
@@ -170,9 +172,66 @@ but not acted on:**
   the common shapes to a sentence naming the input.
 
 
+**Raised 2026-08-24 by the D4 reviewer (spec discriminants). Not acted on.**
+
+- **PRE-EXISTING, blocking nothing here: the `whole_house` demo option fails
+  `cf-retention` on the SHIPPED defaults**, identically before (64 checks / 1
+  fail) and after (65 / 1 fail) this change. Detail: "withheld GBP30,370.3 vs
+  released GBP0", because `r.programme.pcMonth` is 112 against `MONTHS = 48` —
+  the programme runs past the cashflow horizon, so retention is withheld and
+  never released. Real money that never comes back, on a conversion type the app
+  offers. Worth a backlog item: either extend/flag the horizon, or refuse to
+  report a scheme whose PC falls outside it.
+- **The new `inputs-enums` tripwire cannot fail anywhere in the running app.**
+  `auditAppraisal` has exactly one caller, `src/views/AppraisalView.tsx:51`, and
+  it is handed `clean.spec` — the sanitised spec, which by construction always
+  passes. `src/views/OptionsView.tsx:27` and `src/views/PricingView.tsx:130` do
+  call `runAppraisal` on the RAW project spec, which is the rationale the
+  specification gave, but neither calls the auditor, so a corrupt discriminant
+  still moves the option-comparison net profit and the pricing preview with no
+  tripwire and no repair note. The check is sound defence-in-depth for future
+  callers; closing the actual hole means sanitising (or auditing) in those two
+  views. *(Superseded in part while this cycle ran: the
+  NEW-sanitised-spec-everywhere cycle above routed all three views through
+  `appraiseProject`, which sanitises before it audits. The observation's
+  conclusion stands — the tripwire is defence in depth, not a live catch — and
+  the code comments were amended at landing to say that instead of the stale
+  raw-spec rationale.)*
+- **Goal-A / disclosure strength.** `AuditStrip`
+  (`src/views/AppraisalView.tsx:164-190`) renders a repair as the tail of one
+  line — "· 1 input repair applied" — inside a collapsed `<details>`, while the
+  badge still reads a green "Audit passed" and the box keeps the `ok-box` class.
+  A repair whose consequence is GBP251,748 of profit deserves the warn state, or
+  at least an un-collapsed note. Out of scope here (the specification forbade
+  touching `src/views/`), but the disclosure this cycle buys is quieter than the
+  number behind it.
+- **Same class as D4, not covered by it: the BOOLEAN discriminants are still
+  unvalidated** — `finance.vat.optedToTax`, `finance.hpi.enabled`. A stored file
+  carrying the string "false" is truthy, so VAT (and with it the SDLT chargeable
+  consideration, `sdlt.ts:74`) switches on with no repair and no check.
+  `buildInflation.enabled` is already guarded by a `typeof === 'boolean'` test in
+  `sanitizeSpec`; the other two are not. A one-line extension of the same
+  pattern, for a later cycle.
+- **Documentation imprecision, harmless.** The `fixEnum` docstring, the SDLT
+  call-site comment and AUDIT.md 6.9 all say "dcf.ts gates the automatic
+  calculation on `regime !== 'manual'`". The gate is actually `sdltForFinance` at
+  `src/core/sdlt.ts:80` (`if (regime === 'manual') return null`);
+  `dcf.ts:226-227` only branches on its null. The cited `src/core/sdlt.ts:60` for
+  `computeSdlt`'s missing default case is correct.
+- **Process note for the planner.** This specification's blast radius asserted
+  "no test pins an exact count", which was wrong — `tests/appaudit.test.ts:199`
+  pinned `passCount` at 65 — and its acceptance criterion F then forbade editing
+  any existing test. The two were unsatisfiable together. A grep for exact-count
+  assertions belongs in the blast-radius section of any item that adds or removes
+  an audit check. *(It bit twice: D12's `tests/appraise.test.ts` added two more
+  exact pins on the same count while this cycle was in flight, and both had to be
+  moved 65 -> 66 at landing.)*
+
+
 ## Awaiting the client
 
-Two open (11 and 12, below). Everything the original audit raised is answered:
+Four open (11 and 12 below, plus A10 and the D4 cycle's restatement of 12).
+Everything the original audit raised is answered:
 
 - Build cost inflation — own researched input, independent of HPI (done, AUDIT.md §6.4)
 - Exit cost attribution — `whenIncurred` plus an `(I)` letting group (done, §6.5)
@@ -204,6 +263,26 @@ commercial conventions the loop refuses to invent:**
   needs the client's word on how their lenders actually charge it.
 
 The loop will add new entries here if a cycle hits something it refuses to decide alone.
+
+**Raised 2026-08-24 by the D4 cycle. Mirrored from IMPROVEMENTS.md "Open
+questions" 12-13 so the status view surfaces them; both are blocked on the
+client and neither will be picked by the loop:**
+
+- **A10 — mixed-use refinance.** On a scheme with a retained commercial unit, S3
+  currently advances against the WHOLE asset at the residential `refinance.ltv`
+  (65%) and prices it at the residential rate (5.5%), including the demo's
+  GBP14,400 pa of commercial rent. Which convention do you want: (a) one blended
+  facility as now, (b) the commercial unit excluded from the refinance and held
+  unencumbered, or (c) a separate commercial facility — and if (c), at what LTV,
+  rate and arrangement fee? Any of (b) or (c) reduces the modelled advance, so
+  this moves stored S3 figures and the loop will not choose it for you.
+- **Q12 — basis of the development-loan arrangement fee.** Remains open, and now
+  blocks two backlog items rather than one: the A4 residual (the fee is charged
+  on a facility estimate of GBP3,787,282 against a cashflow peak of
+  GBP3,982,955 on the demo, and on GBP591,694 of never-drawn facility in the
+  over-equitised probe) and the reviewer's "cliff, not a threshold" observation
+  on the `devFacilityNil` warning. Is the fee priced on the facility committed at
+  signing, or on the facility actually drawn?
 
 **From the A5 cycle (2026-08-24 08:51), recorded by the reviewer and not acted
 on in that change:**
