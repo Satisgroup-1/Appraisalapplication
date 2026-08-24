@@ -438,12 +438,18 @@ Question 3 above is decided in principle but needs one number (5). The rest are 
 
 5. **Hurdle rate (B1).** What discount / hurdle rate do you quote to investors? Needed to make
    the NPV real, and to mark IRRs as clearing or missing the hurdle.
-6. **Planning obligations (B3).** Do your conversions typically attract CIL or S106? Worth
-   cost lines with a per-project toggle, or genuinely always nil?
+6. ~~**Planning obligations (B3).**~~ **ANSWERED 2026-08-24: neither.** The client's
+   conversions attract no CIL and no S106, so no default lines. If a scheme ever does, the
+   per-group "Other" lines take it — though note the UI cannot ADD a cost line, only edit
+   values, so making lines user-addable is a fair backlog candidate.
 7. **Non-rectangular floors (C1).** How often are real envelopes L/T/U-shaped? If it is most
    of them, the clipping fix is the top priority rather than the second.
-8. **Leasehold (B4).** Are flats sold on long leases with a retained freehold? If so, ground
-   rent income and reversion value are missing GDV.
+8. **Leasehold (B4).** **PARTLY ANSWERED 2026-08-24: yes — long leases, freehold retained.**
+   But the naive fix is wrong: the Leasehold Reform (Ground Rent) Act 2022 mandates a
+   peppercorn ground rent on newly granted residential long leases, so there is **no ground
+   rent income** to add. Still needed: the lease length granted (999 vs 125 years), and
+   whether the freehold is sold on to a freehold investor and for roughly what — that
+   disposal receipt is the only clean capital item for GDV.
 9. **Refinance covenant (A7).** What ICR do your BTL/portfolio lenders actually test at, and
    at what stressed rate? That number is needed to make the covenant check real rather than
    nominal.

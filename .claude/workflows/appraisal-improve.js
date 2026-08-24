@@ -174,11 +174,15 @@ ${
 
 1. Re-run \`npx tsc --noEmit\` and \`npm test\`. If either fails, STOP and
    revert with \`git checkout -- . && git clean -fd\` — do not commit red.
-2. \`git add -A\` and commit. The message must explain, in prose, what was
+2. Append a one-line record to LOOP-LOG.md (create it with a
+   \`# Loop log\` heading if absent), in EXACTLY this pipe format so
+   \`scripts/loop-status.sh\` can parse it:
+   \`| <YYYY-MM-DD HH:MM> | LANDED | ${plan.id} | <title> | <rework rounds> | <one-line what changed> |\`
+3. \`git add -A\` and commit. The message must explain, in prose, what was
    wrong and what the change does, with the numbers that make it concrete;
    mention any moved golden pin and its provenance. End with the two trailers
    below, verbatim.
-3. \`git push -u origin claude/audit-application-appraisal-model-3ih1fl\`,
+4. \`git push -u origin claude/audit-application-appraisal-model-3ih1fl\`,
    retrying up to 4 times with exponential backoff on network failure only.
 
 Trailers:
@@ -190,21 +194,24 @@ Do NOT create a pull request. Do NOT push any other branch.`
 
 1. Revert the working tree completely: \`git checkout -- . && git clean -fd\`.
    Verify with \`git status --short\` that it is clean and that HEAD is unmoved.
-2. Append an entry to IMPROVEMENTS.md under a "## Loop log" heading (create it
-   at the end of the file if absent): the item id and title, the date, that it
-   was abandoned after ${round} rework round(s), and the reviewer's required
-   changes verbatim so the next attempt starts informed.
+2. Append a one-line record to LOOP-LOG.md (create it with a \`# Loop log\`
+   heading if absent), in EXACTLY this pipe format so
+   \`scripts/loop-status.sh\` can parse it:
+   \`| <YYYY-MM-DD HH:MM> | ABANDONED | ${plan.id} | <title> | ${round} | <the blocking reason, one line> |\`
+   Then, BELOW the table under a \`## Abandoned: ${plan.id}\` heading, write
+   the reviewer's required changes verbatim so the next attempt starts
+   informed rather than repeating the same mistake.
 3. Commit ONLY that documentation change, and push it.`
 }
 
 Then record the cycle's outcome. Item: ${plan.id} — ${plan.title}.
 ${
   review?.observations?.length
-    ? `\nAlso append these reviewer observations to IMPROVEMENTS.md under "## Loop log" as candidate backlog items (do not act on them):\n${review.observations.map((o) => `- ${o}`).join('\n')}`
+    ? `\nAlso append these reviewer observations to LOOP-LOG.md under a "## Candidate backlog (reviewer observations)" heading (do not act on them):\n${review.observations.map((o) => `- ${o}`).join('\n')}`
     : ''
 }${
     plan.blockedQuestions?.length
-      ? `\nAlso ensure these blocked client questions are listed under IMPROVEMENTS.md's "Open questions" (add only if not already there):\n${plan.blockedQuestions.map((q) => `- ${q}`).join('\n')}`
+      ? `\nAlso ensure these blocked client questions are listed under IMPROVEMENTS.md's "Open questions" (add only if not already there), and mirror them in LOOP-LOG.md under a "## Awaiting the client" heading so the status view surfaces them:\n${plan.blockedQuestions.map((q) => `- ${q}`).join('\n')}`
       : ''
   }`,
   { label: approved ? 'commit' : 'revert', phase: 'Land', agentType: 'appraisal-builder' },
