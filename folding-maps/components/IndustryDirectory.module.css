@@ -115,21 +115,13 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--s-4);
-  padding: var(--s-5) var(--s-5) var(--s-5) 0;
+  padding: var(--s-4) var(--s-5) var(--s-4) 0;
   border-bottom: 1px solid var(--line);
   color: var(--muted);
   transition: background var(--speed) var(--ease), color var(--speed) var(--ease);
 }
 .grid a:hover { background: var(--surface); color: var(--accent); }
 
-.grid span {
-  display: block;
-  margin-bottom: var(--s-2);
-  font-size: var(--step--1);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
 .grid h4 {
   margin: 0;
   font-size: var(--step-1);

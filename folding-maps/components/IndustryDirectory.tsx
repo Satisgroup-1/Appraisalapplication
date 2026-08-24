@@ -7,9 +7,11 @@ import type { Industry } from '@/lib/industries';
 import styles from './IndustryDirectory.module.css';
 
 /**
- * Twenty-six sectors is too many to scan, so the directory filters as you
- * type — across the sector name, its family and its standfirst, because people
- * search for the work ("cold chain", "compliance") as often as for the label.
+ * Twenty-six sectors is too many to scan, so the directory filters as you type.
+ * It matches the sector name, its family, its standfirst and its problem line,
+ * because people search for the work ("cold chain", "compliance") as often as
+ * for the label. The problem line is matched but not displayed: in a list of
+ * twenty-six it was more texture than information.
  *
  * The complete list is rendered on the server; this only narrows it.
  */
@@ -89,10 +91,7 @@ export function IndustryDirectory({
               <div className={styles.grid}>
                 {inFamily.map((industry) => (
                   <Link href={`/industries/${industry.slug}`} key={industry.slug}>
-                    <div>
-                      <span>{industry.eyebrow}</span>
-                      <h4>{industry.name}</h4>
-                    </div>
+                    <h4>{industry.name}</h4>
                     <ArrowRight size={16} aria-hidden="true" />
                   </Link>
                 ))}
