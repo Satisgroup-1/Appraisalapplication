@@ -330,6 +330,49 @@ breach, and each new audit check in both its passing and failing state.
 Eighteen were confirmed to fail against the pre-fix engine. The audit grew from
 53 to 61 checks; the suite from 228 to 251 tests.
 
+### 6.7 The abandoned D3 cycle, and what it uncovered (2026-08-24)
+
+D3 (cost-line discriminant validation, plus replacing `AppraisalView`'s bare
+`catch {}`) was built and refused three times, then reverted in full — nothing
+from the attempt is on the branch. The refusals are recorded in `LOOP-LOG.md`.
+Two of them are worth carrying forward as audit findings in their own right,
+because both are true of the engine **as it stands today**, with no D3 code in
+it.
+
+**Finding 1 — a repair can move a charge between exits, and can raise profit.**
+The first D3 attempt pinned every known code's `whenIncurred` to
+`DEFAULT_PRICING` in both directions. That silently narrows an explicit, legal,
+wider tag. Measured on `DEMO_SCHEDULE` + `clonePricing(DEFAULT_PRICING)`:
+`I01.whenIncurred = 'always'` priced at S1 **760,100.6324761845** as stored and
+**779,614.9968750654** once repaired — the sanitiser *invented* **£19,514.36**
+of profit; and tagging `G01, G02, G05, G06` as `'always'` (a developer who
+marketed for sale, failed, and let) deleted **£42,081.30** of real marketing
+spend from the letting exit. Any future validator over `whenIncurred` must
+treat `'always'` as a superset it may never narrow, and must not claim that
+repairs only ever move numbers downward — a *lateral* tag on a line whose
+standard incidence is not `'always'` moves a charge from one exit to another
+and can raise reported profit either way.
+
+**Finding 2 — duplicate cost codes are undetected, and the audit cannot see
+them by construction.** Logged as IMPROVEMENTS.md **D11 (HIGH)**, with the full
+table. Reproduced independently: duplicating `D01` in a stored spec takes
+`devCosts.totalPreFinance` from **5,116,085.86508** to **7,421,184.865080001**
+and S1 net profit from **779,614.9968750654** to **-1,671,760.1760894181** — a
+**£2,451,375** swing — while `sanitizeSpec` reports **0 repairs** and
+`auditAppraisal` returns **61 checks / 0 fails**. `costs-lines` resolves both
+spec entries to the same engine line *by code*, so it compares the line with
+itself; the `costs-group-*` checks sum the engine's own lines, so the doubled
+total agrees with itself. This is the most serious kind of defect the model can
+carry: not a crash, but a confidently wrong number with a green audit behind
+it. **Unfixed.**
+
+A third objection was documentary only: `sanitizeSpec`'s existing `value`
+branch zeroes anything `Number.isFinite` rejects, so a hand-edited
+`"value": "40000"` on `D02` deletes the £40,000 utilities line and lifts S1 to
+**822,129.49** at 61/0. Pre-existing, out of D3's scope, and now recorded so
+the next validator does not assert a "repairs always charge the cost" property
+the code does not hold.
+
 ## 7. Re-running the audit
 
 ```bash

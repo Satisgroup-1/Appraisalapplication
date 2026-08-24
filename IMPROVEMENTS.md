@@ -384,6 +384,42 @@ the remaining gap cheaply.
 runs a full `runAppraisal` per option in a `useMemo`. Fine on a 4-storey demo; on a large
 building it is a frozen window with an "Autosaved" label. Set `busy` around generation.
 
+### D11 — HIGH · A duplicated cost code is charged twice, and every audit check still passes
+Found by the reviewer during the abandoned D3 cycle (2026-08-24) and independently
+reproduced. Nothing in `sanitizeSpec` or `auditAppraisal` compares cost-line **codes**, so a
+stored project carrying the same line twice — a hand-edited file, a merge of two `.pricing`
+presets, or a future "duplicate this line" UI affordance — has that cost charged twice with
+no repair, no warning and no failing check.
+
+The auditor cannot see it by construction: `costs-lines` resolves both spec entries to the
+same engine `outLine` **by code**, so it compares the line against itself, and each
+`costs-group-*` check sums the engine's own lines, so the doubled total agrees with itself.
+
+Measured on `DEMO_SCHEDULE` + `clonePricing(DEFAULT_PRICING)`, every case at **61 checks /
+0 fails and 0 repairs** (clean baseline S1 net profit **779,614.9968750654**,
+`devCosts.totalPreFinance` **5,116,085.86508**):
+
+| Duplicated line | S1 net profit | Δ profit | `totalPreFinance` |
+|---|---|---|---|
+| D01 main contract | **-1,671,760.1760894181** | **-2,451,375.17** | 7,421,184.865080001 |
+| D08 | 656,843.4625555435 | -122,771.53 | 5,231,340.81508 |
+| G03 | 683,419.7851110287 | -96,195.21 | 5,209,809.29516 |
+| C01 | 734,196.5353005892 | -45,418.46 | 5,158,585.86508 |
+| D02 | 737,095.2380344532 | -42,519.76 | 5,156,085.86508 |
+| H01 | 771,610.2545725498 | -8,004.74 | 5,123,585.86508 |
+| B02 | 776,902.3827024568 | -2,712.61 | 5,118,585.86508 |
+
+The duplicated D01 swing of **£2,451,375** is larger than the £2,438,315 case D3 was written
+for, and unlike D3 it is **silent**: D3 at least crashes, this reports a confidently wrong
+number against a green audit. A scheme shown as £779,615 profitable is really £1.67m
+loss-making, and nothing on the screen says so.
+
+Fix: reject duplicate codes in `sanitizeSpec` (drop the later occurrence with a reported
+repair naming the code, so the charge is not silently doubled *or* silently halved), and add
+a `costs-duplicate-codes` check to `auditAppraisal` so the auditor stops resolving a line
+against itself. Note that `costs-lines` comparing spec entries to engine lines **by code** is
+the root cause and is worth revisiting more generally.
+
 ---
 
 ## E. Engineering & process

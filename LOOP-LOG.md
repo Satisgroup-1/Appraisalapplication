@@ -16,39 +16,54 @@ Columns: when (UTC) · outcome · item · title · rework rounds · what happene
 
 ## Abandoned: D3
 
-The reviewer's required changes, verbatim, for whoever picks D3 up next. The
-work itself was reverted — `git checkout -- . && git clean -fd` against
-`41d6e58` — so the next attempt starts from the same base this one did, not
-from a half-landed version of it. The remaining observations from the same
-review are recorded under **Candidate backlog** below; these four are the ones
-that blocked the landing.
+The work itself was reverted — `git checkout -- . && git clean -fd` against
+`41d6e58` — so the next attempt starts from the same base this one did, not from
+a half-landed version of it.
 
-- `sanitizeSpec` still throws outright if `devCosts` is not an array: setting
-  `spec.devCosts = {}` gives `spec.devCosts.forEach is not a function`. It is
-  now caught by `runAppraisalForView` and shown in the new error panel rather
-  than swallowed, which is a strict improvement, but repairing a non-array
-  `devCosts` to `[]` with a repair note is the natural companion to D4.
-- `runAppraisalForView` discards the repairs it had already collected when a
-  later stage throws — `empty(error)` returns `repairs: []`. On the narrow path
-  where `sanitizeSpec` repairs 17 inputs and then `runAppraisal` throws, the
-  error panel cannot say so, and the repairs disclosure is the most useful
-  diagnostic available at that moment. Returning the partial repair list
-  alongside `error` would cost nothing.
-- Test comment inaccuracy in `tests/inputvalidation.test.ts:245` — "H01 is the
-  69th line of the default schedule". `DEFAULT_PRICING.devCosts` has 61 lines
-  (61 distinct codes) and H01 is the 49th; the repair my probe observed is
-  `cost line #49 code: ->LINE49`. The assertion itself is positional
-  (`/^LINE\d+$/`) so nothing fails.
-- Forward-compatibility of the incidence rule: because a shipped code's
-  `whenIncurred` is now pinned to the standard line (only an explicit
-  `'always'` is exempt), the day the UI lets a user edit incidence — or a
-  `.pricing` preset written by another build carries a deliberate lateral tag
-  through `loadPreset` at `src/views/PricingView.tsx:187` — the sanitiser will
-  silently overwrite that choice. The code comment states the dependency
-  ("nothing in this app can edit a line's incidence"), which is currently true;
-  it is worth a note in IMPROVEMENTS.md so the validator is revisited if that
-  stops being true.
+**Correction, made in the same cycle.** The first version of this section listed
+four *observations* as the blocking objections. They were not. They are backlog
+notes, and they are under **Candidate backlog** below where they belong. The
+reviewer's actual round-3 required changes are the three quoted here, and it
+stated explicitly that they are **documentation-only** — "Do not revert or alter
+any engine, sanitiser or test behaviour to satisfy them — the code is correct and
+I verified every acceptance figure." D3 was therefore abandoned on the rework-round
+limit while its code stood verified, not because the implementation was wrong.
+Whoever picks D3 up next should know that.
 
+The reviewer's round-3 required changes, verbatim in substance:
+
+1. **The new sanitiser docblock claimed audit coverage that does not exist.**
+   `src/core/audit.ts` said "Duplicate codes are deliberately left alone: they
+   already fail the `costs-lines` check, so they are not silent." Disproved in one
+   probe: duplicating any cost line on the demo gives 0 repairs and a fully green
+   audit — 61 checks, 0 fails. Same defect class as the round-2 objection: a
+   safety property asserted in a comment that the code does not hold, copied from
+   the specification without being checked.
+2. **Log the duplicate-code hole as a real, unreported defect** — with the numbers
+   that prove it, stated as unfixed rather than covered.
+3. **Qualify "every repair here resolves to the interpretation that CHARGES the
+   cost".** The `value` branch does the opposite: `Number.isFinite` is false for a
+   numeric string, so a hand-edited `"value": "40000"` on `D02` is repaired to 0
+   and the £40,000 utilities line is deleted — S1 goes 779,614.9968750654 →
+   822,129.49 at 61/0. Pre-existing and out of scope, but the new sentence claimed
+   it away.
+
+Items 2 and 3 are now discharged independently of D3, since both describe the
+engine as it stands with no D3 code in it: the duplicate-code hole is
+**IMPROVEMENTS.md D11 (HIGH)** with its full table, and both it and the `value`
+coercion behaviour are recorded in **AUDIT.md §6.7**. Item 1 lapsed with the
+revert — the docblock it corrects no longer exists.
+
+Also carried into AUDIT.md §6.7 from the round-1 refusal, because it constrains
+any future attempt: pinning a known code's `whenIncurred` in both directions
+narrows an explicit `'always'` and *invents* profit — `I01 = 'always'` priced
+760,100.6324761845 stored versus 779,614.9968750654 repaired, **+£19,514.36**.
+`'always'` is a superset a sanitiser may never narrow.
+
+**Process note.** `.claude/appraisal-loop.md` allows up to **2** rework rounds;
+this cycle ran **3**. `.claude/workflows/appraisal-improve.js` and the contract
+disagree on the bound. Worth reconciling — the extra round is why the row above
+reads 3.
 
 ## Candidate backlog (reviewer observations)
 
