@@ -76,7 +76,6 @@ function insertSections<TExhibit>(sections: ReportSection<TExhibit>[], additions
 export function getNewsVariants(article: Article, advanced: NewsEditorial): Record<'simple' | 'advanced', ReportVariant<NewsExhibitPlacement>> {
   const simpleSections: ReportSection<NewsExhibitPlacement>[] = article.sections.map((section, index) => ({
     heading: section.heading,
-    purpose: index === article.sections.length - 1 ? 'Resolve the executive decision.' : `Advance the decision through ${section.heading.toLowerCase()}.`,
     role: index === article.sections.length - 1 ? 'conclusion' : 'analysis',
     paragraphs: section.paragraphs.map((paragraph) => sourceParagraph(paragraph, article.sources)),
     exhibits: index === 1 ? [{ kind: 'evidence', view: 0, afterParagraph: 0 }] : undefined,
@@ -113,7 +112,6 @@ export function getCaseVariants(study: CaseStudy, research: ResearchFinding[]): 
   const opening = simpleCaseOpenings[study.slug];
   const simpleSections: ReportSection<CaseExhibitPlacement>[] = study.sections.map((section, index) => ({
     heading: simpleCaseHeadings[study.slug][index],
-    purpose: index === study.sections.length - 1 ? 'State the current evidence and next release decision.' : `Explain ${section.heading.toLowerCase()} for the representative item of work.`,
     role: index === study.sections.length - 1 ? 'conclusion' : 'analysis',
     paragraphs: section.paragraphs.map((text) => sourceParagraph(text, sources)),
     exhibits: index === 1 ? [{ kind: 'evidence', afterParagraph: 0 }] : undefined,

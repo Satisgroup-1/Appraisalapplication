@@ -82,7 +82,6 @@ export default async function Article({ params }: { params: Promise<{ slug: stri
         const variant = variants[mode];
         return (
           <section className="report-mode-panel" id={`${mode}-news-${article.slug}`} data-report-mode={mode} aria-label={`${mode} reading level`} key={mode}>
-            <p className="mode-read-estimate">Reading time: {variant.estimatedReadingTime}</p>
             <p className="lede">{variant.standfirst}</p>
             {variant.opening && <NarrativeOpening label={variant.opening.label} title={variant.opening.title} paragraphs={variant.opening.paragraphs} centralQuestion={variant.opening.centralQuestion}/>}
             <section className="thesis-panel"><span>The contention</span><p>{variant.thesis}</p></section>

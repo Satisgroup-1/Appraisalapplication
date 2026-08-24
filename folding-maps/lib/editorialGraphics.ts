@@ -45,7 +45,7 @@ export const newsEvidenceViews: Record<string, EvidenceView[]> = {
       interpretation: {
         establishes: 'Larger AI-using businesses report system integration more frequently than smaller adopters.',
         doesNotEstablish: 'The survey does not prove that size caused integration or that every reported connection changed operating performance.',
-        management: 'Smaller firms should budget for data, ownership and workflow work because the connector rarely supplies those capabilities.',
+        management: 'Smaller firms should budget for the data work, the workflow redesign and the staff time to run it, because the connector supplies none of that.',
       },
       source: 'UK Business Data Survey 2026',
       href: 'https://www.gov.uk/government/statistics/uk-business-data-survey-2026/uk-business-data-survey-2026',
@@ -151,7 +151,7 @@ export const newsEvidenceViews: Record<string, EvidenceView[]> = {
       title: 'The value chain fails if any control stage is skipped',
       summary: 'A modelled control profile following the argument above. Equal weighting reflects dependency, not measured contribution.',
       interpretation: {
-        establishes: 'The proposed exception route depends on signal validation, contextual classification, ownership and evidenced closure.',
+        establishes: 'The proposed exception route depends on validating the signal, classifying it in context, putting it in front of the right colleague, and evidencing the close.',
         doesNotEstablish: 'Equal bars do not mean the stages contribute equally to risk reduction or economic value.',
         management: 'Evaluate the complete route in parallel with current controls; optimisation of one isolated stage is insufficient.',
       },
@@ -159,7 +159,7 @@ export const newsEvidenceViews: Record<string, EvidenceView[]> = {
       points: [
         { label: 'Validate signal', value: 100, display: 'Required', detail: 'Missing, stale or implausible readings must remain visible.' },
         { label: 'Classify context', value: 100, display: 'Required', detail: 'Threshold, duration, asset and product context establish materiality.' },
-        { label: 'Assign response', value: 100, display: 'Required', detail: 'Every qualifying exception needs a named owner and response expectation.' },
+        { label: 'Assign response', value: 100, display: 'Required', detail: 'Every qualifying exception reaches a named colleague, with a stated time to respond.' },
         { label: 'Evidence closure', value: 100, display: 'Required', detail: 'Closure should preserve decision, corrective action and recovery evidence.' },
       ],
     },
@@ -189,7 +189,7 @@ export const newsEvidenceViews: Record<string, EvidenceView[]> = {
       interpretation: {
         establishes: 'Many current and prospective adopters do not report being ready to implement or scale AI.',
         doesNotEstablish: 'Self-reported readiness does not identify which delivery model will work or predict project success.',
-        management: 'Concentrate scarce ownership, data and evaluation capacity on one bounded workflow.',
+        management: 'Concentrate the scarce management attention, data work and evaluation capacity on one bounded workflow.',
       },
       source: 'DSIT, AI Adoption Research 2026',
       href: 'https://www.gov.uk/government/publications/ai-adoption-research/ai-adoption-research',
@@ -224,7 +224,7 @@ export const newsEvidenceViews: Record<string, EvidenceView[]> = {
       interpretation: {
         establishes: 'A benefits case needs separate stages between theoretical task time, usable capacity and financial consequence.',
         doesNotEstablish: 'The values are modelled assumptions and do not predict a typical conversion rate.',
-        management: 'Name the owner and evidence required at each stage before reporting realised value.',
+        management: 'Name the manager and the evidence required at each stage before reporting realised value.',
       },
       source: 'Quiet Gears benefits model (design values, not measured findings)',
       points: [
@@ -250,7 +250,7 @@ export const newsEvidenceViews: Record<string, EvidenceView[]> = {
       points: [
         { label: 'Authoritative source', value: 100, display: 'Required', detail: 'The source must belong to the approved hierarchy for the matter.' },
         { label: 'Jurisdiction match', value: 100, display: 'Required', detail: 'The source must be relevant to the legal system and forum in question.' },
-        { label: 'Temporal validity', value: 100, display: 'Required', detail: 'The service must surface amendment, appeal and effective-date information for review.' },
+        { label: 'Temporal validity', value: 100, display: 'Required', detail: 'The service must show amendment, appeal and effective-date information for review.' },
         { label: 'Proposition support', value: 100, display: 'Required', detail: 'The cited passage must support the claim made in the draft.' },
       ],
     },
@@ -279,9 +279,9 @@ export const newsEvidenceViews: Record<string, EvidenceView[]> = {
       title: 'Recovery depends on five reconciled records',
       summary: 'A modelled dependency model for a guest-recovery case. Equal values are requirements and contain no measured hotel outcome.',
       interpretation: {
-        establishes: 'The proposed route needs identity, promise, property state, authority and closure evidence before it can support accountable recovery.',
+        establishes: 'The proposed route needs identity, promise, property state, authority and closure evidence before a colleague can act on it.',
         doesNotEstablish: 'A complete case does not guarantee guest satisfaction, faster resolution or lower compensation.',
-        management: 'Test connector freshness and ownership before measuring generated communication quality.',
+        management: 'Test how fresh each connector is, and who maintains it, before measuring the quality of generated messages.',
       },
       source: 'Quiet Gears hospitality operating design (design values, not measured findings)',
       points: [
@@ -297,13 +297,13 @@ export const newsEvidenceViews: Record<string, EvidenceView[]> = {
       title: 'Recovery quality cannot be reduced to compensation cost',
       summary: 'Modelled measurement priorities for a parallel pilot. Values show proposed decision relevance, not expected improvement.',
       interpretation: {
-        establishes: 'The evaluation must cover ownership, feasibility, handoffs, policy and guest outcome across the complete recovery route.',
+        establishes: 'The evaluation must cover who picks the case up, whether the remedy is feasible, the hand-offs, the policy and the guest outcome, across the complete recovery route.',
         doesNotEstablish: 'The weights do not predict satisfaction, loyalty, revenue or operating savings.',
         management: 'Use a balanced review so lower compensation cannot disguise slower or less humane recovery.',
       },
       source: 'Quiet Gears evaluation design (design values, not measured findings)',
       points: [
-        { label: 'Time to named ownership', value: 90, display: 'Core', detail: 'Measure when one colleague becomes accountable for the case.' },
+        { label: 'Time until a colleague takes the case', value: 90, display: 'Core', detail: 'Measure the gap between the disruption being logged and one named colleague picking it up.' },
         { label: 'Time to feasible option', value: 100, display: 'Core', detail: 'Measure when a deliverable remedy becomes available, not when text is generated.' },
         { label: 'Repeat contacts and handoffs', value: 82, display: 'Material', detail: 'Repeated explanation is evidence of coordination failure.' },
         { label: 'Policy and compensation control', value: 88, display: 'Material', detail: 'Track approved bands, overrides and escalation decisions.' },

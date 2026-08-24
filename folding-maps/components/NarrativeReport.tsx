@@ -26,7 +26,6 @@ export function NarrativeSections<TExhibit extends { afterParagraph: number }>({
           <section id={`${idPrefix}-section-${sectionIndex + 1}`} key={section.heading} data-section-role={section.role ?? 'analysis'}>
             {section.transition && <p className="section-transition">{section.transition}</p>}
             <span className="section-number">{String(sectionIndex + 1).padStart(2, '0')}</span>
-            <span className="section-purpose">{section.purpose}</span>
             <h2>{section.heading}</h2>
             {section.paragraphs.map((paragraph, paragraphIndex) => (
               <Fragment key={paragraph.text}>

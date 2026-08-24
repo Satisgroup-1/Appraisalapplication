@@ -560,11 +560,6 @@ th { font-weight: 600; font-size: var(--step--1); letter-spacing: 0.04em; text-t
 html[data-reading-mode='simple'] [data-report-mode='advanced'],
 html[data-reading-mode='advanced'] [data-report-mode='simple'] { display: none; }
 
-.mode-read-estimate {
-  margin: 0 0 var(--s-6);
-  font-size: var(--step--1);
-  color: var(--muted);
-}
 
 /* The one-sentence argument of the piece. */
 .executive-brief, .thesis-panel {

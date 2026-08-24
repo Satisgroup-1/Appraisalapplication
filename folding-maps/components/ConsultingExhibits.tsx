@@ -73,11 +73,6 @@ export function SystemExhibit({
           </ol>
         </div>
       </div>
-      <span className="exhibit-note">
-        The flow is written as pseudocode so the sequence can be checked by someone who
-        does not read the implementation language. Component names are the ones used in the
-        build.
-      </span>
     </figure>
   );
 }

@@ -148,7 +148,6 @@ export default async function CaseDetail({ params }: { params: Promise<{ slug: s
               aria-label={`${mode} reading level`}
               key={mode}
             >
-              <p className="mode-read-estimate">Reading time: {variant.estimatedReadingTime}</p>
               <p className="lede">{variant.standfirst}</p>
 
               <div className="executive-brief">

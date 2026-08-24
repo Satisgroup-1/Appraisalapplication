@@ -11,7 +11,6 @@ export type ReportParagraph = {
 
 export type ReportSection<TExhibit> = {
   heading: string;
-  purpose: string;
   role?: 'analysis' | 'counterargument' | 'conclusion';
   transition?: string;
   paragraphs: ReportParagraph[];

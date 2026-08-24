@@ -32,7 +32,7 @@ describe('editorial content', () => {
         && editorial.thesis.length > 0
         && editorial.sections.length >= 4
         && editorial.sections.length <= 6
-        && editorial.sections.every((section) => section.purpose.length > 0 && section.paragraphs.length >= 3);
+        && editorial.sections.every((section) => section.paragraphs.length >= 3);
     })).toBe(true);
   });
 
@@ -97,7 +97,7 @@ describe('editorial content', () => {
         && editorial.statusStatement.length > 0
         && editorial.sections.length >= 4
         && editorial.sections.length <= 6
-        && editorial.sections.every((section) => section.purpose.length > 0 && section.paragraphs.length >= 3);
+        && editorial.sections.every((section) => section.paragraphs.length >= 3);
     })).toBe(true);
   });
 
@@ -174,10 +174,19 @@ describe('editorial content', () => {
     expect(cases.every((item) => caseEditorial[item.slug].sections.every((section) => section.paragraphs.every((paragraph) => !hasNumber.test(paragraph.text) || paragraph.sources?.length || qualified.test(paragraph.text) || item.status === 'Anonymised')))).toBe(true);
   });
 
-  it('labels every composite or illustrative opening scene', () => {
-    expect(articles.every((item) => /composite|illustrative/i.test(newsEditorial[item.slug].sceneLabel))).toBe(true);
-    // The case obligation now lives in the evidence-position test above; what
-    // this one still guards is that an article's invented scene is labelled.
+  it('opens every article on a concrete situation that claims no client', () => {
+    // The openings used to be labelled "composite vignette", which disclaimed
+    // them rather than writing them. They are now descriptions of a situation
+    // the reader will recognise, so what has to hold is that they are concrete
+    // (a titled scene, developed over more than one paragraph) and that none of
+    // them claims an engagement the firm cannot evidence.
+    expect(articles.every((item) => {
+      const editorial = newsEditorial[item.slug];
+      const scene = editorial.sceneParagraphs.join(' ');
+      const concrete = editorial.sceneTitle.length > 20 && editorial.sceneParagraphs.length >= 2;
+      const claimsNoClient = !/(our client|we were engaged|Quiet Gears was)/i.test(scene);
+      return concrete && claimsNoClient;
+    })).toBe(true);
   });
 
   it('preserves reduced motion, focus visibility and accessible chart state', () => {
