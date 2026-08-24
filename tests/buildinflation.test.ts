@@ -150,7 +150,7 @@ describe('the contract sum and where it lands', () => {
     expect(off.devCosts.buildInflationFactor).toBe(1);
     expect(off.devCosts.buildCost).toBe(off.devCosts.buildCostToday);
     // The demo's pinned figures (tests/dcf.test.ts) must be reachable.
-    expect(Math.round(off.scenarios.s1.netProfit)).toBe(779637);
+    expect(Math.round(off.scenarios.s1.netProfit)).toBe(779615); // re-pinned with the (F) change, AUDIT.md §6.5
   });
 });
 
@@ -233,7 +233,7 @@ describe('inputs and migration', () => {
     const n = normalizePricing(legacy as PricingSpec);
     expect(n.finance.buildInflation.enabled).toBe(false);
     // ...so a stored appraisal's profit does not move on load.
-    expect(Math.round(runAppraisal(DEMO_SCHEDULE, n).scenarios.s1.netProfit)).toBe(779637);
+    expect(Math.round(runAppraisal(DEMO_SCHEDULE, n).scenarios.s1.netProfit)).toBe(779615);
   });
 
   it('a truthy-but-empty block cannot inherit the default and flip the model', () => {

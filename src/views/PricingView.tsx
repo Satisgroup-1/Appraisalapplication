@@ -1048,6 +1048,9 @@ const KIND_LABEL: Record<DevCostLine['kind'], string> = {
   perUnit: '£ per unit',
   pctGDV: '% of GDV',
   salesLegalPerUnit: '£/unit (from sales)',
+  perMonthHeld: '£ / month held',
+  perUnitPerMonthHeld: '£ / unit / month held',
+  pctAnnualRent: '% of annual rent',
 };
 
 function DevCostTable({

@@ -34,7 +34,7 @@ Fix: a `buildInflationPa` input applied to the contract sum over the pre-constru
 construction period (and to the room rates), defaulting to something non-zero, plus a
 sensitivity axis on it. See question 1.
 
-### A2 — HIGH · Scenario 3 (refinance & hold) pays full selling costs on a sale that never happens
+### A2 — HIGH · ~~Scenario 3 (refinance & hold) pays full selling costs on a sale that never happens~~ · **FIXED 2026-08-24**
 `unrealisedProfit` (`src/core/dcf.ts:686`) is `netProfit1`, which carries the whole `(G) Sales
 & marketing` group. On the demo that group is £143,723:
 
@@ -55,7 +55,7 @@ so the hold case is simultaneously overcharged for selling and undercharged for 
 Fix: attribute cost lines to the exits they occur in (a `whenIncurred: 'always' | 'onSale' |
 'onLet'` flag on `DevCostLine`), and add a letting-cost group used by S3.
 
-### A3 — MEDIUM/HIGH · Post-completion holding costs never lengthen with the hold period
+### A3 — MEDIUM/HIGH · ~~Post-completion holding costs never lengthen with the hold period~~ · **FIXED 2026-08-24**
 `(F) Post construction` is a fixed set of amounts spread over `postConMonths`
 (`src/core/dcf.ts:271`). The *total* is constant however long the sell-down runs:
 
@@ -401,7 +401,11 @@ building it is a frozen window with an "Autosaved" label. Set `busy` around gene
    professional fees, utilities and holding costs remain in today's money (stated in the
    warning, not silent). A build-cost sensitivity axis (B6) is still open and is now the
    natural companion to this.
-4. **A2, A3** — per-scenario cost attribution and time-based holding costs.
+4. ~~**A2, A3** — per-scenario cost attribution and time-based holding costs.~~ **Done** —
+   `whenIncurred` on every cost line plus an `(I)` letting group; S3 priced on its own
+   let-basis cashflow; `(F)` converted to per-month-held rates driven by `Programme.holdMonths`.
+   Recorded in AUDIT.md §6.5. **Residual:** the xlsx cell mapping has now produced the same
+   export/engine divergence three times and wants a structural fix (see §6.5).
 5. **A4, A6, A8, A9 + E3** — guard rails and the plausibility checks that catch them.
 6. **C2, C3, D3, D4, D8** — robustness; small diffs, removes silent failure.
 7. **A5, A7, A10, D5-D7** — model conventions and persistence.

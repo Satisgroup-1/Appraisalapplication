@@ -358,7 +358,14 @@ export type DevCostKind =
   | 'pctBuild' // value = rate x build cost (line D01)
   | 'perUnit' // value = £ x unit count
   | 'pctGDV' // value = rate x GDV
-  | 'salesLegalPerUnit'; // value ignored; uses finance.sales.legalPerUnit x units
+  | 'salesLegalPerUnit' // value ignored; uses finance.sales.legalPerUnit x units
+  // Time-based holding costs. A lump sum cannot represent council tax,
+  // insurance or standing charges on unsold stock: those run for as long as the
+  // stock is held, and a lump made a 24-month sell-down cost the same as a
+  // 3-month one (AUDIT.md §6.5).
+  | 'perMonthHeld' // value = £ per month x months held after PC
+  | 'perUnitPerMonthHeld' // value = £ per unit per month x units x months held
+  | 'pctAnnualRent'; // value = rate x gross annual rent (letting fees)
 
 export type DevCostGroup =
   | 'legals' // (B)
@@ -367,7 +374,22 @@ export type DevCostGroup =
   | 'duringConstruction' // (E)
   | 'postConstruction' // (F)
   | 'salesMarketing' // (G)
-  | 'other'; // (H)
+  | 'other' // (H)
+  | 'letting'; // (I) incurred only when the scheme is let rather than sold
+
+/**
+ * Which exits a cost line is incurred in.
+ *
+ * Without this every scenario paid every cost: the refinance-and-hold case was
+ * charged the full sales & marketing group — £143,723 on the demo, £93,723 of it
+ * agent fees on a sale that never happens — while carrying no letting costs at
+ * all (AUDIT.md §6.5). Defaults to 'always' when absent, so a spec or project
+ * file written before this existed behaves exactly as it did.
+ */
+export type CostIncidence =
+  | 'always' // incurred whatever happens to the scheme
+  | 'onSale' // only if the units are sold (agent fees, sales legals, show flat)
+  | 'onLet'; // only if the units are let (letting fees, EPCs, furnishing)
 
 export interface DevCostLine {
   code: string;
@@ -375,6 +397,8 @@ export interface DevCostLine {
   label: string;
   kind: DevCostKind;
   value: number;
+  /** Defaults to 'always' when absent. */
+  whenIncurred?: CostIncidence;
 }
 
 // ---------------------------------------------------------------------------
@@ -382,6 +406,14 @@ export interface DevCostLine {
 // ---------------------------------------------------------------------------
 
 export interface DevCostsComputed {
+  /** Which exit this cost build-up prices: 'onSale' includes the onSale lines
+   *  and excludes the onLet ones, and vice versa. 'always' lines are in both. */
+  basis: Exclude<CostIncidence, 'always'>;
+  /** Months of holding after PC that the time-based lines were charged for. */
+  holdMonths: number;
+  /** Total of the lines EXCLUDED by this basis, i.e. the other exit's costs.
+   *  On the 'onLet' basis this is the selling costs a hold avoids. */
+  excludedTotal: number;
   purchase: number; // (A)
   groups: Record<DevCostGroup, { lines: { code: string; label: string; amount: number }[]; total: number }>;
   totalPreFinance: number; // '3. Dev Costs' F87
@@ -506,6 +538,13 @@ export interface ScenarioResults {
     waterfall: WaterfallResult;
   };
   s3: {
+    /** Selling costs NOT incurred because the scheme is held, not sold. */
+    sellingCostsAvoided: number;
+    /** Letting costs incurred instead (the (I) group). */
+    lettingCosts: number;
+    /** All-in costs on the LET basis: the sale basis less selling costs, plus
+     *  letting costs, with this scenario's own finance costs. */
+    costsIfLet: number;
     mortgageAdvance: number;
     arrangementFee: number;
     devPayoff: number;
@@ -564,6 +603,8 @@ export interface AppraisalResult {
     conMonths: number;
     conStartMonth: number;
     pcMonth: number;
+    /** Expected months held after PC; time-based holding costs run this long. */
+    holdMonths: number;
   };
   devCosts: DevCostsComputed;
   cashflow: MonthRow[];

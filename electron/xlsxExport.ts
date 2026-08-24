@@ -31,6 +31,10 @@ interface DevCostLineIn {
   /** Present in newer payloads so the SDLT line is found by the same
    *  code-or-label rule the engine uses; absent falls back to code B04. */
   label?: string;
+  /** The £ amount the engine computed for this line. Used for kinds the
+   *  workbook has no cell shape for — the time-based holding lines, whose
+   *  amount depends on the hold period rather than being a typed lump. */
+  amount?: number;
 }
 
 interface InputsIn {
@@ -262,7 +266,13 @@ export async function exportWorkbook(
       } else if (line.kind === 'fixed' && target.writes === 'amount') {
         dc.getCell(target.cell).value = line.value;
       } else if (target.writes === 'rate' && line.kind !== 'fixed') {
+        // The workbook's own formula multiplies this rate out.
         dc.getCell(target.cell).value = line.value;
+      } else if (target.writes === 'amount' && typeof line.amount === 'number') {
+        // A kind the workbook cannot express as a typed value (per-month-held
+        // and friends): write the £ figure the engine computed, or the template
+        // would quietly keep its own and disagree with the app.
+        dc.getCell(target.cell).value = Math.round(line.amount);
       }
     }
   }

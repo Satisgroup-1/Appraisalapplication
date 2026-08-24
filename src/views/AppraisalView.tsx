@@ -384,6 +384,7 @@ function CostsTab({ result }: { result: AppraisalResult }) {
     { key: 'postConstruction', title: '(F) Post construction' },
     { key: 'salesMarketing', title: '(G) Sales & marketing' },
     { key: 'other', title: '(H) Other / SPV running' },
+    { key: 'letting', title: '(I) Letting set-up (scenario 3 only)' },
   ];
   return (
     <div>
@@ -581,6 +582,9 @@ function ScenariosTab({ result }: { result: AppraisalResult }) {
         <h3 className="section">S3: Refinance at PC &amp; rent</h3>
         <table className="data">
           <tbody>
+            <Row k="Selling costs NOT incurred (held, not sold)" v={`(${fmtGBP(sc.s3.sellingCostsAvoided)})`} />
+            <Row k="Letting set-up costs incurred instead" v={fmtGBP(sc.s3.lettingCosts)} />
+            <Row k="All-in costs on the LET basis" v={fmtGBP(sc.s3.costsIfLet)} />
             <Row k="Mortgage advance (LTV × GDV)" v={fmtGBP(sc.s3.mortgageAdvance)} />
             <Row k="Arrangement fee" v={fmtGBP(sc.s3.arrangementFee)} />
             <Row k="Dev loan payoff" v={fmtGBP(sc.s3.devPayoff)} />
@@ -591,7 +595,7 @@ function ScenariosTab({ result }: { result: AppraisalResult }) {
             <Row k="Interest cover" v={fmtNum(sc.s3.interestCover, 2)} />
             <Row k="Equity remaining in deal" v={fmtGBP(sc.s3.equityRemaining)} />
             <Row k="Cash-on-cash return" v={fmtPct(sc.s3.cashOnCash)} />
-            <Row k="Unrealised development profit" v={fmtGBP(sc.s3.unrealisedProfit)} />
+            <Row k="Unrealised development profit (let basis)" v={fmtGBP(sc.s3.unrealisedProfit)} total />
           </tbody>
         </table>
       </div>

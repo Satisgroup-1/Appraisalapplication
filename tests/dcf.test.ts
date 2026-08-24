@@ -5,6 +5,17 @@
 //     workbook is still the source of truth: the unit schedule, the bridge
 //     (unchanged mechanics), facility sizing, and pre-finance cost totals.
 //
+//  NOTE on the 2026-08-24 re-pin (AUDIT.md §6.5): the (F) holding-cost lines
+//  moved from lump sums to per-month-held rates, so they scale with the actual
+//  sell-down. At the demo's 6-month hold the group totals £13,572 against the
+//  old £13,550 — a deliberate +£22, being the difference between the old lumps
+//  and honest round monthly figures. EVERY changed pin below traces to that
+//  £22: pre-finance +£22.00, facility estimate +£22.00, arrangement fee +£0.33
+//  (1.5% of it), all-in costs +£22.36, and each scenario's profit -£22.36.
+//  Scenario 3 moved for a different and larger reason — it is now priced on the
+//  LET basis (no selling costs, plus letting costs) — which is the point of the
+//  change, not a side effect.
+//
 //  B. MODEL V2 REGRESSION — the engine deliberately deviates from the
 //     workbook where its simplifications were corrected (S-curve drawdown,
 //     SDLT on completion, architect/QS through to PC, retention, holding
@@ -39,58 +50,65 @@ describe('A. workbook parity: bridge & facility sizing (unchanged mechanics)', (
     close(result.finance.bridgeRedemptionTotal, 1338695.7553463543); // C35
   });
   it('matches facility estimate and arrangement fee (set at signing on the estimate)', () => {
-    close(result.finance.devFacilityEstimate, 3787259.620426355); // Inputs E29
-    close(result.finance.devArrangementFee, 56808.89430639532); // Inputs E30 / C36
+    close(result.finance.devFacilityEstimate, 3787281.620426354); // Inputs E29 (+£22.00)
+    close(result.finance.devArrangementFee, 56809.22430639531); // Inputs E30 / C36 (+£0.33 = 1.5% x £22)
   });
   it('matches total pre-finance costs (amounts unchanged; only timing moved)', () => {
-    close(result.devCosts.totalPreFinance, 5116063.865115651); // F87
+    close(result.devCosts.totalPreFinance, 5116085.86508); // F87 (+£22.00: the (F) re-pin)
   });
 });
 
 describe('B. model v2 regression: finance (S-curve + retention + deposit interest)', () => {
   it('dev loan figures', () => {
-    close(result.finance.devInterestTotal, 187012.75817267515);
-    close(result.finance.devBalanceAtPC, 3982954.7879054253);
-    close(result.finance.peakDevBalance, 3982954.7879054253);
+    close(result.finance.devInterestTotal, 187012.78481545442);
+    close(result.finance.devBalanceAtPC, 3982955.1445482043);
+    close(result.finance.peakDevBalance, 3982955.1445482043);
   });
   it('retention pot and deposit interest', () => {
     close(result.finance.retentionHeldPeak, 67792.32128472222);
     close(result.finance.depositInterestRetention, 2319.50586875);
   });
   it('totals', () => {
-    close(result.finance.totalFinanceCosts, 354846.9557044789);
-    close(result.finance.totalCostsAfterFinance, 5468591.314915729);
+    close(result.finance.totalFinanceCosts, 354847.31591368595);
+    close(result.finance.totalCostsAfterFinance, 5468613.675124936); // +£22.36
     close(result.finance.equityUsed, 1400000);
   });
 });
 
 describe('B. model v2 regression: scenarios', () => {
   it('S1 immediate sale', () => {
-    close(result.scenarios.s1.netProfit, 779637.3570842724);
-    close(result.scenarios.s1.profitOnGdv, 0.1247773405890277, 1e-9);
+    close(result.scenarios.s1.netProfit, 779614.9968750654); // -£22.36
+    close(result.scenarios.s1.profitOnGdv, 0.12477376194132116, 1e-9);
   });
   it('S2 delayed sales', () => {
-    close(result.scenarios.s2.extraInterest, 71459.05646896636);
-    close(result.scenarios.s2.depositInterestOnSurplus, 3003.49897858824);
-    close(result.scenarios.s2.netProfit, 711181.7995938943);
+    close(result.scenarios.s2.extraInterest, 71459.06678384484);
+    close(result.scenarios.s2.depositInterestOnSurplus, 3003.4968171977434);
+    close(result.scenarios.s2.netProfit, 711159.4269084183); // -£22.37
     expect(result.scenarios.s2.monthsToSellOut).toBe(6);
     expect(result.scenarios.s2.monthsToRepay).toBe(4);
   });
-  it('S3 refinance & rent', () => {
-    close(result.scenarios.s3.surplusReleased, -2049.185352478642);
+  it('S3 refinance & rent, priced on the LET basis', () => {
+    // Selling costs are not incurred on a hold; letting set-up costs are.
+    close(result.scenarios.s3.sellingCostsAvoided, 143723.43008000002);
+    close(result.scenarios.s3.lettingCosts, 34500);
+    // The dev loan at PC is lower without the sales & marketing spend, so the
+    // refinance releases a real surplus instead of the old £2k shortfall.
+    close(result.scenarios.s3.surplusReleased, 144899.449961863);
+    close(result.scenarios.s3.costsIfLet, 5356164.679601388);
+    close(result.scenarios.s3.unrealisedProfit, 892063.9923986131);
     close(result.scenarios.s3.netAnnualRent, 193800); // rents unchanged by v2
     close(result.scenarios.s3.netAnnualCashflow, -29574.175024000055); // driven by GDV & rates, unchanged
   });
   it('S4 refinance then delayed sales', () => {
-    close(result.scenarios.s4.extraInterest, 46807.642341926956);
-    close(result.scenarios.s4.netProfit, 695551.8888126161);
+    close(result.scenarios.s4.extraInterest, 46807.65075604594);
+    close(result.scenarios.s4.netProfit, 695529.5155015405); // -£22.37
   });
 });
 
 describe('B. model v2 regression: sensitivity', () => {
   it('fixed cost base and grid 1 at -10%', () => {
-    close(result.sensitivity.fixedCostBase, 5365867.884835728);
-    close(result.sensitivity.grid1[0].netProfit, 164186.83289227262);
+    close(result.sensitivity.fixedCostBase, 5365890.2450449355); // +£22.36
+    close(result.sensitivity.grid1[0].netProfit, 164164.47268306557); // -£22.36
   });
   it('grid 3 at 5.5% x 65% LTV equals scenario 3 cashflow', () => {
     const row = result.sensitivity.grid3[2];

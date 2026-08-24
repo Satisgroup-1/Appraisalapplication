@@ -16,7 +16,15 @@ import type { AppraisalResult, FinanceInputs, PricingSpec } from './types';
  *  exporter's own `InputsIn` contract is checked at compile time. */
 export type ExportInputs = FinanceInputs & {
   address: string;
-  devCostLines: { code: string; kind: string; value: number; label: string }[];
+  devCostLines: {
+    code: string;
+    kind: string;
+    value: number;
+    label: string;
+    whenIncurred: string;
+    /** The £ figure the engine computed, when a result was available. */
+    amount?: number;
+  }[];
   buildCostOverride: number | null;
 };
 
@@ -26,10 +34,26 @@ export function buildExportInputs(args: {
   result: AppraisalResult | null;
 }): ExportInputs {
   const { address, spec, result } = args;
+  const computedAmounts = new Map<string, number>();
+  if (result) {
+    for (const group of Object.values(result.devCosts.groups)) {
+      for (const line of group.lines) computedAmounts.set(line.code, line.amount);
+    }
+  }
   return {
     address,
     ...spec.finance,
-    devCostLines: spec.devCosts.map((l) => ({ code: l.code, kind: l.kind, value: l.value, label: l.label })),
+    // The computed amount travels with each line, so a kind the workbook has no
+    // cell shape for (the time-based holding lines) can still be written as a £
+    // amount instead of silently leaving the template's own figure in place.
+    devCostLines: spec.devCosts.map((l) => ({
+      code: l.code,
+      kind: l.kind,
+      value: l.value,
+      label: l.label,
+      whenIncurred: l.whenIncurred ?? 'always',
+      amount: computedAmounts.get(l.code),
+    })),
     // ALWAYS the contract sum the engine actually used, whatever made it differ
     // from the typed D01 — room-rate costing, tender-price inflation, or both.
     // Gating this on the room-rate mode alone left `fixed` mode with inflation

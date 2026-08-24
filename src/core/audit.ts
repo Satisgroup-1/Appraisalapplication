@@ -285,6 +285,16 @@ export function auditAppraisal(r: AppraisalResult, spec: PricingSpec, schedule: 
   const allLines = (Object.keys(r.devCosts.groups) as DevCostGroup[]).flatMap((g) => r.devCosts.groups[g].lines);
   for (const specLine of spec.devCosts) {
     const outLine = allLines.find((l) => l.code === specLine.code);
+    const incidence = specLine.whenIncurred ?? 'always';
+    if (incidence !== 'always' && incidence !== r.devCosts.basis) {
+      // Correctly absent: this line belongs to the other exit.
+      if (outLine) {
+        linesOk = false;
+        lineDetail = `line ${specLine.code} is ${incidence} but appears in the ${r.devCosts.basis} build-up`;
+        break;
+      }
+      continue;
+    }
     if (!outLine) {
       linesOk = false;
       lineDetail = `line ${specLine.code} missing from output`;
@@ -309,6 +319,15 @@ export function auditAppraisal(r: AppraisalResult, spec: PricingSpec, schedule: 
         break;
       case 'salesLegalPerUnit':
         expected = f.sales.legalPerUnit * r.totals.units;
+        break;
+      case 'perMonthHeld':
+        expected = specLine.value * r.devCosts.holdMonths;
+        break;
+      case 'perUnitPerMonthHeld':
+        expected = specLine.value * r.totals.units * r.devCosts.holdMonths;
+        break;
+      case 'pctAnnualRent':
+        expected = specLine.value * r.totals.grossAnnualRent;
         break;
     }
     if (!closeAbs(outLine.amount, expected, 0.02)) {
@@ -353,6 +372,12 @@ export function auditAppraisal(r: AppraisalResult, spec: PricingSpec, schedule: 
   }
   const preFinance =
     r.devCosts.purchase + (Object.keys(r.devCosts.groups) as DevCostGroup[]).reduce((s, g) => s + r.devCosts.groups[g].total, 0);
+  ok(
+    'costs-hold',
+    'Time-based holding costs charged for the programme’s hold period',
+    r.devCosts.holdMonths === r.programme.holdMonths,
+    `${r.devCosts.holdMonths} vs ${r.programme.holdMonths}`,
+  );
   ok('costs-prefinance', 'Pre-finance total = purchase + Σ groups', closeAbs(r.devCosts.totalPreFinance, preFinance), `${gbp(r.devCosts.totalPreFinance)} vs ${gbp(preFinance)}`);
 
   // --- cashflow conservation ---
@@ -412,6 +437,74 @@ export function auditAppraisal(r: AppraisalResult, spec: PricingSpec, schedule: 
   ok('s4-benefit', 'S4 benefit vs S2 = S4 profit - S2 profit', closeAbs(s.s4.benefitVsS2, s.s4.netProfit - s.s2.netProfit), '');
   ok('s3-advance', 'S3 mortgage = refinance LTV × GDV at PC', closeAbs(s.s3.mortgageAdvance, f.refinance.ltv * s.s1.gdvAdjusted, 0.02), '');
   ok('s3-cash', 'S3 cashflow = net rent - mortgage interest', closeAbs(s.s3.netAnnualCashflow, s.s3.netAnnualRent - s.s3.annualInterest), '');
+  // Scenario 3 is priced on the LET basis: an independent re-derivation, since
+  // a wrong basis would still satisfy every conservation identity.
+  ok(
+    's3-letbasis',
+    'S3 unrealised profit = GDV at PC - all-in costs on the LET basis',
+    closeAbs(s.s3.unrealisedProfit, s.s1.gdvAdjusted - s.s3.costsIfLet, 0.02),
+    `${gbp(s.s3.unrealisedProfit)} vs ${gbp(s.s1.gdvAdjusted - s.s3.costsIfLet)}`,
+  );
+  {
+    // The selling costs a hold avoids must equal the onSale lines, recomputed
+    // from the spec rather than read back from the engine.
+    let expectAvoided = 0;
+    let expectLetting = 0;
+    for (const line of spec.devCosts) {
+      const inc = line.whenIncurred ?? 'always';
+      if (inc === 'always') continue;
+      let amt = 0;
+      switch (line.kind) {
+        case 'fixed':
+          amt = line.code === 'D01' ? buildCost : line.code === auditSdltCode ? autoSdlt! : line.value;
+          break;
+        case 'pctPurchase':
+          amt = line.value * f.purchasePrice;
+          break;
+        case 'pctBuild':
+          amt = line.value * buildCost;
+          break;
+        case 'perUnit':
+          amt = line.value * r.totals.units;
+          break;
+        case 'pctGDV':
+          amt = (line.value || f.sales.agentFeePct) * r.totals.gdv * salesFactor;
+          break;
+        case 'salesLegalPerUnit':
+          amt = f.sales.legalPerUnit * r.totals.units;
+          break;
+        case 'perMonthHeld':
+          amt = line.value * r.devCosts.holdMonths;
+          break;
+        case 'perUnitPerMonthHeld':
+          amt = line.value * r.totals.units * r.devCosts.holdMonths;
+          break;
+        case 'pctAnnualRent':
+          amt = line.value * r.totals.grossAnnualRent;
+          break;
+      }
+      if (inc === 'onSale') expectAvoided += amt;
+      else expectLetting += amt;
+    }
+    ok(
+      's3-avoided',
+      'S3 selling costs avoided = Σ the onSale lines',
+      closeAbs(s.s3.sellingCostsAvoided, expectAvoided, 0.02),
+      `${gbp(s.s3.sellingCostsAvoided)} vs ${gbp(expectAvoided)}`,
+    );
+    ok(
+      's3-letting',
+      'S3 letting costs = Σ the onLet lines',
+      closeAbs(s.s3.lettingCosts, expectLetting, 0.02),
+      `${gbp(s.s3.lettingCosts)} vs ${gbp(expectLetting)}`,
+    );
+    ok(
+      'costs-basis',
+      'The sale-basis build-up excludes exactly the onLet lines',
+      r.devCosts.basis === 'onSale' && closeAbs(r.devCosts.excludedTotal, expectLetting, 0.02),
+      `${gbp(r.devCosts.excludedTotal)} vs ${gbp(expectLetting)}`,
+    );
+  }
   ok(
     's3-rent',
     'S3 net rent = gross × (1 - void) × (1 - mgmt)',
