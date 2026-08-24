@@ -187,6 +187,33 @@ export function sanitizeSpec(spec: PricingSpec): { spec: PricingSpec; repairs: A
       line.value = 0;
     }
   }
+  // A code identifies exactly one cost line. The engine charges every line it is
+  // handed, so a repeated code is billed twice — and the by-code costs-lines
+  // audit then resolves both spec entries to the SAME engine line and compares
+  // it against itself, so the doubled cost passes unnoticed. Keep the FIRST
+  // occurrence as authored (for the demo's D01 that is the true main-contract
+  // line; later copies are surplus) and report each dropped copy in this same
+  // repair channel, never halving silently by dropping the wrong one and never
+  // doubling silently by keeping both. A legitimately authored project cannot
+  // reach here with duplicates (the UI cannot add a line), so no well-formed
+  // project moves — only a hand-edited or preset-merged spec the auditor would
+  // itself call wrong.
+  const seenCodes = new Set<string>();
+  const dedupedCosts: PricingSpec['devCosts'] = [];
+  for (const line of s.devCosts) {
+    if (seenCodes.has(line.code)) {
+      repairs.push({
+        field: `cost line ${line.code}`,
+        from: 'duplicated',
+        to: 'removed',
+        reason: `code ${line.code} appears more than once; charged once on the first occurrence`,
+      });
+      continue;
+    }
+    seenCodes.add(line.code);
+    dedupedCosts.push(line);
+  }
+  s.devCosts = dedupedCosts;
   for (const key of Object.keys(s.roomRates) as (keyof PricingSpec['roomRates'])[]) {
     s.roomRates[key] = fix(repairs, `room rate ${key}`, s.roomRates[key], DEFAULT_PRICING.roomRates[key], 0, 5000, 'must be a non-negative £/sqft');
   }
@@ -337,6 +364,22 @@ export function auditAppraisal(r: AppraisalResult, spec: PricingSpec, schedule: 
     }
   }
   ok('costs-lines', 'Every cost line recomputes from its driver (incl. sales fees on levered GDV)', linesOk, lineDetail);
+  // Independent tripwire guarding the by-code resolution above: costs-lines
+  // finds each spec entry's engine line by code, so two entries sharing a code
+  // both resolve to the same line and the check compares it against itself —
+  // green while the engine has charged the cost twice. This check fails on any
+  // spec still carrying a duplicate code, so that blindness can never recur
+  // unnoticed. sanitizeSpec removes the duplicate upstream with a reported
+  // repair, so a sanitised (i.e. every well-formed) spec passes here.
+  const codeCounts = new Map<string, number>();
+  for (const specLine of spec.devCosts) codeCounts.set(specLine.code, (codeCounts.get(specLine.code) ?? 0) + 1);
+  const duplicatedCodes = [...codeCounts.entries()].filter(([, n]) => n > 1).map(([code]) => code);
+  ok(
+    'costs-duplicate-codes',
+    'Every cost line has a unique code (a repeated code is charged twice)',
+    duplicatedCodes.length === 0,
+    `duplicated code${duplicatedCodes.length > 1 ? 's' : ''}: ${duplicatedCodes.join(', ')}`,
+  );
   // Build inflation, re-derived independently: the factor from the rate and the
   // programme, and the line from today's cost x that factor. A wrong factor
   // would otherwise be invisible, since every %-of-build line agrees with it.

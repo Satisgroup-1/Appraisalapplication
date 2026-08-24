@@ -384,7 +384,15 @@ the remaining gap cheaply.
 runs a full `runAppraisal` per option in a `useMemo`. Fine on a 4-storey demo; on a large
 building it is a frozen window with an "Autosaved" label. Set `busy` around generation.
 
-### D11 — HIGH · A duplicated cost code is charged twice, and every audit check still passes
+### D11 — HIGH · ~~A duplicated cost code is charged twice, and every audit check still passes~~ · **FIXED 2026-08-24**
+Result: `sanitizeSpec` now drops later copies of a repeated code with a reported repair naming
+the code (first occurrence kept, so the charge is neither silently doubled nor halved), and a
+new `costs-duplicate-codes` auditor tripwire fails on any spec still carrying a duplicate — so
+the by-code self-comparison in `costs-lines` can no longer hide a doubled cost. Clean baseline
+moves from 61 to 62 passing checks. Residual (backlog): `OptionsView`/`PricingView` still call
+`runAppraisal` on the raw un-sanitised spec (a variant of the IMPROVEMENTS.md:289 divergence),
+and the root-cause by-code resolution in `costs-lines` (audit.ts) is left in place, guarded now
+by the new tripwire.
 Found by the reviewer during the abandoned D3 cycle (2026-08-24) and independently
 reproduced. Nothing in `sanitizeSpec` or `auditAppraisal` compares cost-line **codes**, so a
 stored project carrying the same line twice — a hand-edited file, a merge of two `.pricing`
