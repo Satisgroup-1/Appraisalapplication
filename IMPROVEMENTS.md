@@ -393,27 +393,40 @@ building it is a frozen window with an "Autosaved" label. Set `busy` around gene
 
 ---
 
+## Decisions taken (2026-08-24)
+
+Answered by the client; these are now the specification for the model work.
+
+| # | Question | Decision |
+|---|---|---|
+| 1 | Build cost inflation (A1) | **Own input, researched.** Add `buildInflationPa` applied to the contract sum over the programme, with the estimates agent researching a BCIS-style tender price forecast as it already does HPI. Kept **independent** of the HPI rate, since tender prices and house prices diverge. |
+| 2 | Exit cost attribution (A2) | **Per-line exit flag plus a letting group.** Add `whenIncurred: 'always' \| 'onSale' \| 'onLet'` to `DevCostLine`, and a letting-cost group (tenant find, EPC, furnishing, first-let void, licensing) that S3 uses. |
+| 3 | Discounting (B1) | **Add equity IRR and NPV at a hurdle rate**, headlined alongside profit-on-cost. IRR from the monthly equity cashflow, not an annualised ROI. *Still needed: the hurdle rate to quote — see question 5 below.* |
+| 4 | ROI denominator (A5) | **Show both.** Report ROI on capital committed *and* on capital actually drawn, in every profit mode, so the two can never silently disagree. |
+
+Consequences for the build order: A1 and A2 grow from "fix a defect" into schema changes
+(`FinanceInputs.buildInflationPa`, `DevCostLine.whenIncurred`, a new letting-cost group), so
+both need a `normalizePricing` migration path for existing project files — defaulting
+`whenIncurred` to `'always'` preserves today's behaviour exactly, and a zero default for
+`buildInflationPa` keeps the golden tests green until the rate is deliberately set. B1 adds
+`hurdleRatePa` to `FinanceInputs` and an IRR solver (bisection on the monthly equity flows;
+guard for the no-sign-change case). A5 widens `WaterfallResult` with a second capital/ROI pair.
+
 ## Open questions
 
-Answers to 1-4 change what gets built; 5-8 are scope calls that can wait.
+Question 3 above is decided in principle but needs one number (5). The rest are scope calls.
 
-1. **Build cost inflation (A1).** Add a `buildInflationPa` input applied to the contract sum
-   over the programme? Should the estimates agent research a BCIS-style tender price forecast
-   the way it already researches HPI, and should the two be linked (they usually diverge) or
-   independent?
-2. **Tax (B2).** Should the model carry corporation tax on SPV profit and show post-tax
-   investor returns, or is pre-tax the deliberate house convention? Separately: is the 5%
-   reduced-rate VAT on qualifying conversion works worth modelling as a cashflow item?
-3. **IRR / NPV (B1).** Add equity IRR and NPV at a hurdle rate? If so, what hurdle do you
-   quote to investors, and should it headline alongside profit-on-cost?
-4. **ROI denominator (A5).** Is investor ROI quoted on capital *committed* or capital
-   *actually drawn*? Both are defensible; the model currently uses each in a different mode.
-5. **Planning obligations (B3).** Do your conversions typically attract CIL or S106? Worth
+5. **Hurdle rate (B1).** What discount / hurdle rate do you quote to investors? Needed to make
+   the NPV real, and to mark IRRs as clearing or missing the hurdle.
+6. **Planning obligations (B3).** Do your conversions typically attract CIL or S106? Worth
    cost lines with a per-project toggle, or genuinely always nil?
-6. **Non-rectangular floors (C1).** How often are real envelopes L/T/U-shaped? If it is most
+7. **Non-rectangular floors (C1).** How often are real envelopes L/T/U-shaped? If it is most
    of them, the clipping fix is the top priority rather than the second.
-7. **Leasehold (B4).** Are flats sold on long leases with a retained freehold? If so, ground
+8. **Leasehold (B4).** Are flats sold on long leases with a retained freehold? If so, ground
    rent income and reversion value are missing GDV.
-8. **Refinance covenant (A7).** What ICR do your BTL/portfolio lenders actually test at, and
+9. **Refinance covenant (A7).** What ICR do your BTL/portfolio lenders actually test at, and
    at what stressed rate? That number is needed to make the covenant check real rather than
    nominal.
+10. **Tax (B2).** Left undecided: should the model carry corporation tax on SPV profit and show
+    post-tax investor returns, or is pre-tax the house convention? And is the 5% reduced-rate
+    VAT on qualifying conversion works worth modelling as a cashflow item?
