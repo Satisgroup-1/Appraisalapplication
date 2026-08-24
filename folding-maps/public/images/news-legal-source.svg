@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 820" role="img" aria-labelledby="title desc">
+  <title id="title">Source-grounded legal research system</title>
+  <desc id="desc">Mechanical gears connect a matter file, source passages, citation checks and professional sign-off.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#14211c"/><stop offset="1" stop-color="#31443a"/></linearGradient>
+    <linearGradient id="paper" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fbfceb"/><stop offset="1" stop-color="#dfe8c2"/></linearGradient>
+    <filter id="shadow"><feDropShadow dx="0" dy="20" stdDeviation="22" flood-color="#07100b" flood-opacity=".42"/></filter>
+    <pattern id="grid" width="42" height="42" patternUnits="userSpaceOnUse"><path d="M42 0H0V42" fill="none" stroke="#9db2a7" stroke-opacity=".11"/></pattern>
+  </defs>
+  <rect width="1400" height="820" rx="38" fill="url(#bg)"/>
+  <rect width="1400" height="820" rx="38" fill="url(#grid)"/>
+  <g filter="url(#shadow)">
+    <rect x="112" y="126" width="470" height="566" rx="24" fill="url(#paper)"/>
+    <path d="M174 218h274M174 276h336M174 334h294M174 454h336M174 512h262M174 570h318" stroke="#43544b" stroke-width="14" stroke-linecap="round" opacity=".35"/>
+    <rect x="166" y="380" width="360" height="40" rx="10" fill="#cfe847" opacity=".82"/>
+    <circle cx="180" cy="164" r="14" fill="#708279"/><circle cx="226" cy="164" r="14" fill="#708279"/>
+  </g>
+  <g fill="none" stroke="#d6ef54" stroke-width="12">
+    <path d="M584 408h142" stroke-dasharray="17 15"/>
+    <path d="M966 408h174" stroke-dasharray="17 15"/>
+  </g>
+  <g transform="translate(838 408)">
+    <g fill="#bdd83c" stroke="#eef8aa" stroke-width="5">
+      <path d="M-28-129 3-137l13 28 31 8 25-19 24 21-14 28 10 30 30 10-2 32-31 6-15 28 11 29-27 17-22-22-33 2-18 25-29-13 7-31-20-25-31-2-8-31 28-14 7-32-20-24 19-26 28 15 29-14z"/>
+      <circle r="68" fill="#263a30"/><circle r="28" fill="#dff36a"/>
+    </g>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="1110" y="194" width="190" height="428" rx="26" fill="#f6f8e8"/>
+    <circle cx="1205" cy="268" r="44" fill="#d7ea63"/>
+    <path d="m1185 269 14 14 29-35" fill="none" stroke="#28382f" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M1150 350h110M1150 405h110M1150 460h110M1150 515h78" stroke="#526259" stroke-width="12" stroke-linecap="round" opacity=".48"/>
+  </g>
+  <g font-family="Arial, sans-serif" fill="#edf5cf" font-size="24" font-weight="700" letter-spacing="3">
+    <text x="112" y="88">MATTER EVIDENCE</text><text x="720" y="650">PROVENANCE</text><text x="1094" y="675">SIGN-OFF</text>
+  </g>
+</svg>

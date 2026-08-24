@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 1000" role="img" aria-labelledby="t d">
+<title id="t">Abstract yacht operations</title><desc id="d">A stylised sailboat crossing indigo water at sunset.</desc>
+<defs><linearGradient id="sky" x2="0" y2="1"><stop stop-color="#5c56df"/><stop offset="1" stop-color="#f8a18e"/></linearGradient><linearGradient id="sea" x2="0" y2="1"><stop stop-color="#292851"/><stop offset="1" stop-color="#111222"/></linearGradient><pattern id="waves" width="120" height="40" patternUnits="userSpaceOnUse"><path d="M0 25 Q30 5 60 25T120 25" fill="none" stroke="#a8a5ff" stroke-opacity=".27" stroke-width="5"/></pattern></defs>
+<rect width="1400" height="1000" fill="url(#sky)"/><circle cx="1080" cy="270" r="110" fill="#ffddc9" opacity=".8"/><path d="M0 570 Q280 515 560 580T1120 570T1400 585V1000H0Z" fill="url(#sea)"/><rect y="590" width="1400" height="410" fill="url(#waves)"/>
+<g transform="translate(365 185)"><path d="M350 45V520" stroke="#f8f4ef" stroke-width="13"/><path d="M330 75 50 470h280Z" fill="#f8f4ef" opacity=".94"/><path d="m372 105 260 345H372Z" fill="#ff795c" opacity=".92"/><path d="M5 490h690l-105 118H150Z" fill="#17172b"/><path d="M190 610h350" stroke="#ff795c" stroke-width="10"/></g>
+<g fill="#fff" opacity=".55"><circle cx="160" cy="185" r="5"/><circle cx="1240" cy="150" r="7"/><circle cx="1130" cy="430" r="4"/></g>
+</svg>

@@ -1,0 +1,38 @@
+name: no-merge-to-main
+
+# Guards the hard rule in DO-NOT-MERGE.md: the folding-maps quarantine branch
+# must never reach main. See that file for the full rule.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  block-pr-to-main:
+    if: github.event_name == 'pull_request' && github.head_ref == 'claude/folding-maps-repo-nvhf78'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Refuse the merge
+        run: |
+          echo "::error::claude/folding-maps-repo-nvhf78 must NEVER be merged into main."
+          echo "This branch quarantines the folding-maps project. See DO-NOT-MERGE.md."
+          echo "Copy the specific files you need into a fresh branch cut from main instead."
+          exit 1
+
+  assert-main-is-clean:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fail if the quarantine branch reached main
+        run: |
+          echo "::error::Content from claude/folding-maps-repo-nvhf78 has reached main."
+          echo "This workflow file only exists on the quarantine branch; its presence on"
+          echo "main means the branch was merged in violation of DO-NOT-MERGE.md."
+          echo "Revert the merge, then delete .github/workflows/no-merge-to-main.yml from main."
+          exit 1

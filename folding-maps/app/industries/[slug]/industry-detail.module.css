@@ -1,0 +1,62 @@
+.corporateDetail :global(.industry-hero-copy .precision-label) { color: var(--industry-accent, var(--machine)); }
+
+.corporateDetail :global(.opportunity-grid),
+.corporateDetail :global(.industry-roadmap-steps),
+.corporateDetail :global(.industry-service-grid) {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: clamp(5rem, 9vw, 9rem) 4vw;
+}
+
+.corporateDetail :global(.opportunity-grid article),
+.corporateDetail :global(.industry-roadmap-steps article),
+.corporateDetail :global(.industry-service-grid article) {
+  min-height: 300px;
+  padding: 1.6rem 0 0;
+  border: 0;
+  border-top: 1px solid var(--industry-accent, var(--brass));
+  background: transparent;
+  box-shadow: none;
+  transform: none;
+}
+
+.corporateDetail :global(.opportunity-grid article:nth-child(odd)),
+.corporateDetail :global(.industry-roadmap-steps article:nth-child(odd)),
+.corporateDetail :global(.industry-service-grid article:nth-child(odd)) { grid-column: 1 / 7; }
+
+.corporateDetail :global(.opportunity-grid article:nth-child(even)),
+.corporateDetail :global(.industry-roadmap-steps article:nth-child(even)),
+.corporateDetail :global(.industry-service-grid article:nth-child(even)) { grid-column: 7 / 13; margin-top: 6rem; }
+
+.corporateDetail :global(.opportunity-grid h3),
+.corporateDetail :global(.industry-roadmap-steps h3),
+.corporateDetail :global(.industry-service-grid h3) { margin-top: 3rem; font-size: clamp(2.4rem, 4vw, 4.5rem); }
+
+.corporateDetail :global(.opportunity-grid b) { position: static; display: block; margin-top: 2.2rem; padding-top: 1rem; border-top: 0; color: var(--industry-accent, var(--machine)); }
+.corporateDetail :global(.industry-roadmap-steps article > div) { border: 0; }
+.corporateDetail :global(.industry-roadmap-steps article svg) { display: none; }
+
+.corporateDetail :global(.industry-questions ol) {
+  display: grid;
+  max-width: 1200px;
+  margin: 0 auto;
+  grid-template-columns: 1fr 1fr;
+  gap: 5rem 8vw;
+  border: 0;
+}
+
+.corporateDetail :global(.industry-questions li) { display: block; padding: 1.4rem 0 0; border: 0; border-top: 1px solid var(--industry-accent, var(--brass)); }
+.corporateDetail :global(.industry-questions li p) { margin-top: 2rem; }
+
+.corporateDetail :global(.industry-controls > div:last-child) { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 6rem 4vw; }
+.corporateDetail :global(.industry-controls article) { grid-column: span 4; min-height: 320px; padding: 1.5rem 0 0; border: 0; border-top: 1px solid rgba(247, 240, 229, .35); background: transparent; }
+.corporateDetail :global(.industry-controls article + article) { border-left: 0; }
+.corporateDetail :global(.industry-controls article svg) { display: none; }
+
+@media (max-width: 800px) {
+  .corporateDetail :global(.opportunity-grid article:nth-child(n)),
+  .corporateDetail :global(.industry-roadmap-steps article:nth-child(n)),
+  .corporateDetail :global(.industry-service-grid article:nth-child(n)) { grid-column: 1 / -1; margin-top: 0; }
+  .corporateDetail :global(.industry-questions ol) { grid-template-columns: 1fr; }
+  .corporateDetail :global(.industry-controls article) { grid-column: 1 / -1; min-height: 0; }
+}

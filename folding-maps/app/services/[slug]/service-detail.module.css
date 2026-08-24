@@ -1,0 +1,68 @@
+.corporateDetail :global(.service-detail-copy .precision-label) { color: var(--machine); }
+
+.corporateDetail :global(.technical-tags) { display: flex; flex-wrap: wrap; gap: .65rem 1.5rem; }
+.corporateDetail :global(.technical-tags span) { padding: 0 0 .25rem; border: 0; border-bottom: 1px solid var(--brass); border-radius: 0; background: transparent; }
+
+.corporateDetail :global(.use-case-grid) {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: clamp(5rem, 9vw, 9rem) 4vw;
+  border: 0;
+}
+
+.corporateDetail :global(.use-case-grid > article) {
+  min-height: 430px;
+  padding: 1.7rem 0 0;
+  border: 0;
+  background: transparent;
+}
+
+.corporateDetail :global(.use-case-grid > article:nth-child(odd)) { grid-column: 1 / 7; }
+.corporateDetail :global(.use-case-grid > article:nth-child(even)) { grid-column: 7 / 13; margin-top: 6rem; }
+.corporateDetail :global(.use-case-grid h3) { margin-top: 3.5rem; font-size: clamp(2.6rem, 4vw, 4.7rem); }
+.corporateDetail :global(.use-case-grid article > div:not(.use-case-number)) { border-top: 0; padding: .6rem 0; }
+.corporateDetail :global(.use-case-grid ol) { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; }
+.corporateDetail :global(.use-case-grid li) { min-height: 100px; padding: 1rem .8rem; border-top: 1px solid var(--brass); background: transparent; }
+.corporateDetail :global(.use-case-grid li svg) { display: none; }
+
+.corporateDetail :global(.service-provision-section) {
+  grid-template-columns: 1fr 1fr;
+  background:
+    linear-gradient(rgba(73, 106, 102, .04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(73, 106, 102, .04) 1px, transparent 1px),
+    var(--cream);
+  background-size: 48px 48px;
+}
+
+.corporateDetail :global(.provision-column + .provision-column) { background: transparent; }
+.corporateDetail :global(.provision-column ul) { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem 3vw; }
+.corporateDetail :global(.provision-column li) { position: relative; display: block; padding: 1.2rem 0 0; border: 0; }
+.corporateDetail :global(.provision-column li::before) { content: ''; position: absolute; top: 0; left: 0; width: 44px; height: 1px; background: var(--brass); }
+.corporateDetail :global(.provision-column li svg) { display: none; }
+
+.corporateDetail :global(.blueprint-stack) {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem 6vw;
+  perspective: none;
+}
+
+.corporateDetail :global(.blueprint-stack article) {
+  display: grid;
+  min-height: 200px;
+  grid-template-columns: 36px 34px 1fr;
+  padding: 1.5rem 0 0;
+  border: 0;
+  border-top: 1px solid var(--brass);
+  background: transparent;
+  box-shadow: none;
+  transform: none;
+}
+
+@media (max-width: 800px) {
+  .corporateDetail :global(.use-case-grid > article:nth-child(n)) { grid-column: 1 / -1; margin-top: 0; }
+  .corporateDetail :global(.use-case-grid ol) { grid-template-columns: 1fr 1fr; }
+  .corporateDetail :global(.service-provision-section) { grid-template-columns: 1fr; }
+  .corporateDetail :global(.provision-column ul) { grid-template-columns: 1fr; }
+  .corporateDetail :global(.blueprint-stack) { grid-template-columns: 1fr; }
+}

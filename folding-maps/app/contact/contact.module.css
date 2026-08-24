@@ -1,0 +1,23 @@
+.contact :global(.contact-intro .precision-label) { color: var(--machine); }
+
+.contact :global(.contact-facts) {
+  display: grid;
+  margin-top: 4.5rem;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+  border: 0;
+}
+
+.contact :global(.contact-facts > div) {
+  position: relative;
+  display: block;
+  padding: 1.4rem 0 0;
+  border: 0;
+}
+
+.contact :global(.contact-facts > div::before) { content: ''; position: absolute; top: 0; left: 0; width: 42px; height: 1px; background: var(--brass); }
+.contact :global(.contact-facts svg) { margin-bottom: 1rem; color: var(--machine); }
+
+@media (max-width: 800px) {
+  .contact :global(.contact-facts) { grid-template-columns: 1fr; }
+}

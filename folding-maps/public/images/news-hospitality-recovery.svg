@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 820" role="img" aria-labelledby="title desc">
+  <title id="title">Hospitality guest recovery operating system</title>
+  <desc id="desc">A hotel, guest profile and service-recovery controls connect through mechanical gears.</desc>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#eaf2d7"/><stop offset="1" stop-color="#9cb7a9"/></linearGradient>
+    <linearGradient id="hotel" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#31463b"/><stop offset="1" stop-color="#17241e"/></linearGradient>
+    <filter id="shadow"><feDropShadow dx="0" dy="22" stdDeviation="24" flood-color="#15231c" flood-opacity=".32"/></filter>
+    <pattern id="dots" width="32" height="32" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="2" fill="#20362b" opacity=".13"/></pattern>
+  </defs>
+  <rect width="1400" height="820" rx="38" fill="url(#sky)"/>
+  <rect width="1400" height="820" rx="38" fill="url(#dots)"/>
+  <g filter="url(#shadow)">
+    <path d="M112 690V274l184-118 184 118v416z" fill="url(#hotel)"/>
+    <path d="M260 690V532h72v158" fill="#d6ec5e"/>
+    <g fill="#dce7ce" opacity=".78">
+      <rect x="160" y="314" width="58" height="58" rx="8"/><rect x="274" y="314" width="58" height="58" rx="8"/><rect x="388" y="314" width="58" height="58" rx="8"/>
+      <rect x="160" y="414" width="58" height="58" rx="8"/><rect x="274" y="414" width="58" height="58" rx="8"/><rect x="388" y="414" width="58" height="58" rx="8"/>
+      <rect x="160" y="514" width="58" height="58" rx="8"/><rect x="388" y="514" width="58" height="58" rx="8"/>
+    </g>
+  </g>
+  <path d="M490 448h150M958 448h158" fill="none" stroke="#415d4e" stroke-width="12" stroke-linecap="round" stroke-dasharray="18 15"/>
+  <g transform="translate(800 448)" filter="url(#shadow)">
+    <path d="M-24-142 10-145l12 31 31 10 27-18 24 24-18 27 10 31 31 12-3 34-33 6-18 28 11 32-29 18-24-25-34 1-21 27-31-15 8-34-22-26-35-4-7-34 32-14 8-34-20-29 23-27 30 18 32-13z" fill="#bad33f" stroke="#edf7a7" stroke-width="5"/>
+    <circle r="75" fill="#263d31"/><circle r="30" fill="#e0ef67"/>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="1080" y="178" width="220" height="512" rx="30" fill="#f9f9e8"/>
+    <circle cx="1190" cy="278" r="48" fill="#a9c3b4"/>
+    <path d="M1128 374h124M1128 426h124M1128 478h86" stroke="#3b5146" stroke-width="14" stroke-linecap="round" opacity=".45"/>
+    <rect x="1128" y="540" width="124" height="64" rx="16" fill="#d7eb54"/>
+    <path d="m1162 571 17 17 34-41" fill="none" stroke="#26392f" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <g fill="#20352a" font-family="Arial, sans-serif" font-size="24" font-weight="700" letter-spacing="3">
+    <text x="112" y="108">PROPERTY STATE</text><text x="668" y="688">RECOVERY ROUTE</text><text x="1080" y="738">OWNED CLOSURE</text>
+  </g>
+</svg>

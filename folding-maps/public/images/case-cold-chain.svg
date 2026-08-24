@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 1000" role="img" aria-labelledby="t d">
+<title id="t">Abstract cold-chain monitoring</title><desc id="d">A geometric refrigerated warehouse with live temperature signals.</desc>
+<defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#dedbff"/><stop offset="1" stop-color="#7599ff"/></linearGradient><pattern id="grid" width="70" height="70" patternUnits="userSpaceOnUse"><path d="M70 0H0v70" fill="none" stroke="#4a45d6" stroke-opacity=".12" stroke-width="3"/></pattern></defs>
+<rect width="1400" height="1000" fill="url(#bg)"/><rect width="1400" height="1000" fill="url(#grid)"/><path d="m170 395 530-235 530 235v410H170Z" fill="#f7f4ef"/><path d="m170 395 530-235 530 235" fill="none" stroke="#17172b" stroke-width="24"/><rect x="290" y="455" width="820" height="350" rx="8" fill="#252447"/><g fill="#8d88ff"><rect x="350" y="520" width="195" height="230"/><rect x="602" y="520" width="195" height="230"/><rect x="855" y="520" width="195" height="230"/></g>
+<g fill="none" stroke="#ff795c" stroke-width="13" stroke-linecap="round"><path d="M250 300c95-105 195-105 290 0s195 105 290 0 195-105 290 0"/><path d="M595 645h210"/></g><circle cx="700" cy="645" r="52" fill="#ff795c"/><path d="M700 595v-75" stroke="#ff795c" stroke-width="22" stroke-linecap="round"/>
+</svg>
