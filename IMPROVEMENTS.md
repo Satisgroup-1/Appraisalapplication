@@ -159,13 +159,16 @@ These are absent by design or never specified. Each needs a decision before it i
   discount/hurdle rate. Every headline is profit-on-cost / profit-on-GDV — undiscounted, so a
   15-month and a 39-month exit at the same profit look identical. Equity IRR is the number
   investors ask for. (`investorRoiPa` is a simple annualisation, not an IRR.) See question 3.
-- **B2 — No tax.** Profit is pre-tax throughout; no corporation tax on SPV profit, no SDLT on
-  any onward transaction, no CIS deduction modelling (a CIS submission cost line exists but no
-  withholding), no VAT on *costs* (a conversion is 5% reduced-rate on qualifying works and
-  zero-rated on some changes of use — a genuine cashflow item even where recoverable).
-  See question 2.
-- **B3 — No planning obligations.** No CIL, no S106, no affordable-housing contribution, no
-  Building Safety Act gateway fees. For conversions these can be nil — or six figures.
+- ~~**B2 — No tax.**~~ **CLOSED 2026-08-24 — pre-tax is the house convention.** No corporation
+  tax on SPV profit and no VAT on works; investors model their own position. The change made
+  was disclosure: the exported assumptions and the README now state the pre-tax basis
+  explicitly, pinned by a test, rather than leaving it to be inferred. CIS withholding and
+  onward-transaction SDLT remain unmodelled and unasked-for.
+- ~~**B3 — No planning obligations.**~~ **CLOSED 2026-08-24 — the client's conversions attract
+  neither CIL nor S106,** so no default lines. A one-off obligation on some future scheme can
+  go in a group's "Other" line; note the UI can only edit a line's value, never add one, so
+  making cost lines user-addable is a fair backlog candidate. Building Safety Act gateway fees
+  remain out of scope like other regulatory matters.
 - ~~**B4 — No leasehold structure.**~~ **CLOSED 2026-08-24 — no change needed.** Flats are
   sold on 999-year leases with the freehold retained and never sold on, so there is no GDV to
   add: a peppercorn ground rent is mandatory on newly granted residential long leases

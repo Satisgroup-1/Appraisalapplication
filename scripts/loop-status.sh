@@ -72,23 +72,38 @@ git log --oneline -$([[ $FULL == 1 ]] && echo 30 || echo 8) 2>/dev/null | sed 's
 rule
 
 # --- backlog ---------------------------------------------------------------
+# Items appear in TWO formats in IMPROVEMENTS.md: the A/C/D findings are "###"
+# headings, while the B (missing mechanics) and E (process) items are bullets.
+# Counting only headings hid 12 items and every B/E closure, so both are read.
 b "Backlog (IMPROVEMENTS.md)"
 if [[ -f IMPROVEMENTS.md ]]; then
-  DONE=$(grep -cE '^### .*FIXED' IMPROVEMENTS.md || true)
-  OPEN=$(grep -E '^### [A-E][0-9]+ — ' IMPROVEMENTS.md | grep -vc 'FIXED' || true)
-  echo "  $DONE fixed   $OPEN still open"
+  items() {  # -> "ID<TAB>state<TAB>title"
+    grep -hE '^(### |- (~~)?\*\*)[A-E][0-9]+ (—|-) ' IMPROVEMENTS.md \
+      | sed -E 's/^### //; s/^- //' \
+      | awk '{ closed = (/~~/ || /FIXED/ || /CLOSED/) ? "done" : "open";
+               line = $0;
+               gsub(/\*\*/, "", line); gsub(/~~/, "", line);
+               match(line, /^[A-E][0-9]+/); id = substr(line, RSTART, RLENGTH);
+               sub(/^[A-E][0-9]+ (—|-) /, "", line);
+               sub(/^(HIGH|MEDIUM\/HIGH|MEDIUM|LOW\/MEDIUM|LOW) · /, "", line);
+               sub(/ · (FIXED|CLOSED).*$/, "", line);
+               printf "%s\t%s\t%s\n", id, closed, line }'
+  }
+  ALL=$(items)
+  TOTAL=$(printf '%s\n' "$ALL" | grep -c . || true)
+  DONE=$(printf '%s\n' "$ALL" | grep -cP '\tdone\t' || true)
+  OPEN=$((TOTAL - DONE))
+  echo "  $TOTAL findings   $DONE done   $OPEN open"
+  echo
+  LIMIT=$([[ $FULL == 1 ]] && echo 100 || echo 6)
+  echo "  next open:"
+  printf '%s\n' "$ALL" | grep -P '\topen\t' | head -$LIMIT \
+    | awk -F'\t' '{ printf "    %-4s %s\n", $1, substr($3, 1, 88) }'
   if [[ $FULL == 1 ]]; then
     echo
-    echo "  open items:"
-    grep -E '^### [A-E][0-9]+ — ' IMPROVEMENTS.md | grep -v 'FIXED' \
-      | sed -E 's/^### //; s/ — (HIGH|MEDIUM\/HIGH|MEDIUM|LOW\/MEDIUM|LOW) · / · /' \
-      | cut -c1-100 | sed 's/^/    /'
-  else
-    echo
-    echo "  next few open:"
-    grep -E '^### [A-E][0-9]+ — ' IMPROVEMENTS.md | grep -v 'FIXED' | head -5 \
-      | sed -E 's/^### //; s/ — (HIGH|MEDIUM\/HIGH|MEDIUM|LOW\/MEDIUM|LOW) · / · /' \
-      | cut -c1-100 | sed 's/^/    /'
+    echo "  done:"
+    printf '%s\n' "$ALL" | grep -P '\tdone\t' \
+      | awk -F'\t' '{ printf "    %-4s %s\n", $1, substr($3, 1, 88) }'
   fi
 fi
 rule

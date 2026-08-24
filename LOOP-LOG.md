@@ -8,7 +8,7 @@ Columns: when (UTC) · outcome · item · title · rework rounds · what happene
 
 | When | Outcome | Item | Title | Rounds | Note |
 |---|---|---|---|---|---|
-| 2026-08-24 02:24 | SETUP | — | Loop established: planner, builder, reviewer; hourly Routine | 0 | Baseline before the first cycle: 227 tests, 53 audit checks, backlog items D1 D2 C1 A1 A2 A3 done |
+| 2026-08-24 02:24 | SETUP | — | Loop established: planner, builder, reviewer; hourly Routine | 0 | Baseline before the first cycle: 228 tests, 53 audit checks, 9 of 37 findings closed |
 
 ## Awaiting the client
 
