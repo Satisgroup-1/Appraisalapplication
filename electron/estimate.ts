@@ -225,8 +225,13 @@ Conclude with, per unit type: low / likely / high sale £ per sqft TODAY, low / 
 
 const BUILD_SCHEMA = {
   type: 'object',
-  properties: { blendedPsf: ESTIMATE_SCHEMA },
-  required: ['blendedPsf'],
+  properties: {
+    blendedPsf: ESTIMATE_SCHEMA,
+    // Two figures, both small enough that the schema grammar still compiles
+    // (see the schema-size note above).
+    tenderInflationPa: ESTIMATE_SCHEMA,
+  },
+  required: ['blendedPsf', 'tenderInflationPa'],
   additionalProperties: false,
 } as const;
 
@@ -255,8 +260,13 @@ Definition of the rate you are estimating — it must be directly comparable to 
 - Basis: conversion/refurbishment of an existing building to apartments, not new build.
 - Adjust for the region with a published location factor, and state it.
 ${tenderLines ? `\nThe developer's own recent tender results — real prices from their contractors, the strongest anchor available. Index them forward for build cost inflation and weigh them heavily:\n${tenderLines}\n` : ''}
-Conclude with a low / likely / high all-in £ per sqft for this scheme today, the reasoning, and named dated sources.`,
-    `Extract the build cost conclusion into the schema: all-in contract £ per sqft (low/likely/high), with the location factor and evidence in the rationale.`,
+Then, SEPARATELY, forecast forward TENDER PRICE INFLATION — the annual rate at which a contract like this one is getting more expensive:
+- Research the published BCIS Tender Price Index (and its forecast), plus current cost-consultant forecasts (AECOM, Gardiner & Theobald, RLB, Currie & Brown market updates) for UK construction tender prices over the next 1-3 years.
+- Tender prices, NOT general CPI and NOT house prices: they are driven by labour availability, materials, and contractor workload/margin, and routinely diverge from both.
+- Say clearly whether the market is currently inflating, flat, or softening, and give the figure as an ANNUAL rate.
+
+Conclude with: (a) a low / likely / high all-in £ per sqft for this scheme TODAY, and (b) a low / likely / high annual tender price inflation rate, each with reasoning and named dated sources.`,
+    `Extract both conclusions into the schema. blendedPsf: all-in contract £ per sqft TODAY (low/likely/high), with the location factor and evidence in the rationale. tenderInflationPa: forecast ANNUAL tender price inflation as a DECIMAL (4% -> 0.04; negative if softening), with the index and forecasts used in the rationale.`,
     BUILD_SCHEMA as unknown as Record<string, unknown>,
     onProgress,
   );

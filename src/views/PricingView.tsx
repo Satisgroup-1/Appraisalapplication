@@ -410,7 +410,12 @@ export default function PricingView() {
           />
           <EvidenceDetails
             title={`Build cost evidence & rationale (researched ${new Date(est.build.ranAt).toLocaleDateString('en-GB')}, ${est.build.region})`}
-            entries={[{ label: 'All-in contract £/sqft', value: est.build.blendedPsf }]}
+            entries={[
+              { label: 'All-in contract £/sqft', value: est.build.blendedPsf },
+              ...(est.build.tenderInflationPa
+                ? [{ label: 'Tender-price inflation pa', value: est.build.tenderInflationPa }]
+                : []),
+            ]}
           />
         </div>
       )}
@@ -705,6 +710,101 @@ export default function PricingView() {
           {(fin.hpi.sources ?? []).map((s, i) => (
             <div key={i} className="assumption">
               · {s}
+            </div>
+          ))}
+        </details>
+      )}
+
+      <h3 className="section">Build cost inflation (tender prices)</h3>
+      <p className="note">
+        The build cost above is <strong>today&apos;s</strong> money. When this is on, the main contract (D01) is indexed
+        forward to the months it is actually certified, so a longer programme costs more — and the
+        percentage-of-build lines (contingency, demolition) follow. Kept separate from house price inflation on
+        purpose: tender prices are driven by labour, materials and contractor workload, and routinely move the other
+        way to house prices. Other cost lines stay in today&apos;s money.
+      </p>
+      {fin.hpi.enabled && fin.hpi.annualPct.some((r) => r !== 0) && !fin.buildInflation.enabled && (
+        <div className="warn-box" style={{ marginBottom: 10 }}>
+          House price inflation is indexing sale prices forward while build cost stays frozen at today&apos;s money.
+          Profit is overstated, and a longer programme will wrongly look more profitable. Set a rate below, or turn
+          HPI off.
+        </div>
+      )}
+      <div className="grid c4">
+        <label className="field">
+          Apply tender-price inflation
+          <select
+            value={fin.buildInflation.enabled ? 'yes' : 'no'}
+            onChange={(e) =>
+              patchFinance({ buildInflation: { ...fin.buildInflation, enabled: e.target.value === 'yes' } })
+            }
+          >
+            <option value="no">Off: contract at today&apos;s prices</option>
+            <option value="yes">On: index to certificate month</option>
+          </select>
+        </label>
+        <PctField
+          label="Annual tender-price inflation"
+          value={fin.buildInflation.annualPct}
+          est={est.build?.tenderInflationPa}
+          onChange={(v) => patchFinance({ buildInflation: { ...fin.buildInflation, annualPct: v } })}
+        />
+        <label className="field">
+          Region
+          <input
+            placeholder={project.address || 'e.g. Manchester'}
+            value={fin.buildInflation.region ?? ''}
+            onChange={(e) => patchFinance({ buildInflation: { ...fin.buildInflation, region: e.target.value } })}
+          />
+        </label>
+      </div>
+      {est.build?.tenderInflationPa && (
+        <div className="est-block">
+          <div className="suggest" title={est.build.tenderInflationPa.rationale}>
+            <span>
+              → {(est.build.tenderInflationPa.likely * 100).toFixed(1)}% pa
+              <span className="suggest-range">
+                {' '}
+                ({(est.build.tenderInflationPa.low * 100).toFixed(1)}–
+                {(est.build.tenderInflationPa.high * 100).toFixed(1)}%, {est.build.tenderInflationPa.confidence}
+                confidence) · from the build cost research (BCIS tender price index &amp; consultant forecasts)
+              </span>
+            </span>
+            <button
+              className="btn mini"
+              onClick={() =>
+                patchFinance({
+                  buildInflation: {
+                    ...fin.buildInflation,
+                    enabled: true,
+                    annualPct: est.build!.tenderInflationPa!.likely,
+                    region: est.build!.region,
+                    rationale: est.build!.tenderInflationPa!.rationale,
+                    sources: est.build!.tenderInflationPa!.sources,
+                    projectedAt: est.build!.ranAt,
+                  },
+                })
+              }
+            >
+              Apply
+            </button>
+          </div>
+        </div>
+      )}
+      {fin.buildInflation.rationale && (
+        <details style={{ marginBottom: 12 }}>
+          <summary style={{ fontSize: 11.5, color: 'var(--grey-text)', cursor: 'pointer' }}>
+            Tender-price forecast rationale &amp; sources
+            {fin.buildInflation.projectedAt
+              ? ` (${new Date(fin.buildInflation.projectedAt).toLocaleDateString('en-GB')})`
+              : ''}
+          </summary>
+          <p className="note" style={{ marginTop: 6 }}>
+            {fin.buildInflation.rationale}
+          </p>
+          {(fin.buildInflation.sources ?? []).map((src, i) => (
+            <div key={i} className="assumption">
+              · {src}
             </div>
           ))}
         </details>

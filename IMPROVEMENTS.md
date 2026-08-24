@@ -13,7 +13,7 @@ anything on screen saying so.
 
 ## A. Appraisal model — financial correctness
 
-### A1 — HIGH · HPI inflates revenue but nothing inflates build cost
+### A1 — HIGH · ~~HPI inflates revenue but nothing inflates build cost~~ · **FIXED 2026-08-24**
 `src/core/dcf.ts:613` indexes GDV forward to PC by the HPI projection. No cost line is
 indexed, and there is no build-cost-inflation input anywhere in `FinanceInputs`.
 
@@ -393,7 +393,14 @@ building it is a frozen window with an "Autosaved" label. Set `busy` around gene
    based, so a notched floor is under-packed (units that would overhang are dropped, not
    reshaped) — conservative, and visible in net-to-gross. A polygon-aware packer is a
    separate, larger job.
-3. **A1** — build cost inflation. Structural, changes every HPI-on appraisal.
+3. ~~**A1** — build cost inflation.~~ **Done** — a `buildInflation` block indexes the main
+   contract to its certificate months, independent of HPI as specified; ships disabled so no
+   stored project moves, and `runAppraisal` warns whenever HPI is indexing revenue while cost
+   is frozen. The estimate agent now researches BCIS tender-price inflation alongside the
+   £/sqft. Recorded in AUDIT.md §6.4. **Residual:** only the main contract is indexed —
+   professional fees, utilities and holding costs remain in today's money (stated in the
+   warning, not silent). A build-cost sensitivity axis (B6) is still open and is now the
+   natural companion to this.
 4. **A2, A3** — per-scenario cost attribution and time-based holding costs.
 5. **A4, A6, A8, A9 + E3** — guard rails and the plausibility checks that catch them.
 6. **C2, C3, D3, D4, D8** — robustness; small diffs, removes silent failure.

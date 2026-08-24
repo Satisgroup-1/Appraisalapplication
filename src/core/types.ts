@@ -263,6 +263,30 @@ export interface HpiInputs {
   projectedAt?: string; // ISO date the projection was produced
 }
 
+/**
+ * Forward tender-price inflation applied to the main contract (line D01).
+ *
+ * The build cost the user enters — a fixed D01 or the room-rate table — is
+ * TODAY'S money, exactly as sale £psf are today's values. HPI carries revenue
+ * forward to completion; without this, cost stayed frozen at today's prices and
+ * simply lengthening the programme manufactured profit (AUDIT.md §6.4).
+ *
+ * Deliberately INDEPENDENT of `HpiInputs`: tender prices and house prices are
+ * driven by different things (labour and materials vs. mortgage rates and
+ * supply) and routinely move in opposite directions, so one rate cannot serve
+ * both.
+ */
+export interface BuildInflationInputs {
+  enabled: boolean;
+  /** Annual tender-price inflation as a decimal, compounded monthly from the
+   *  purchase to each certificate's month. */
+  annualPct: number;
+  region?: string;
+  rationale?: string;
+  sources?: string[];
+  projectedAt?: string; // ISO date the projection was produced
+}
+
 /** How stamp duty (dev cost line B04) is derived. */
 export interface SdltInputs {
   /** 'nonResidential': commercial/mixed-use bands (the usual purchase here).
@@ -294,6 +318,8 @@ export interface FinanceInputs {
   /** Interest earned on cash held (retention pot, sale surpluses). */
   depositRatePa: number;
   hpi: HpiInputs;
+  /** Tender-price inflation on the main contract. Set independently of hpi. */
+  buildInflation: BuildInflationInputs;
   waterfall: WaterfallInputs;
   bridge: {
     ltv: number; // E17
@@ -359,9 +385,18 @@ export interface DevCostsComputed {
   purchase: number; // (A)
   groups: Record<DevCostGroup, { lines: { code: string; label: string; amount: number }[]; total: number }>;
   totalPreFinance: number; // '3. Dev Costs' F87
-  buildCost: number; // line D01 amount (for psf metric)
+  /** Line D01 as the model uses it: today's cost x the inflation factor. */
+  buildCost: number;
+  /** The same contract in TODAY'S money, before tender-price inflation. Equal
+   *  to buildCost when inflation is off. */
+  buildCostToday: number;
+  /** S-curve-weighted tender-price index over the construction period: the
+   *  factor between buildCostToday and buildCost. 1 when inflation is off. */
+  buildInflationFactor: number;
   buildCostSource: 'fixed' | 'roomRates';
-  /** Per-room-type build cost breakdown when buildCostSource = 'roomRates'. */
+  /** Per-room-type build cost breakdown when buildCostSource = 'roomRates'.
+   *  Amounts are at TODAY'S rates, so rate x area still reconciles; the
+   *  inflation step is shown separately via buildInflationFactor. */
   buildBreakdown: { label: string; sqm: number; sqft: number; ratePsf: number; amount: number }[] | null;
 }
 
@@ -572,11 +607,16 @@ export interface SalesEstimates {
 }
 
 /** Build cost research output: one blended all-in contract £/sqft that the
- *  room-rate table is scaled to (ratios preserved). */
+ *  room-rate table is scaled to (ratios preserved), plus the forward
+ *  tender-price inflation that carries it to the construction months. */
 export interface BuildEstimates {
   ranAt: string;
   region: string;
   blendedPsf: EstimateValue;
+  /** Forecast annual tender-price inflation (decimal). Absent when the
+   *  research found nothing usable — never defaulted to zero, which the model
+   *  would read as "tender prices are flat" rather than "not known". */
+  tenderInflationPa?: EstimateValue;
 }
 
 /** Finance rate research output, shaped to the deal's LTV/size/asset type. */

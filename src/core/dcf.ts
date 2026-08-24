@@ -7,6 +7,7 @@
 
 import type {
   AppraisalResult,
+  BuildInflationInputs,
   DevCostGroup,
   DevCostsComputed,
   FinanceInputs,
@@ -60,6 +61,47 @@ export function hpiIndexAt(hpi: HpiInputs, month: number): number {
     idx *= Math.pow(1 + rate, 1 / 12);
   }
   return idx;
+}
+
+/**
+ * Tender-price index from the purchase month to month m, compounded monthly
+ * from one annual rate. 1.0 when build inflation is disabled.
+ */
+export function buildIndexAt(bi: BuildInflationInputs, month: number): number {
+  if (!bi?.enabled || month <= 0 || !Number.isFinite(bi.annualPct) || bi.annualPct === 0) return 1;
+  return Math.pow(1 + bi.annualPct, month / 12);
+}
+
+/**
+ * How the main contract is drawn AND priced across the construction period.
+ *
+ * `weights[k-1]` is the share of the (inflated) contract sum certified in month
+ * k of the build; `factor` is the S-curve-weighted tender-price index, i.e. the
+ * ratio between today's contract sum and what it actually costs when spent.
+ *
+ * The two are consistent by construction: weights are the per-month
+ * indexed S-curve slices divided by `factor`, so
+ *   Σ weights = 1                          (no pound of contract goes missing)
+ *   todayCost x factor = inflated total      (D01 and the cashflow agree)
+ * and each month still carries its OWN index, not an averaged one.
+ *
+ * With inflation off the raw S-curve slices are returned untouched — not
+ * divided by a `factor` that is only floating-point-close to 1 — so an existing
+ * appraisal's figures do not move by a rounding step.
+ */
+export function buildCostSchedule(
+  bi: BuildInflationInputs,
+  prog: Pick<Programme, 'preConMonths' | 'conMonths'>,
+): { factor: number; weights: number[] } {
+  const raw: number[] = [];
+  for (let k = 1; k <= prog.conMonths; k++) raw.push(sCurveMonth(k, prog.conMonths));
+  if (!bi?.enabled || !Number.isFinite(bi.annualPct) || bi.annualPct === 0) {
+    return { factor: 1, weights: raw };
+  }
+  const indexed = raw.map((slice, i) => slice * buildIndexAt(bi, prog.preConMonths + i + 1));
+  const factor = indexed.reduce((a, b) => a + b, 0);
+  if (!(factor > 0)) return { factor: 1, weights: raw };
+  return { factor, weights: indexed.map((v) => v / factor) };
 }
 
 /** Match cost lines that get special timing, by code with a label fallback
@@ -136,6 +178,14 @@ export function computeDevCosts(
    * indexed understates selling costs and breaks S1 = grid1's matching row.
    */
   salesGdvFactor = 1,
+  /**
+   * S-curve-weighted tender-price index (from `buildCostSchedule`). The typed
+   * D01 / room-rate table is TODAY'S cost; this carries it to the months the
+   * contract is actually certified. Percentage-of-build lines (contingency,
+   * demolition) follow automatically, which is correct — they scale with the
+   * contract they are a percentage of.
+   */
+  buildInflationFactor = 1,
 ): DevCostsComputed {
   const f = spec.finance;
   const buildLine = spec.devCosts.find((l) => l.code === 'D01');
@@ -143,7 +193,8 @@ export function computeDevCosts(
 
   const useRoomRates = spec.buildCostMode === 'roomRates' && !!roomAreas;
   const roomResult = useRoomRates ? buildCostFromRooms(spec, roomAreas!) : null;
-  const buildCost = roomResult ? roomResult.total : fixedBuildCost;
+  const buildCostToday = roomResult ? roomResult.total : fixedBuildCost;
+  const buildCost = buildCostToday * buildInflationFactor;
 
   const groups: DevCostsComputed['groups'] = {
     legals: { lines: [], total: 0 },
@@ -197,6 +248,8 @@ export function computeDevCosts(
     groups,
     totalPreFinance,
     buildCost,
+    buildCostToday,
+    buildInflationFactor,
     buildCostSource: roomResult ? 'roomRates' : 'fixed',
     buildBreakdown: roomResult ? roomResult.breakdown : null,
   };
@@ -236,6 +289,10 @@ export function computeCashflow(
   dev: DevCostsComputed,
   prog: Programme,
   totals: ScheduleTotals,
+  /** Per-month shares of the contract sum, from `buildCostSchedule`. Each
+   *  carries its own tender-price index, and they sum to 1. Defaults to the
+   *  plain S-curve. */
+  buildWeights?: number[],
 ): CashflowResult {
   const { legalMonths, preConMonths, conMonths, conStartMonth, pcMonth } = prog;
   const g = dev.groups;
@@ -305,7 +362,9 @@ export function computeCashflow(
     if (m <= pcMonth) costs += (architectTotal + qsTotal) / pcMonth; // architect & QS run to PC
     if (m > preConMonths && m <= pcMonth) {
       const k = m - preConMonths;
-      const certified = buildTotal * sCurveMonth(k, conMonths); // (D01) S-curve certificate
+      // (D01) certificate for this month: the S-curve slice, priced at this
+      // month's tender-price index when build inflation is on.
+      const certified = buildTotal * (buildWeights ? (buildWeights[k - 1] ?? 0) : sCurveMonth(k, conMonths));
       retentionWithheld = certified * Math.max(0, ret.pctDuringWorks);
       costs += certified - retentionWithheld;
       costs += contingencyTotal * sCurveMonth(k, conMonths);
@@ -789,8 +848,11 @@ export function runAppraisal(schedule: ScheduleRow[], spec: PricingSpec, roomAre
   const prog = programmeOf(f, totals);
   // Sales costs are priced on the revenue the scenarios actually sell at.
   const salesGdvFactor = hpiIndexAt(f.hpi, prog.pcMonth) * (1 + f.sales.priceAdjust);
-  const dev = computeDevCosts(spec, totals, roomAreas, salesGdvFactor);
-  const { rows, finance } = computeCashflow(f, dev, prog, totals);
+  // Build cost is priced on the months the contract is certified, so the same
+  // schedule sizes line D01 and spreads it across the cashflow.
+  const buildSchedule = buildCostSchedule(f.buildInflation, prog);
+  const dev = computeDevCosts(spec, totals, roomAreas, salesGdvFactor, buildSchedule.factor);
+  const { rows, finance } = computeCashflow(f, dev, prog, totals, buildSchedule.weights);
   const scenarios = computeScenarios(f, totals, dev, finance, prog, rows);
   const sensitivity = computeSensitivity(f, totals, dev, finance, scenarios);
 
@@ -817,6 +879,23 @@ export function runAppraisal(schedule: ScheduleRow[], spec: PricingSpec, roomAre
   }
   if (f.hpi.enabled && !f.hpi.annualPct.some((r) => r !== 0)) {
     warnings.push('House price inflation is enabled but every annual rate is zero.');
+  }
+  // The asymmetry that manufactured profit: revenue indexed forward while the
+  // contract stayed at today's prices, so a LONGER programme looked better.
+  // Never silent — this is the single most misleading state the model can be in.
+  if (f.hpi.enabled && f.hpi.annualPct.some((r) => r !== 0) && !f.buildInflation.enabled) {
+    warnings.push(
+      'House price inflation is indexing sale prices forward but tender-price inflation is OFF, so the build cost is frozen at today’s money. Profit is overstated and a longer programme will wrongly look more profitable. Set a build inflation rate, or turn HPI off.',
+    );
+  }
+  if (f.buildInflation.enabled && f.buildInflation.annualPct === 0) {
+    warnings.push('Tender-price inflation is enabled but the rate is zero, so build cost stays at today’s money.');
+  }
+  if (f.buildInflation.enabled && f.buildInflation.annualPct !== 0) {
+    const factor = buildCostSchedule(f.buildInflation, prog).factor;
+    warnings.push(
+      `Build cost indexed for tender-price inflation at ${(f.buildInflation.annualPct * 100).toFixed(1)}% pa: the contract is priced at ${((factor - 1) * 100).toFixed(1)}% above today’s money (S-curve-weighted over months ${prog.conStartMonth}-${prog.pcMonth}). Other cost lines remain in today’s money.`,
+    );
   }
   if (prog.pcMonth > MONTHS) {
     warnings.push(

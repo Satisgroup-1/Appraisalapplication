@@ -416,10 +416,44 @@ function CostsTab({ result }: { result: AppraisalResult }) {
                   <td className="num">{fmtGBP(b.amount)}</td>
                 </tr>
               ))}
-              <tr className="total">
-                <td colSpan={4}>BUILD COST (main contract)</td>
-                <td className="num">{fmtGBP(d.buildCost)}</td>
+              <tr className={d.buildInflationFactor === 1 ? 'total' : ''}>
+                <td colSpan={4}>
+                  {d.buildInflationFactor === 1 ? 'BUILD COST (main contract)' : 'Sub-total at today’s £/sqft rates'}
+                </td>
+                <td className="num">{fmtGBP(d.buildCostToday)}</td>
               </tr>
+              {d.buildInflationFactor !== 1 && (
+                <>
+                  <tr>
+                    <td colSpan={4}>
+                      Tender-price inflation to certificate months (×{d.buildInflationFactor.toFixed(4)})
+                    </td>
+                    <td className="num">{fmtGBP(d.buildCost - d.buildCostToday)}</td>
+                  </tr>
+                  <tr className="total">
+                    <td colSpan={4}>BUILD COST (main contract, indexed)</td>
+                    <td className="num">{fmtGBP(d.buildCost)}</td>
+                  </tr>
+                </>
+              )}
+            </tbody>
+          </table>
+        </>
+      )}
+
+      {/* In 'fixed' build-cost mode there is no breakdown table, so the
+          inflation step would otherwise appear nowhere on this tab. */}
+      {!bb && d.buildInflationFactor !== 1 && (
+        <>
+          <h3 className="section">Build cost (D01) indexed for tender-price inflation</h3>
+          <table className="data" style={{ maxWidth: 700 }}>
+            <tbody>
+              <Row k="Contract sum at today’s prices" v={fmtGBP(d.buildCostToday)} />
+              <Row
+                k={`Tender-price inflation to certificate months (×${d.buildInflationFactor.toFixed(4)})`}
+                v={fmtGBP(d.buildCost - d.buildCostToday)}
+              />
+              <Row k="BUILD COST (main contract, indexed)" v={fmtGBP(d.buildCost)} total />
             </tbody>
           </table>
         </>

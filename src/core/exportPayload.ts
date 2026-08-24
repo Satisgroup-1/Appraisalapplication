@@ -30,8 +30,14 @@ export function buildExportInputs(args: {
     address,
     ...spec.finance,
     devCostLines: spec.devCosts.map((l) => ({ code: l.code, kind: l.kind, value: l.value, label: l.label })),
-    // Only room-rate mode overrides D01; fixed mode lets the typed line stand.
-    buildCostOverride: result?.devCosts.buildCostSource === 'roomRates' ? result.devCosts.buildCost : null,
+    // ALWAYS the contract sum the engine actually used, whatever made it differ
+    // from the typed D01 — room-rate costing, tender-price inflation, or both.
+    // Gating this on the room-rate mode alone left `fixed` mode with inflation
+    // on writing the typed figure while the model used the indexed one (a
+    // £72,788 gap on the demo at 4% pa) — the same export/screen divergence as
+    // finding 9. In fixed mode with inflation off the two are equal, so
+    // writing it unconditionally is a no-op there.
+    buildCostOverride: result ? result.devCosts.buildCost : null,
   };
 }
 
@@ -71,6 +77,9 @@ export function buildModelV2(spec: PricingSpec, result: AppraisalResult): ModelV
       fin.hpi.enabled
         ? `HPI applied: years 1-5 at ${fin.hpi.annualPct.map((r) => pct(r)).join(', ')}${fin.hpi.region ? ` (${fin.hpi.region})` : ''}`
         : 'HPI off: sale prices as entered',
+      fin.buildInflation.enabled
+        ? `Tender-price inflation ${pct(fin.buildInflation.annualPct)} pa on the main contract: priced at ${pct(result.devCosts.buildInflationFactor - 1)} above today's money (other cost lines in today's money)`
+        : 'Tender-price inflation off: build cost at today’s money',
       fin.waterfall.mode === 'waterfall'
         ? `Waterfall: ${pct(fin.waterfall.prefRatePa)} pref (monthly compounding), then ${pct(fin.waterfall.residualInvestorPct, 0)} investor`
         : `Simple profit split: ${pct(fin.equity.investorShare, 0)} investor`,
@@ -79,6 +88,8 @@ export function buildModelV2(spec: PricingSpec, result: AppraisalResult): ModelV
     summary: [
       ['GDV (today)', Math.round(result.totals.gdv)],
       ['GDV indexed to PC', Math.round(result.scenarios.s1.gdvAdjusted)],
+      ['Build cost (today)', Math.round(result.devCosts.buildCostToday)],
+      ['Build cost (indexed to certificate months)', Math.round(result.devCosts.buildCost)],
       ['Total costs pre-finance', Math.round(result.devCosts.totalPreFinance)],
       ['Total finance costs', Math.round(result.finance.totalFinanceCosts)],
       ['Deposit interest on retention pot', Math.round(result.finance.depositInterestRetention)],

@@ -234,6 +234,26 @@ Coverage: `tests/geom.test.ts` (7 tests) checks the clipping against hand calcul
 
 Still open, and deliberately not addressed here: the packer itself remains bounding-box based, so a notched floor is under-packed rather than optimally laid out (IMPROVEMENTS.md C1 notes this as the residual). A polygon-aware packer is a much larger change; measuring honestly came first.
 
+### 6.4 Tender-price inflation on the main contract (2026-08-24)
+
+| # | Severity | Defect | Fix |
+|---|---|---|---|
+| 12 | HIGH | HPI indexed **revenue** forward to completion while the build cost stayed frozen at today's money. On the demo at 5% pa HPI over a 15-month programme, GDV rose £6,248,229 → £6,641,154 and the contract stayed at £2,305,099: **+£386,876 of profit created purely by the passage of time**. The model therefore rewarded a *longer* programme, inverting the real risk, and turning HPI on — which the sales research run does automatically, since it fills the HPI array — was not the conservative act it appeared to be. | A `buildInflation` block on `FinanceInputs` (enabled flag + one annual rate, independent of HPI because tender prices and house prices diverge). The typed D01 / room-rate table is treated as **today's** money and indexed to the months the contract is actually certified; percentage-of-build lines (contingency, demolition) follow automatically. `buildCostSchedule` returns both the S-curve-weighted index and the per-month certificate weights, so each certificate carries its OWN index while `Σ weights = 1` and `todayCost × factor = D01` hold exactly — every conservation identity survives. |
+
+Design notes worth keeping:
+
+- **Independent of HPI, on purpose.** Tender prices are driven by labour, materials and contractor workload; house prices by mortgage rates and supply. They routinely move in opposite directions, so one rate cannot serve both.
+- **The uplift tracks the S-curve's centre, not the end date.** Twelve extra months of programme moves the midpoint by six, so a 24-month build at 4% pa carries 5.2% rather than ~8%. Pinned in the tests to stop anyone "correcting" it.
+- **Ships DISABLED**, with a usable 4% rate loaded, so no stored project's profit moves on load — and `normalizePricing` gates on the flag being present, not on the block, so a truthy-but-empty `buildInflation: {}` cannot inherit the default and silently flip the model (the trap §6.1 finding 8 found in the SDLT block).
+- **The asymmetry is never silent again.** `runAppraisal` warns whenever HPI is indexing revenue while tender inflation is off, saying explicitly that a longer programme will wrongly look more profitable; the Pricing page shows the same warning inline. When inflation IS on, the applied factor is reported.
+- **Other cost lines stay in today's money** — professional fees, utilities, holding costs. Stated in the warning and in the Pricing note rather than left to be discovered.
+- **Researched, not guessed.** The build-cost estimate agent now also forecasts annual tender-price inflation from the BCIS Tender Price Index and cost-consultant forecasts, sanitised into a -15%..+30% band. A missing forecast stays **absent** rather than becoming 0%, which the model would read as "tender prices are flat" instead of "not known".
+- Costs tab shows today's sub-total, the inflation step and the indexed contract as three lines, in both build-cost modes, so the room-rate breakdown still reconciles to `rate × area`.
+
+One defect was introduced and caught during this change, of exactly the class §6.2 finding 9 fixed: `buildCostOverride` gated the exported D01 on room-rate mode, so `fixed` mode with inflation on wrote the **typed** figure into the workbook while the model used the indexed one — £72,788 apart on the demo at 4% pa. It now always exports the contract sum the engine used, whatever made it differ from the typed line, and `tests/export.test.ts` asserts that across both build modes with inflation on and off.
+
+Coverage: `tests/buildinflation.test.ts` (25 tests) — the index and weights from first principles, the factor equal to a hand-summed indexed S-curve, conservation through the cashflow, deflation, both build-cost modes, the legacy-file and empty-block migrations, sanitiser clamping, the asymmetry warning firing and *not* crying wolf on an all-zero HPI array, and two seeded-corruption cases proving the auditor catches a wrong factor — which matters because a wrong factor is conservation-consistent, so nothing else in the audit would notice. Six of these were confirmed to fail against the frozen-cost engine. The audit grew from 44 to 48 checks.
+
 ## 7. Re-running the audit
 
 ```bash

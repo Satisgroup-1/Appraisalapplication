@@ -94,6 +94,12 @@ export const DEFAULT_FINANCE: FinanceInputs = {
   retention: { pctDuringWorks: 0.03, pctAfterPc: 0.015, releaseMonthsAfterPc: 12 },
   depositRatePa: 0.035,
   hpi: { enabled: false, annualPct: [0.03, 0.03, 0.03, 0.03, 0.03] },
+  // Tender-price inflation on the main contract. Ships DISABLED so that
+  // existing projects and the workbook golden tests are untouched, but with a
+  // usable rate loaded — turning it on is one click, and runAppraisal warns
+  // whenever HPI is indexing revenue while this is left off, which was the
+  // asymmetry that manufactured profit from a longer programme.
+  buildInflation: { enabled: false, annualPct: 0.04 },
   // Current deals are a straight 50/50 with no pref; the waterfall option is
   // ready for deals with a preferred return.
   waterfall: { mode: 'simple', prefRatePa: 0.08, residualInvestorPct: 0.5 },
@@ -169,6 +175,16 @@ export function normalizePricing(p: Partial<PricingSpec>): PricingSpec {
       sdlt: fin.sdlt?.regime ? { ...base.finance.sdlt, ...fin.sdlt } : { regime: 'manual' },
       retention: { ...base.finance.retention, ...(fin.retention ?? {}) },
       hpi: { ...base.finance.hpi, ...(fin.hpi ?? {}) },
+      // Files saved before build inflation existed priced the contract in
+      // today's money, so they must load with it OFF — enabling it silently
+      // would change a stored appraisal's profit. Gate on the flag being
+      // present, not on the block, so a truthy-but-empty `buildInflation: {}`
+      // cannot inherit the default and flip the model (the same trap
+      // AUDIT.md §6.1 finding 8 found in the SDLT block).
+      buildInflation:
+        typeof fin.buildInflation?.enabled === 'boolean'
+          ? { ...base.finance.buildInflation, ...fin.buildInflation }
+          : { ...base.finance.buildInflation, ...(fin.buildInflation ?? {}), enabled: false },
       waterfall: { ...base.finance.waterfall, ...(fin.waterfall ?? {}) },
       bridge: { ...base.finance.bridge, ...(fin.bridge ?? {}) },
       devLoan: { ...base.finance.devLoan, ...(fin.devLoan ?? {}) },

@@ -116,6 +116,30 @@ describe('export payload uses the sanitized spec (D1)', () => {
     expect(sanitizeSpec(raw).spec.finance.bridge.ratePa).toBe(0.5);
   });
 
+  it('the workbook carries the contract sum the engine used, in every build mode', async () => {
+    // Gating the D01 override on room-rate mode left `fixed` mode with
+    // tender-price inflation on writing the typed figure while the model used
+    // the indexed one — the same divergence as this section's main defect.
+    for (const mode of ['fixed', 'roomRates'] as const) {
+      for (const inflation of [false, true]) {
+        const raw = clonePricing(DEFAULT_PRICING);
+        raw.buildCostMode = mode;
+        raw.finance.buildInflation = { enabled: inflation, annualPct: 0.04 };
+        const { spec } = sanitizeSpec(raw);
+        const result = runAppraisal(DEMO_SCHEDULE, spec);
+        const inputs = buildExportInputs({ address: 'Test', spec, result });
+        expect(inputs.buildCostOverride, `${mode}/${inflation}`).toBeCloseTo(result.devCosts.buildCost, 6);
+
+        const out = tmpOut(`d01-${mode}-${inflation}.xlsx`);
+        await exportWorkbook(TEMPLATE, out, DEMO_SCHEDULE, inputs, null);
+        const dc = (await readBack(out)).getWorksheet('3. Dev Costs')!;
+        // '3. Dev Costs'!F37 is D01. Rounded on write, so compare to the pound.
+        expect(Number(dc.getCell('F37').value), `${mode}/${inflation}`).toBe(Math.round(result.devCosts.buildCost));
+        if (inflation) expect(Number(dc.getCell('F37').value)).toBeGreaterThan(result.devCosts.buildCostToday);
+      }
+    }
+  });
+
   it('a clean spec is written through unchanged', async () => {
     const { spec, repairs } = sanitizeSpec(clonePricing(DEFAULT_PRICING));
     expect(repairs).toEqual([]);

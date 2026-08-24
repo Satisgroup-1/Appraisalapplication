@@ -19,7 +19,7 @@ import type {
   ScheduleRow,
   WaterfallResult,
 } from './types';
-import { hpiIndexAt, MONTHS, sdltLineCodeOf } from './dcf';
+import { buildCostSchedule, hpiIndexAt, MONTHS, sdltLineCodeOf } from './dcf';
 import { DEFAULT_PRICING } from './pricing';
 import { SQM_TO_SQFT } from './rules';
 import { sdltForFinance } from './sdlt';
@@ -156,6 +156,27 @@ export function sanitizeSpec(spec: PricingSpec): { spec: PricingSpec; repairs: A
     cleaned.push(cleaned[cleaned.length - 1] ?? 0);
   }
   f.hpi.annualPct = cleaned;
+
+  // Tender-price inflation: one annual rate, in a band credible for tender
+  // prices (deflation happens; +30% pa does not).
+  if (!f.buildInflation || typeof f.buildInflation.enabled !== 'boolean') {
+    repairs.push({
+      field: 'build inflation',
+      from: String(f.buildInflation?.enabled),
+      to: 'off',
+      reason: 'missing or malformed; build cost kept at today’s money',
+    });
+    f.buildInflation = { ...d.buildInflation, enabled: false };
+  }
+  f.buildInflation.annualPct = fix(
+    repairs,
+    'build inflation rate',
+    f.buildInflation.annualPct,
+    d.buildInflation.annualPct,
+    -0.15,
+    0.3,
+    'must be -15%..+30% pa',
+  );
 
   f.waterfall.prefRatePa = fix(repairs, 'preferred return', f.waterfall.prefRatePa, d.waterfall.prefRatePa, 0, 0.5, 'must be 0-50% pa');
   f.waterfall.residualInvestorPct = fix(repairs, 'investor share above pref', f.waterfall.residualInvestorPct, d.waterfall.residualInvestorPct, 0, 1, 'must be 0-100%');
@@ -297,6 +318,34 @@ export function auditAppraisal(r: AppraisalResult, spec: PricingSpec, schedule: 
     }
   }
   ok('costs-lines', 'Every cost line recomputes from its driver (incl. sales fees on levered GDV)', linesOk, lineDetail);
+  // Build inflation, re-derived independently: the factor from the rate and the
+  // programme, and the line from today's cost x that factor. A wrong factor
+  // would otherwise be invisible, since every %-of-build line agrees with it.
+  const expectSchedule = buildCostSchedule(f.buildInflation, r.programme);
+  ok(
+    'costs-buildinflation',
+    'Build inflation factor = S-curve-weighted tender index over the construction period',
+    closeRel(r.devCosts.buildInflationFactor, expectSchedule.factor, 1e-9),
+    `${r.devCosts.buildInflationFactor} vs ${expectSchedule.factor}`,
+  );
+  ok(
+    'costs-buildtoday',
+    'Build cost = today’s cost × the inflation factor',
+    closeAbs(buildCost, r.devCosts.buildCostToday * r.devCosts.buildInflationFactor, 0.02),
+    `${gbp(buildCost)} vs ${gbp(r.devCosts.buildCostToday * r.devCosts.buildInflationFactor)}`,
+  );
+  ok(
+    'costs-buildinflation-off',
+    'Inflation disabled leaves the contract at today’s money',
+    f.buildInflation.enabled || closeAbs(buildCost, r.devCosts.buildCostToday, 0.02),
+    `${gbp(buildCost)} vs ${gbp(r.devCosts.buildCostToday)}`,
+  );
+  ok(
+    'costs-buildweights',
+    'Monthly contract certificates share out the whole contract sum (Σ weights = 1)',
+    closeRel(expectSchedule.weights.reduce((a, b) => a + b, 0), 1, 1e-9),
+    `Σ = ${expectSchedule.weights.reduce((a, b) => a + b, 0)}`,
+  );
   for (const g of Object.keys(r.devCosts.groups) as DevCostGroup[]) {
     const grp = r.devCosts.groups[g];
     const sum = grp.lines.reduce((s, l) => s + l.amount, 0);
