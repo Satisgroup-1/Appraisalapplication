@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 const sections = [
   { id: 'context', label: 'Operating reality' },
   { id: 'opportunities', label: 'Where the value is' },
-  { id: 'questions', label: 'Questions for the board' },
+  { id: 'decisions', label: 'Decisions to take' },
   { id: 'controls', label: 'Controls' },
   { id: 'roadmap', label: 'Sequence' },
   { id: 'services', label: 'Relevant services' },
@@ -102,14 +102,14 @@ export default async function IndustryDetail({ params }: { params: Promise<{ slu
             </div>
           </section>
 
-          <section id="questions" className={styles.section}>
+          <section id="decisions" className={styles.section}>
             <span className={styles.sectionNum}>03</span>
-            <h2>{industry.questionsTitle}</h2>
-            <ol className={styles.questions}>
-              {industry.questions.map((question, questionIndex) => (
-                <li key={question}>
-                  <span>{String(questionIndex + 1).padStart(2, '0')}</span>
-                  <p>{question}</p>
+            <h2>{industry.decisionsTitle}</h2>
+            <ol className={styles.decisions}>
+              {industry.decisions.map((decision, decisionIndex) => (
+                <li key={decision}>
+                  <span>{String(decisionIndex + 1).padStart(2, '0')}</span>
+                  <p>{decision}</p>
                 </li>
               ))}
             </ol>

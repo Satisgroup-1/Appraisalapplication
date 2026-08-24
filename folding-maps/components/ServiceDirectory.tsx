@@ -6,14 +6,14 @@ import { ArrowRight } from 'lucide-react';
 import type { Service } from '@/lib/services';
 import styles from './ServiceDirectory.module.css';
 
-const groups = ['All', 'Advise', 'Build', 'Enable'] as const;
+const groups = ['All', 'Advise', 'Build', 'Embed'] as const;
 type Group = (typeof groups)[number];
 
 const groupNotes: Record<Group, string> = {
-  All: 'Ten services. Most engagements draw on two or three of them rather than one.',
+  All: 'Ten services. Most engagements draw on two or three of them, not one.',
   Advise: 'Work that ends in a decision and the evidence behind it. No build is committed to at this stage.',
   Build: 'Work that ends in something running in your business, with its tests, documentation and owner.',
-  Enable: 'Work that ends with your people able to operate and extend what exists without us.',
+  Embed: 'Work that ends with the system inside how your team already works, and your people able to run and extend it without us.',
 };
 
 /**
@@ -33,25 +33,34 @@ export function ServiceDirectory({ services }: { services: Service[] }) {
   return (
     <div>
       <div className={styles.controls}>
-        <div className={styles.filters} role="group" aria-label="Filter services by kind of work">
+        <span className={styles.controlLabel} id="service-filter-label">
+          Filter by kind of work
+        </span>
+
+        {/* A segmented control rather than loose chips: the four options are one
+            object, exactly one is selected, and the selected one is filled. */}
+        <div className={styles.segmented} role="group" aria-labelledby="service-filter-label">
           {groups.map((option) => {
             const count =
               option === 'All'
                 ? services.length
                 : services.filter((service) => service.group === option).length;
+            const selected = group === option;
             return (
               <button
                 key={option}
                 type="button"
-                className={`${styles.filter} ${group === option ? styles.filterActive : ''}`}
-                aria-pressed={group === option}
+                className={`${styles.segment} ${selected ? styles.segmentActive : ''}`}
+                aria-pressed={selected}
                 onClick={() => setGroup(option)}
               >
-                {option} <span>{count}</span>
+                {option}
+                <span className={styles.count}>{count}</span>
               </button>
             );
           })}
         </div>
+
         <p className={styles.note}>{groupNotes[group]}</p>
       </div>
 

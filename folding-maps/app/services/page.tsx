@@ -46,9 +46,10 @@ export default function ServicesPage() {
         <span className="kicker">Services</span>
         <h1>Ten services, three kinds of work.</h1>
         <p className="lede">
-          We advise, we build, and we hand over. The categories matter because they carry
-          different risks: advice can be wrong on paper, a build can be wrong in production,
-          and an adoption programme can be wrong for a year before anybody notices.
+          We advise, we build, and we embed what we build in how a team already works. The
+          three carry different risks, which is why we separate them: advice can be wrong on
+          paper, a build can be wrong in production, and an adoption programme can be wrong
+          for a year before anybody notices.
         </p>
       </section>
 

@@ -6,7 +6,7 @@ const fail = (message: string): never => {
 
 if (industries.length !== 26) fail(`Expected 26 industries, received ${industries.length}`);
 
-const uniqueFields = ['slug', 'headline', 'thesis', 'contextTitle', 'opportunitiesTitle', 'questionsTitle', 'controlTitle', 'roadmapTitle'] as const;
+const uniqueFields = ['slug', 'headline', 'thesis', 'contextTitle', 'opportunitiesTitle', 'decisionsTitle', 'controlTitle', 'roadmapTitle'] as const;
 for (const field of uniqueFields) {
   const values = industries.map((industry) => industry[field]);
   if (new Set(values).size !== values.length) fail(`Duplicate ${field} detected`);
@@ -19,7 +19,7 @@ const audits = industries.map((industry) => {
   if (words < 300) fail(`${industry.slug} is too thin at ${words} words`);
   if (published.includes(emDash)) fail(`${industry.slug} contains an em dash`);
   if (published.toLowerCase().includes('<table')) fail(`${industry.slug} contains table markup`);
-  if (industry.opportunities.length !== 3 || industry.questions.length !== 3 || industry.controls.length !== 2 || industry.roadmap.length !== 3) {
+  if (industry.opportunities.length !== 3 || industry.decisions.length !== 3 || industry.controls.length !== 2 || industry.roadmap.length !== 3) {
     fail(`${industry.slug} is missing a required editorial module`);
   }
   return { slug: industry.slug, words, motif: industry.motif };

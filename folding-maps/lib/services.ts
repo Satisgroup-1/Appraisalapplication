@@ -8,7 +8,7 @@ export type ServiceUseCase = {
 export type Service = {
   slug: string;
   number: string;
-  group: 'Advise' | 'Build' | 'Enable';
+  group: 'Advise' | 'Build' | 'Embed';
   title: string;
   shortTitle: string;
   promise: string;
@@ -189,7 +189,7 @@ const serviceCatalogue: Service[] = [
     safeguards: ['Managed identity and least privilege', 'Approved data-use and retention policy', 'Representative task evaluation', 'Human confirmation for external actions'],
   },
   {
-    slug: 'enterprise-ai', number: '10', group: 'Enable', title: 'AI Adoption & Operating Model', shortTitle: 'AI adoption',
+    slug: 'enterprise-ai', number: '10', group: 'Embed', title: 'AI Adoption & Operating Model', shortTitle: 'AI adoption',
     promise: 'A scale-appropriate way to adopt AI across people, workflows and control functions.',
     summary: 'We embed AI into how a growing team already works, without importing unnecessary complexity or moving ownership away from the people doing the job.',
     explanation: 'The operating model should fit the organisation. A growing business may need one accountable owner and a focused release rhythm, while a larger organisation needs shared platforms, reusable controls and federated business ownership. Both require role change, adoption evidence and measured value.',
@@ -208,7 +208,7 @@ const serviceCatalogue: Service[] = [
     safeguards: ['Named outcome owners', 'Controls proportionate to organisation size', 'Value measured in target workflows', 'Portfolio-level incident management'],
   },
   {
-    slug: 'chatgpt-training-for-teams', number: '11', group: 'Enable', title: 'AI Training for Teams', shortTitle: 'AI training',
+    slug: 'chatgpt-training-for-teams', number: '11', group: 'Embed', title: 'AI Training for Teams', shortTitle: 'AI training',
     promise: 'Role-specific training that changes how real work is performed safely.',
     summary: 'We train leaders, general users, champions and technical teams using approved tools and representative organisational tasks.',
     explanation: 'Effective training combines conceptual understanding, task decomposition, context design, verification and policy. Participants practise on realistic work, compare weak and strong methods, and leave with repeatable workflows rather than prompt tricks.',

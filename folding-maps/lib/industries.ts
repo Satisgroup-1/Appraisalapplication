@@ -19,8 +19,8 @@ export type Industry = {
   signalTitle: string;
   signalCopy: string;
   signalLabels: [string, string, string, string];
-  questionsTitle: string;
-  questions: [string, string, string];
+  decisionsTitle: string;
+  decisions: [string, string, string];
   controlTitle: string;
   controls: [{ title: string; copy: string }, { title: string; copy: string }];
   roadmapTitle: string;
@@ -53,8 +53,8 @@ export const industries: Industry[] = [
     signalTitle: 'A programme signal, not another dashboard',
     signalCopy: 'The useful view connects configuration, evidence, schedule and ownership. A weak signal in any one layer should remain visible instead of being averaged away.',
     signalLabels: ['Requirements', 'Configuration', 'Evidence', 'Ownership'],
-    questionsTitle: 'Leadership questions for a controlled release',
-    questions: ['Which recurring decision consumes scarce engineering judgement without changing its underlying rules?', 'Can every proposed answer point to the approved requirement, record and configuration state?', 'Where must security, export control or customer restrictions prevent model access altogether?'],
+    decisionsTitle: 'What leadership settles before a controlled release',
+    decisions: ['The recurring decision that consumes scarce engineering judgement without changing its underlying rules is the one worth automating first.', 'Every proposed answer has to point back to the approved requirement, record and configuration state.', 'Security, export control and customer restrictions define where model access must be prevented altogether.'],
     controlTitle: 'Design assurance into the workflow',
     controls: [
       { title: 'Evidence before confidence', copy: 'Retrieved sources, document revisions and configuration identifiers sit beside each generated summary. Missing evidence produces an exception, not a plausible completion.' },
@@ -92,8 +92,8 @@ export const industries: Industry[] = [
     signalTitle: 'Every recommendation needs field context',
     signalCopy: 'A strong agricultural signal combines observation, timing, local condition and commercial consequence. The system should say when any of those elements is weak.',
     signalLabels: ['Observation', 'Weather', 'Timing', 'Margin'],
-    questionsTitle: 'Questions worth settling before a pilot',
-    questions: ['Which decision repeats often enough to learn from but still has a clear human owner?', 'How will the service behave when a sensor fails, a note is missing or connectivity drops?', 'What local knowledge must be captured so the recommendation is more than a generic agronomy answer?'],
+    decisionsTitle: 'What to settle before a pilot',
+    decisions: ['The decision worth automating repeats often enough to learn from and still has a clear human owner.', 'The service needs a defined behaviour for a failed sensor, a missing note and dropped connectivity.', 'Local knowledge has to be captured, or the recommendation will be no better than a generic agronomy answer.'],
     controlTitle: 'Keep agronomy and stewardship visible',
     controls: [
       { title: 'Uncertainty is an output', copy: 'Recommendations carry data freshness, coverage and confidence cues, with a clear route to inspect the underlying observation.' },
@@ -131,8 +131,8 @@ export const industries: Industry[] = [
     signalTitle: 'See the line as a connected system',
     signalCopy: 'Quality, equipment, material and takt conditions should converge around the same production event, giving the shift team one version of the exception.',
     signalLabels: ['Quality', 'Equipment', 'Material', 'Sequence'],
-    questionsTitle: 'Management choices before connecting the line',
-    questions: ['Which exception creates the most repeated coordination across production, quality and engineering?', 'Can the proposed service use current system events without creating a parallel source of truth?', 'What evidence must be captured during resolution so the next shift inherits learning rather than folklore?'],
+    decisionsTitle: 'Management choices before connecting the line',
+    decisions: ['The exception creating the most repeated coordination across production, quality and engineering is the place to start.', 'The service should run on current system events and must not create a parallel source of truth.', 'Evidence captured during resolution is what lets the next shift inherit learning instead of folklore.'],
     controlTitle: 'Respect standard work and stop authority',
     controls: [
       { title: 'Recommendations do not release product', copy: 'AI may prepare a containment or investigation view, while authorised staff retain disposition and line-release decisions.' },
@@ -170,8 +170,8 @@ export const industries: Industry[] = [
     signalTitle: 'A formulation is a network of dependencies',
     signalCopy: 'Raw material, process condition, test evidence and application context must remain connected. Changing one node should reveal the affected claims and controls.',
     signalLabels: ['Material', 'Process', 'Test', 'Application'],
-    questionsTitle: 'Frame the technical boundary first',
-    questions: ['Which knowledge-search task repeatedly interrupts the most experienced technical staff?', 'What proprietary, hazardous or regulated information must stay inside a controlled environment?', 'How will a user distinguish retrieved evidence from generated interpretation at a glance?'],
+    decisionsTitle: 'Frame the technical boundary first',
+    decisions: ['The knowledge-search task that repeatedly interrupts the most experienced technical staff is the one to remove.', 'Proprietary, hazardous and regulated information has to stay inside a controlled environment.', 'A user must be able to tell retrieved evidence from generated interpretation at a glance.'],
     controlTitle: 'Put the quality system around AI',
     controls: [
       { title: 'Approved sources only', copy: 'The service retrieves from controlled technical records and shows revision, status and provenance beside every result.' },
@@ -209,8 +209,8 @@ export const industries: Industry[] = [
     signalTitle: 'Read the consumer moment in context',
     signalCopy: 'Demand, availability, activation and margin form one commercial signal. The view becomes misleading when any one is treated as the whole story.',
     signalLabels: ['Demand', 'Availability', 'Activation', 'Margin'],
-    questionsTitle: 'Commercial questions before automation',
-    questions: ['Which weekly decision would improve if the same evidence arrived one day earlier?', 'Where do retailer, ecommerce and internal product identifiers fail to describe the same item?', 'What brand and margin guardrails should prevent apparently efficient but strategically poor recommendations?'],
+    decisionsTitle: 'Commercial ground to settle before automation',
+    decisions: ['The weekly decision that would improve if the same evidence arrived a day earlier is the one to target.', 'Retailer, ecommerce and internal product identifiers have to describe the same item before anything is automated.', 'Brand and margin guardrails need setting, so an apparently efficient recommendation cannot be a strategically poor one.'],
     controlTitle: 'Protect trust and commercial intent',
     controls: [
       { title: 'Claims remain governed', copy: 'Generated product and campaign material uses approved claim libraries, market restrictions and named sign-off.' },
@@ -248,8 +248,8 @@ export const industries: Industry[] = [
     signalTitle: 'A learner signal must invite inquiry',
     signalCopy: 'Engagement, progress, context and support history can direct attention. They cannot determine potential or replace a conversation.',
     signalLabels: ['Engagement', 'Progress', 'Context', 'Support'],
-    questionsTitle: 'Govern the educational purpose',
-    questions: ['Does the use case create more time for teaching, support or informed dialogue?', 'Could a learner be disadvantaged because the underlying record is incomplete or historically biased?', 'Can educators and learners understand, correct and challenge the information used?'],
+    decisionsTitle: 'Govern the educational purpose',
+    decisions: ['The use case has to create more time for teaching, support or informed dialogue.', 'Any learner who could be disadvantaged by an incomplete or historically biased record must be identified first.', 'Educators and learners need to be able to understand, correct and challenge the information used.'],
     controlTitle: 'Safeguarding comes before convenience',
     controls: [
       { title: 'No automated high-stakes judgement', copy: 'Admissions, grading, safeguarding and disciplinary decisions keep accountable professional review and documented reasoning.' },
@@ -287,8 +287,8 @@ export const industries: Industry[] = [
     signalTitle: 'Separate system health from data health',
     signalCopy: 'Asset state, connectivity, consequence and field confirmation form different evidence layers. The service should never confuse a silent sensor with a healthy network.',
     signalLabels: ['Asset', 'Telemetry', 'Consequence', 'Response'],
-    questionsTitle: 'Set the operational boundary',
-    questions: ['Which decision can be improved with better preparation while leaving control authority unchanged?', 'How will stale, missing or contradictory telemetry appear to the operator?', 'What resilience and fallback does the workflow need when the AI service is unavailable?'],
+    decisionsTitle: 'Set the operational boundary',
+    decisions: ['The decision to improve is one that better preparation helps while control authority stays unchanged.', 'Stale, missing and contradictory telemetry must be visible to the operator as such.', 'The workflow needs a rehearsed fallback for the period when the AI service is unavailable.'],
     controlTitle: 'Reliability requires graceful failure',
     controls: [
       { title: 'Advisory by architecture', copy: 'The AI layer remains separate from safety and control systems, with explicit interfaces and no hidden actuation path.' },
@@ -326,8 +326,8 @@ export const industries: Industry[] = [
     signalTitle: 'One value chain, four decision lenses',
     signalCopy: 'Volume, conversion, continuity and footprint should remain visible together so optimisation in one area does not quietly move cost elsewhere.',
     signalLabels: ['Volume', 'Conversion', 'Continuity', 'Footprint'],
-    questionsTitle: 'Choose the value lens deliberately',
-    questions: ['Which cross-functional trade-off is currently decided with the weakest shared evidence?', 'What assumptions can be modelled, and which require leadership judgement or external validation?', 'How will the team identify value moved to another site, supplier, period or environmental account?'],
+    decisionsTitle: 'Choose the value lens deliberately',
+    decisions: ['The cross-functional trade-off currently decided on the weakest shared evidence is the first candidate.', 'Assumptions that can be modelled have to be separated from those requiring leadership judgement or external validation.', 'The team needs a way to see value that has moved to another site, supplier, period or environmental account.'],
     controlTitle: 'Keep claims and assumptions inspectable',
     controls: [
       { title: 'Scenario, not prediction', copy: 'Outputs state their assumptions and sensitivities, helping leaders compare choices without presenting uncertainty as fact.' },
@@ -365,8 +365,8 @@ export const industries: Industry[] = [
     signalTitle: 'Follow the change through the project',
     signalCopy: 'Scope, design, programme and commercial impact form a connected chain. The graphic makes missing ownership and stale status visible.',
     signalLabels: ['Scope', 'Design', 'Programme', 'Commercial'],
-    questionsTitle: 'Project controls questions before build',
-    questions: ['Which information handoff creates the most late clarification or duplicated checking?', 'Can the system distinguish current, superseded, proposed and contractually instructed records?', 'Who is accountable for accepting each impact, and where is that decision recorded?'],
+    decisionsTitle: 'Project controls to settle before build',
+    decisions: ['The information handoff producing the most late clarification and duplicated checking is where to begin.', 'The system has to distinguish current, superseded, proposed and contractually instructed records.', 'Each impact needs a named person accountable for accepting it, and a record of where that decision was taken.'],
     controlTitle: 'Contractual status cannot be inferred',
     controls: [
       { title: 'Document state stays prominent', copy: 'Every extraction and comparison shows revision, issue purpose, source and effective status.' },
@@ -404,8 +404,8 @@ export const industries: Industry[] = [
     signalTitle: 'A decision is more than a model score',
     signalCopy: 'Customer evidence, policy, affordability or risk context, and human rationale should remain visible as separate but connected layers.',
     signalLabels: ['Evidence', 'Policy', 'Risk', 'Rationale'],
-    questionsTitle: 'Regulated design choices',
-    questions: ['Which part of the case is preparation, and which part is the regulated or fiduciary judgement?', 'Can a reviewer see the source, transformation and confidence of every material fact?', 'How will the firm monitor different outcomes across customer groups and vulnerable circumstances?'],
+    decisionsTitle: 'Regulated design choices',
+    decisions: ['Preparation has to be separated from the regulated or fiduciary judgement it supports.', 'A reviewer must be able to see the source, transformation and confidence of every material fact.', 'Outcomes need monitoring across customer groups and vulnerable circumstances.'],
     controlTitle: 'Make accountability legible',
     controls: [
       { title: 'Deterministic gates surround generation', copy: 'Eligibility, mandatory disclosure, sanctions and approval thresholds remain governed rules with named ownership.' },
@@ -443,8 +443,8 @@ export const industries: Industry[] = [
     signalTitle: 'A pathway signal should strengthen continuity',
     signalCopy: 'Need, evidence, capacity and follow-up describe different parts of care. The service should highlight gaps between them, not collapse them into one opaque risk score.',
     signalLabels: ['Need', 'Evidence', 'Capacity', 'Follow-up'],
-    questionsTitle: 'Clinical and operational questions',
-    questions: ['Does the proposed use reduce a known burden without creating a new clinical dependency?', 'What evidence must trigger escalation, abstention or direct professional review?', 'How will patients and staff understand when AI contributed to an output or communication?'],
+    decisionsTitle: 'Clinical and operational ground to settle',
+    decisions: ['The proposed use should reduce a known burden without creating a new clinical dependency.', 'The evidence that triggers escalation, abstention or direct professional review must be defined in advance.', 'Patients and staff need to know when AI contributed to an output or a communication.'],
     controlTitle: 'Clinical safety is a delivery workstream',
     controls: [
       { title: 'Defined intended use', copy: 'The team documents users, patients, workflow, exclusions and failure modes before selecting technology.' },
@@ -482,8 +482,8 @@ export const industries: Industry[] = [
     signalTitle: 'The installed base is a living knowledge graph',
     signalCopy: 'Product, configuration, condition and intervention must remain linked so teams work from the relevant machine, not a generic manual.',
     signalLabels: ['Product', 'Configuration', 'Condition', 'Intervention'],
-    questionsTitle: 'Where specialist knowledge should scale',
-    questions: ['Which customer response repeatedly requires an expert to search the same families of evidence?', 'Can product and document revisions be resolved reliably for the installed configuration?', 'What commercial or technical commitments must always receive named approval?'],
+    decisionsTitle: 'Where specialist knowledge should scale',
+    decisions: ['The customer response that repeatedly sends an expert to the same families of evidence is the one to address.', 'Product and document revisions have to resolve reliably for the installed configuration.', 'Commercial and technical commitments always require named approval.'],
     controlTitle: 'Keep technical context attached',
     controls: [
       { title: 'Configuration-aware retrieval', copy: 'The service filters and labels evidence by serial, option, revision and applicability instead of presenting the nearest text match.' },
@@ -521,8 +521,8 @@ export const industries: Industry[] = [
     signalTitle: 'Priority emerges from more than condition',
     signalCopy: 'Condition, consequence, intervention readiness and network effect must be assessed together, while each remains inspectable.',
     signalLabels: ['Condition', 'Consequence', 'Readiness', 'Network'],
-    questionsTitle: 'Asset leadership questions',
-    questions: ['Where does the organisation repeatedly reconstruct asset history before making a decision?', 'Which consequence assumptions require stakeholder or engineering validation rather than statistical inference?', 'Can every portfolio recommendation be traced back to current inspections, policy and funding constraints?'],
+    decisionsTitle: 'Decisions for asset leadership',
+    decisions: ['Asset history that is repeatedly reconstructed before a decision is the first thing to make durable.', 'Consequence assumptions requiring stakeholder or engineering validation have to be separated from statistical inference.', 'Every portfolio recommendation has to trace back to current inspections, policy and funding constraints.'],
     controlTitle: 'Support professional judgement over time',
     controls: [
       { title: 'Time and provenance matter', copy: 'The service distinguishes inspection date, effective date and superseded evidence so old confidence is not mistaken for current condition.' },
@@ -560,8 +560,8 @@ export const industries: Industry[] = [
     signalTitle: 'Evidence needs status, not just similarity',
     signalCopy: 'Scientific relevance, validation state, product applicability and decision consequence shape whether a source can support action.',
     signalLabels: ['Relevance', 'Validation', 'Applicability', 'Consequence'],
-    questionsTitle: 'Scientific governance questions',
-    questions: ['Is the service supporting discovery, quality, regulatory or clinical work, and what evidence standard follows?', 'Can every output distinguish source fact, model synthesis and unresolved inference?', 'Which records, models and workflows require formal validation before operational use?'],
+    decisionsTitle: 'Scientific governance decisions',
+    decisions: ['The evidence standard follows from whether the service supports discovery, quality, regulatory or clinical work.', 'Every output must distinguish source fact, model synthesis and unresolved inference.', 'Records, models and workflows requiring formal validation have to be identified before operational use.'],
     controlTitle: 'Separate exploration from validated operation',
     controls: [
       { title: 'Intended use governs assurance', copy: 'The same technology receives different testing, documentation and change control depending on its role and consequence.' },
@@ -599,8 +599,8 @@ export const industries: Industry[] = [
     signalTitle: 'Movement, promise and response must agree',
     signalCopy: 'Physical event, data quality, customer commitment and recovery action form the useful logistics signal.',
     signalLabels: ['Movement', 'Data quality', 'Promise', 'Recovery'],
-    questionsTitle: 'Operational design questions',
-    questions: ['Which exception class creates high coordination effort and has a repeatable response pattern?', 'How will the service distinguish a missing scan from a delayed shipment?', 'What action can be proposed safely, and what commercial commitment needs human authority?'],
+    decisionsTitle: 'Operational design decisions',
+    decisions: ['The exception class to start with carries high coordination effort and has a repeatable response pattern.', 'The service has to tell a missing scan from a delayed shipment.', 'The line between an action that can be proposed safely and a commercial commitment needing human authority must be drawn early.'],
     controlTitle: 'Do not automate false certainty',
     controls: [
       { title: 'Event confidence stays visible', copy: 'Observed, inferred and partner-reported statuses are labelled differently, with freshness and source shown.' },
@@ -638,8 +638,8 @@ export const industries: Industry[] = [
     signalTitle: 'A constraint is part of a system',
     signalCopy: 'Material, equipment, process and downstream state should be read together so local improvement does not create hidden instability.',
     signalLabels: ['Material', 'Equipment', 'Process', 'Downstream'],
-    questionsTitle: 'Questions at the operating boundary',
-    questions: ['Which recurring loss has enough trustworthy context to support comparison?', 'How will safety conditions override production recommendations in the interface and workflow?', 'Can the operation test the recommendation in observation mode across representative variability?'],
+    decisionsTitle: 'Decisions at the operating boundary',
+    decisions: ['The recurring loss worth working on has enough trustworthy context to support comparison.', 'Safety conditions must override production recommendations in both the interface and the workflow.', 'The recommendation needs testing in observation mode across representative variability.'],
     controlTitle: 'Safety constraints are not model preferences',
     controls: [
       { title: 'Hard limits remain independent', copy: 'Critical operating and safety rules stay in established control systems and procedures, outside generative decision logic.' },
@@ -677,8 +677,8 @@ export const industries: Industry[] = [
     signalTitle: 'Integrity requires context and chronology',
     signalCopy: 'Condition, operation, barrier state and intervention history remain distinct layers in the technical decision.',
     signalLabels: ['Condition', 'Operation', 'Barrier', 'Intervention'],
-    questionsTitle: 'Questions for the asset owner',
-    questions: ['Which preparation burden repeatedly delays a named engineering or maintenance decision?', 'What system separation proves the AI layer cannot influence process control directly?', 'How will management-of-change requirements apply to sources, prompts, models and workflow updates?'],
+    decisionsTitle: 'Decisions for the asset owner',
+    decisions: ['The preparation burden repeatedly delaying a named engineering or maintenance decision is the target.', 'System separation has to prove the AI layer cannot influence process control directly.', 'Management-of-change requirements must extend to sources, prompts, models and workflow updates.'],
     controlTitle: 'Process safety defines the architecture',
     controls: [
       { title: 'Read-only where consequence is high', copy: 'Initial services retrieve and prepare evidence through controlled interfaces, with no actuation or automatic set-point path.' },
@@ -716,8 +716,8 @@ export const industries: Industry[] = [
     signalTitle: 'Performance begins at the specification',
     signalCopy: 'Requirement, material, conversion and end-use evidence create one product story, with variation visible at every handoff.',
     signalLabels: ['Requirement', 'Material', 'Conversion', 'End use'],
-    questionsTitle: 'Operational questions for converters',
-    questions: ['Which quality or setup issue recurs across enough jobs to support structured learning?', 'Can every record be resolved to the correct customer specification and material lot?', 'How will the system distinguish an analogous case from a technically applicable one?'],
+    decisionsTitle: 'Operational decisions for converters',
+    decisions: ['The quality or setup issue recurring across enough jobs to support structured learning is the place to start.', 'Every record has to resolve to the correct customer specification and material lot.', 'The system must separate an analogous case from a technically applicable one.'],
     controlTitle: 'Similarity is not equivalence',
     controls: [
       { title: 'Applicability is reviewed', copy: 'Search results show the parameters that match and differ, helping technical staff judge whether prior learning transfers.' },
@@ -755,8 +755,8 @@ export const industries: Industry[] = [
     signalTitle: 'Readiness and value must travel together',
     signalCopy: 'Process economics, data position, adoption capacity and control requirement define whether an opportunity is investable now.',
     signalLabels: ['Economics', 'Data', 'Adoption', 'Control'],
-    questionsTitle: 'Questions for the investment committee',
-    questions: ['Is AI central to the underwriting case, a value-creation option or simply an operating hygiene issue?', 'What must be true in the first ownership phase to validate the value hypothesis?', 'Which capabilities belong at portfolio level, and which must stay with company management?'],
+    decisionsTitle: 'What the investment committee settles',
+    decisions: ['AI is either central to the underwriting case, a value-creation option, or an operating hygiene issue, and the three lead to different work.', 'The first ownership phase has to establish what must be true for the value hypothesis to hold.', 'Capabilities belonging at portfolio level have to be separated from those that stay with company management.'],
     controlTitle: 'Govern without creating portfolio theatre',
     controls: [
       { title: 'Baselines before benefits', copy: 'Each initiative starts with a named operational measure, current performance and value mechanism agreed by management.' },
@@ -794,8 +794,8 @@ export const industries: Industry[] = [
     signalTitle: 'Service demand needs context, not just volume',
     signalCopy: 'Need, completeness, consequence and capacity shape the operating response. No single score should determine entitlement or priority.',
     signalLabels: ['Need', 'Completeness', 'Consequence', 'Capacity'],
-    questionsTitle: 'Public accountability questions',
-    questions: ['What resident outcome should improve, and how will the organisation hear from people who struggle with the new route?', 'Could the service affect eligibility, enforcement, liberty or access to an essential provision?', 'Can an officer and resident understand the material evidence, policy and route to correction or appeal?'],
+    decisionsTitle: 'Public accountability decisions',
+    decisions: ['The resident outcome that should improve must be named, along with how the organisation will hear from people who struggle with the new route.', 'Any effect on eligibility, enforcement, liberty or access to an essential provision has to be established first.', 'An officer and a resident both need to understand the material evidence, the policy and the route to correction or appeal.'],
     controlTitle: 'Keep rights and alternatives visible',
     controls: [
       { title: 'Assisted digital remains available', copy: 'The service retains accessible non-digital and human routes, with no penalty for people who cannot use the AI-enabled channel.' },
@@ -833,8 +833,8 @@ export const industries: Industry[] = [
     signalTitle: 'Asset value is operational as well as financial',
     signalCopy: 'Demand, condition, service and capital intent create the property signal. Keeping them connected reveals where action can protect value.',
     signalLabels: ['Demand', 'Condition', 'Service', 'Capital'],
-    questionsTitle: 'Property leadership questions',
-    questions: ['Which asset decision is slowed by evidence held across agents, managers and internal teams?', 'Can the organisation resolve people, spaces, leases and equipment to a dependable property record?', 'What tenant, safety or valuation decisions require qualified review regardless of model confidence?'],
+    decisionsTitle: 'Property leadership decisions',
+    decisions: ['The asset decision slowed by evidence held across agents, managers and internal teams is the one to fix.', 'People, spaces, leases and equipment have to resolve to a dependable property record.', 'Tenant, safety and valuation decisions require qualified review regardless of model confidence.'],
     controlTitle: 'Property context governs the answer',
     controls: [
       { title: 'Asset and lease applicability', copy: 'Outputs show the exact property, unit, lease period and document status used so precedent is not applied generically.' },
@@ -872,8 +872,8 @@ export const industries: Industry[] = [
     signalTitle: 'Read demand through the operating constraint',
     signalCopy: 'Customer intent, availability, economics and execution form the trading signal. Weakness in one should change the recommended action.',
     signalLabels: ['Intent', 'Availability', 'Economics', 'Execution'],
-    questionsTitle: 'Questions for the trading team',
-    questions: ['Which daily decision has enough volume to learn from and a clear local owner?', 'Are product, location and channel identifiers dependable across the required systems?', 'What customer, brand and margin conditions should constrain the recommendation?'],
+    decisionsTitle: 'Decisions for the trading team',
+    decisions: ['The daily decision worth automating has enough volume to learn from and a clear local owner.', 'Product, location and channel identifiers must be dependable across the required systems.', 'Customer, brand and margin conditions need to constrain the recommendation.'],
     controlTitle: 'Protect the customer promise',
     controls: [
       { title: 'Policy is not improvised', copy: 'Returns, refunds, promotions and product claims are generated only within approved rules and escalation thresholds.' },
@@ -911,8 +911,8 @@ export const industries: Industry[] = [
     signalTitle: 'Technical similarity needs an applicability check',
     signalCopy: 'Design, process, equipment and test conditions remain visible so a retrieved precedent cannot masquerade as an equivalent case.',
     signalLabels: ['Design', 'Process', 'Equipment', 'Test'],
-    questionsTitle: 'Secure engineering questions',
-    questions: ['Which workflow consumes scarce engineering time in evidence gathering rather than novel judgement?', 'What project, customer and export boundaries must be enforced before retrieval?', 'How will the service prove the revision and applicability of every source used?'],
+    decisionsTitle: 'Secure engineering decisions',
+    decisions: ['The workflow spending scarce engineering time on evidence gathering, and not on novel judgement, is the candidate.', 'Project, customer and export boundaries have to be enforced before retrieval.', 'The service must prove the revision and applicability of every source it uses.'],
     controlTitle: 'Protect intellectual property by architecture',
     controls: [
       { title: 'Need-to-know retrieval', copy: 'Access is filtered before model processing, with customer, programme and technical-domain entitlements applied to source records.' },
@@ -950,8 +950,8 @@ export const industries: Industry[] = [
     signalTitle: 'Impact evidence needs human context',
     signalCopy: 'Need, participation, service response and lived outcome provide different perspectives. The organisation should keep the difference visible.',
     signalLabels: ['Need', 'Participation', 'Response', 'Outcome'],
-    questionsTitle: 'Mission and ethics questions',
-    questions: ['Will the use case improve the experience of participants or mainly make internal reporting easier?', 'What sensitive information can be removed while still supporting the decision?', 'How will people represented in the data shape, question or correct the system?'],
+    decisionsTitle: 'Mission and ethics decisions',
+    decisions: ['The use case should improve the experience of participants, and not mainly make internal reporting easier.', 'Sensitive information that can be removed while still supporting the decision must be identified.', 'People represented in the data need a route to shape, challenge and correct the system.'],
     controlTitle: 'Dignity is an operating requirement',
     controls: [
       { title: 'Minimise and separate sensitive data', copy: 'The service uses only the fields needed for the stated purpose and restricts narrative case content by role.' },
@@ -989,8 +989,8 @@ export const industries: Industry[] = [
     signalTitle: 'Speed needs a balanced product signal',
     signalCopy: 'Usage, experience, reliability and economics should move together so local optimisation does not weaken the product system.',
     signalLabels: ['Usage', 'Experience', 'Reliability', 'Economics'],
-    questionsTitle: 'Product and platform questions',
-    questions: ['Which high-frequency decision is currently slower than the data that informs it?', 'What user content, licensed material or network data has restrictions on model use?', 'How will the organisation detect when automation improves speed but harms quality, trust or unit economics?'],
+    decisionsTitle: 'Product and platform decisions',
+    decisions: ['The high-frequency decision currently slower than the data informing it is the first candidate.', 'User content, licensed material and network data carry restrictions on model use that have to be mapped.', 'Detection is needed for the case where automation improves speed while harming quality, trust or unit economics.'],
     controlTitle: 'Move quickly with observable safeguards',
     controls: [
       { title: 'Rights follow the content', copy: 'Source permissions, customer tenancy and licensing conditions are enforced before retrieval or generation.' },
@@ -1028,8 +1028,8 @@ export const industries: Industry[] = [
     signalTitle: 'A travel promise has to remain operationally true',
     signalCopy: 'Preference, availability, constraint and confirmation form the service signal. Generated fluency cannot substitute for a secured option.',
     signalLabels: ['Preference', 'Availability', 'Constraint', 'Confirmation'],
-    questionsTitle: 'Guest-experience questions',
-    questions: ['Which service moment combines high customer emotion with repeated staff coordination?', 'Can availability, price and supplier conditions be confirmed at the moment an option is presented?', 'What customer preferences are genuinely useful, consented and appropriate to retain?'],
+    decisionsTitle: 'Guest-experience decisions',
+    decisions: ['The service moment to work on combines high customer emotion with repeated staff coordination.', 'Availability, price and supplier conditions must be confirmed at the moment an option is presented.', 'Retained customer preferences have to be genuinely useful, consented and appropriate.'],
     controlTitle: 'Protect the promise and the person',
     controls: [
       { title: 'Confirmed facts drive communication', copy: 'Itineraries, prices, inventory and recovery options remain linked to current supplier or booking evidence.' },

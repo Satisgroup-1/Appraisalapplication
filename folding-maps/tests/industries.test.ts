@@ -17,7 +17,7 @@ describe('industry perspectives', () => {
     expect(industries.every((industry) => (
       industry.context.length === 2
       && industry.opportunities.length === 3
-      && industry.questions.length === 3
+      && industry.decisions.length === 3
       && industry.controls.length === 2
       && industry.roadmap.length === 3
       && industry.signalLabels.length === 4

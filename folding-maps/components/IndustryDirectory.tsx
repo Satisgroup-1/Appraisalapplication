@@ -40,22 +40,31 @@ export function IndustryDirectory({
   return (
     <div>
       <div className={styles.searchRow}>
-        <div className={styles.search}>
-          <Search size={17} aria-hidden="true" />
-          <input
-            id={inputId}
-            type="search"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Filter by sector, or by the problem"
-            aria-label="Filter industries"
-            autoComplete="off"
-          />
+        <div className={styles.searchGroup}>
+          <label className={styles.controlLabel} htmlFor={inputId}>
+            Filter sectors
+          </label>
+          <div className={styles.search}>
+            <Search size={18} aria-hidden="true" />
+            <input
+              id={inputId}
+              type="search"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Sector name, or the problem"
+              autoComplete="off"
+            />
+            {term && (
+              <button type="button" className={styles.clear} onClick={() => setQuery('')}>
+                Clear
+              </button>
+            )}
+          </div>
         </div>
+
         <p className={styles.count} aria-live="polite">
-          {matches.length === industries.length
-            ? `${industries.length} sectors`
-            : `${matches.length} of ${industries.length} sectors`}
+          <strong>{matches.length}</strong>
+          <span>{matches.length === industries.length ? 'sectors' : `of ${industries.length} sectors`}</span>
         </p>
       </div>
 

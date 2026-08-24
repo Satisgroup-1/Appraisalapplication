@@ -85,26 +85,26 @@
 
 /* -------------------------------------------------------------------------- */
 
-.questions {
+.decisions {
   margin: 0;
   padding: 0;
   list-style: none;
   border-top: 1px solid var(--line);
 }
-.questions li {
+.decisions li {
   display: grid;
   grid-template-columns: 3rem minmax(0, 1fr);
   gap: var(--s-5);
   padding: var(--s-5) 0;
   border-bottom: 1px solid var(--line);
 }
-.questions span {
+.decisions span {
   font-size: var(--step--1);
   font-variant-numeric: tabular-nums;
   color: var(--muted);
   padding-top: 5px;
 }
-.questions p { margin: 0; font-size: var(--step-1); line-height: 1.5; }
+.decisions p { margin: 0; font-size: var(--step-1); line-height: 1.5; }
 
 /* -------------------------------------------------------------------------- */
 

@@ -1,26 +1,39 @@
 .searchRow {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: space-between;
   gap: var(--s-6);
   margin: 0 0 var(--s-7);
-  padding-bottom: var(--s-5);
+  padding-bottom: var(--s-6);
   border-bottom: 1px solid var(--line);
 }
 
+.searchGroup { flex: 1; max-width: 480px; }
+
+.controlLabel {
+  display: block;
+  margin-bottom: var(--s-4);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* A field with a visible boundary and a real focus state, so it reads as an
+   input rather than as a line of placeholder text. */
 .search {
   display: flex;
   align-items: center;
   gap: var(--s-3);
-  flex: 1;
-  max-width: 420px;
-  padding: 10px 14px;
-  border: 1px solid var(--line-strong);
+  padding: 12px 14px;
+  border: 1px solid var(--ink);
   border-radius: var(--radius);
+  background: var(--paper);
   color: var(--muted);
-  transition: border-color var(--speed) var(--ease);
+  transition: box-shadow var(--speed) var(--ease);
 }
-.search:focus-within { border-color: var(--accent); }
+.search:focus-within { box-shadow: 0 0 0 3px rgba(27, 77, 228, 0.16); }
 
 .search input {
   flex: 1;
@@ -28,17 +41,40 @@
   border: 0;
   background: none;
   outline: none;
-  font-size: 0.9375rem;
+  font-size: 1rem;
   color: var(--ink);
 }
 .search input::placeholder { color: var(--muted); }
+.search input::-webkit-search-cancel-button { display: none; }
+
+.clear {
+  flex-shrink: 0;
+  padding: 4px 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: transparent;
+  font-size: var(--step--1);
+  color: var(--ink-90);
+  cursor: pointer;
+  transition: border-color var(--speed) var(--ease), color var(--speed) var(--ease);
+}
+.clear:hover { border-color: var(--ink); color: var(--accent); }
 
 .count {
-  margin: 0;
-  font-size: var(--step--1);
-  font-variant-numeric: tabular-nums;
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-2);
+  margin: 0 0 4px;
   color: var(--muted);
 }
+.count strong {
+  font-size: var(--step-3);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+.count span { font-size: var(--step--1); }
 
 .empty { max-width: 60ch; color: var(--muted); }
 
@@ -105,7 +141,7 @@
 
 @media (max-width: 700px) {
   .searchRow { flex-direction: column; align-items: stretch; gap: var(--s-4); }
-  .search { max-width: none; }
+  .searchGroup { max-width: none; }
   .grid { grid-template-columns: 1fr; }
   .grid a:nth-child(odd) { padding-right: 0; border-right: 0; }
   .filler { display: none; }

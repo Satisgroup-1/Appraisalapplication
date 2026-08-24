@@ -1,51 +1,81 @@
 .controls {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--s-7);
-  margin: 0 0 var(--s-6);
+  margin: 0 0 var(--s-7);
+  padding-bottom: var(--s-6);
+  border-bottom: 1px solid var(--line);
 }
 
-.filters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--s-2);
+.controlLabel {
+  display: block;
+  margin-bottom: var(--s-4);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
 }
 
-.filter {
+/* One object with four segments. The border belongs to the group, the dividers
+   sit between segments, and the selected segment is filled — so which one is
+   active is never a matter of reading a subtle outline. */
+.segmented {
   display: inline-flex;
-  align-items: baseline;
-  gap: var(--s-2);
-  padding: 8px 14px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--ink);
   border-radius: var(--radius);
+  overflow: hidden;
+  max-width: 100%;
+}
+
+.segment {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: 12px 20px;
+  border: 0;
+  border-right: 1px solid var(--line-strong);
   background: transparent;
   font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--ink);
   cursor: pointer;
-  transition: border-color var(--speed) var(--ease), background var(--speed) var(--ease), color var(--speed) var(--ease);
+  white-space: nowrap;
+  transition: background var(--speed) var(--ease), color var(--speed) var(--ease);
 }
-.filter span {
-  font-size: var(--step--1);
+.segment:last-child { border-right: 0; }
+.segment:hover { background: var(--surface); }
+.segment:focus-visible { outline-offset: -3px; }
+
+.count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 22px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 10px;
+  background: var(--surface-2);
+  font-size: 0.6875rem;
   font-variant-numeric: tabular-nums;
   color: var(--muted);
+  transition: background var(--speed) var(--ease), color var(--speed) var(--ease);
 }
-.filter:hover { border-color: var(--line-strong); }
 
-.filterActive {
+.segmentActive {
   background: var(--ink);
-  border-color: var(--ink);
   color: var(--paper);
 }
-.filterActive span { color: rgba(255, 255, 255, 0.65); }
-.filterActive:hover { border-color: var(--ink); }
+.segmentActive:hover { background: var(--ink); }
+.segmentActive .count {
+  background: rgba(255, 255, 255, 0.16);
+  color: var(--paper);
+}
 
+/* Reserved height so switching filter does not shift the list underneath. */
 .note {
-  margin: 0;
-  max-width: 46ch;
-  text-align: right;
-  font-size: var(--step--1);
+  margin: var(--s-5) 0 0;
+  min-height: 2.9em;
+  max-width: 68ch;
+  font-size: 0.9375rem;
   line-height: 1.55;
-  color: var(--muted);
+  color: var(--ink-90);
 }
 
 .group {
@@ -63,7 +93,10 @@
 }
 :global(a.index-item):hover .arrow { transform: translateX(3px); color: var(--accent); }
 
-@media (max-width: 860px) {
-  .controls { flex-direction: column; gap: var(--s-4); }
-  .note { text-align: left; }
+@media (max-width: 700px) {
+  .segmented { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .segment { justify-content: space-between; }
+  .segment:nth-child(2n) { border-right: 0; }
+  .segment:nth-child(-n + 2) { border-bottom: 1px solid var(--line-strong); }
+  .note { min-height: 0; }
 }
