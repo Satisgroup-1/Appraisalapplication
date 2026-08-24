@@ -9,6 +9,8 @@
 #   ./scripts/loop-status.sh --full   summary plus every log row and the backlog
 set -uo pipefail
 cd "$(dirname "$0")/.." || exit 1
+# shellcheck source=lib/backlog.sh
+. "$(dirname "$0")/lib/backlog.sh"
 
 FULL=0
 [[ "${1:-}" == "--full" || "${1:-}" == "-f" ]] && FULL=1
@@ -81,19 +83,10 @@ rule
 # Counting only headings hid 12 items and every B/E closure, so both are read.
 b "Backlog (IMPROVEMENTS.md)"
 if [[ -f IMPROVEMENTS.md ]]; then
-  items() {  # -> "ID<TAB>state<TAB>title"
-    grep -hE '^(### |- (~~)?\*\*)[A-E][0-9]+ (—|-) ' IMPROVEMENTS.md \
-      | sed -E 's/^### //; s/^- //' \
-      | awk '{ closed = (/~~/ || /FIXED/ || /CLOSED/) ? "done" : "open";
-               line = $0;
-               gsub(/\*\*/, "", line); gsub(/~~/, "", line);
-               match(line, /^[A-E][0-9]+/); id = substr(line, RSTART, RLENGTH);
-               sub(/^[A-E][0-9]+ (—|-) /, "", line);
-               sub(/^(HIGH|MEDIUM\/HIGH|MEDIUM|LOW\/MEDIUM|LOW) · /, "", line);
-               sub(/ · (FIXED|CLOSED).*$/, "", line);
-               printf "%s\t%s\t%s\n", id, closed, line }'
-  }
-  ALL=$(items)
+  # Parser lives in scripts/lib/backlog.sh, shared with loop-preflight.sh: a
+  # preflight that disagreed with this view about which items are open would be
+  # worse than no preflight at all.
+  ALL=$(backlog_items IMPROVEMENTS.md)
   TOTAL=$(printf '%s\n' "$ALL" | grep -c . || true)
   DONE=$(printf '%s\n' "$ALL" | grep -cP '\tdone\t' || true)
   OPEN=$((TOTAL - DONE))

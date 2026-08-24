@@ -33,6 +33,8 @@ When something is genuinely not covered, the planner records the question in
 | Order of work | **Correctness backlog first**, then additive goals. A new feature built on a known defect inherits it. |
 | Audit authority | **Hard veto.** Nothing commits while the reviewer objects. Up to **2** rework rounds, then abandon the item, revert the working tree, and log the objection. |
 | Cadence | One cycle per hour, one item per cycle. |
+| Preflight | **Run `./scripts/loop-preflight.sh` before planning, every cycle.** It refuses work that is stranded (committed here, never pushed), stale (behind the branch) or already built (the branch has closed an item this checkout still shows as open). A BLOCK is cleared only by pulling or pushing — never by discarding work, never by force-pushing over another cycle. Its `coveredItems` are forbidden picks. |
+| Push before logging | A cycle is finished when it **pushes**, not when it commits: the container is reclaimed at session end and an unpushed commit dies with it. Write the `LANDED` row only after the push succeeds; if the push cannot be made to work, record `STRANDED` with the sha and say so. Recording a landing that never reached the remote is the one error that guarantees the work is done twice. |
 | Green bar | `npx tsc --noEmit` and `npm test` must both pass before a commit. Non-negotiable. |
 | Failing-first | Every fix needs a test that demonstrably failed before it. A fix without one does not count as done. |
 | Golden pins | A pin in `tests/dcf.test.ts` may only move with the delta and its mechanic stated in both the test comment and the commit message. |
