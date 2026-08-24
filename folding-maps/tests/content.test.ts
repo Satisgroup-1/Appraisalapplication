@@ -109,6 +109,12 @@ describe('editorial content', () => {
     })).toBe(true);
   });
 
+  it('gives every article one title, not one per file', () => {
+    // The index reads newsEditorial and the home page reads content, so a
+    // divergence here shows the same piece under two names. It did.
+    expect(articles.every((item) => newsEditorial[item.slug].title === item.title)).toBe(true);
+  });
+
   it('uses report-specific, information-led news headings', () => {
     expect(articles.every((item) => newsEditorial[item.slug].sections.every((section) => section.heading.split(/\s+/).length <= 6 && !/^(the|a|an)\s/i.test(section.heading)))).toBe(true);
   });
