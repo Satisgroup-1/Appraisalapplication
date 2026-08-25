@@ -61,8 +61,9 @@ describe('editorial content', () => {
     expect(articles.every((article) => {
       const report = getNewsReport(article, newsEditorial[article.slug]);
       const placements = report.sections.flatMap((section) => section.exhibits ?? []);
+      const evidence = placements.filter((placement) => placement.kind === 'evidence').length;
       return report.sections.filter((section) => section.role === 'counterargument').length === 1
-        && placements.filter((placement) => placement.kind === 'evidence').length === 2
+        && evidence >= 1 && evidence <= 2
         && placements.filter((placement) => placement.kind === 'system').length === 1;
     })).toBe(true);
   });

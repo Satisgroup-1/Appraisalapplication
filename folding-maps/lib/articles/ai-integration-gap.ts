@@ -2,64 +2,77 @@ import type { EvidenceView } from '@/lib/editorialGraphics';
 import type { NewsEditorial } from '@/lib/newsEditorial';
 import { oecdWorkforce, ukAdoption, ukBusinessData } from '@/lib/sources';
 
+const onsBusinessAi = {
+  label: 'ONS, Artificial intelligence in UK businesses, 2023 to 2026',
+  href: 'https://www.ons.gov.uk/businessindustryandtrade/business/businessservices/articles/artificialintelligenceinukbusinesses/2023to2026',
+};
+
+const klarnaLaunch = {
+  label: 'Klarna, AI assistant handles two-thirds of customer service chats in its first month, February 2024',
+  href: 'https://www.klarna.com/international/press/klarna-ai-assistant-handles-two-thirds-of-customer-service-chats-in-its-first-month/',
+};
+
+const klarnaReversal = {
+  label: 'Forbes, Klarna reverses AI push, says customers prefer human support, May 2025',
+  href: 'https://www.forbes.com/sites/quickerbettertech/2025/05/18/business-tech-news-klarna-reverses-on-ai-says-customers-like-talking-to-people/',
+};
+
 export const article: NewsEditorial = {
   title: 'Only a fifth of UK AI users have connected it to a business system',
-  standfirst: 'Access to artificial intelligence has spread faster than the operating discipline required to make it useful. Workflow design, the state of the underlying data and sustained management attention will decide whether the next wave of spending produces operating value.',
-  thesis: 'The competitive divide is shifting from who can obtain an AI tool to who can connect it to a material workflow, govern its decisions and improve it with evidence.',
-  sceneLabel: 'The situation',
-  sceneTitle: 'The licence dashboard is green. The operating dashboard has not moved',
+  standfirst: 'Reported AI use keeps climbing while the depth of that use barely moves. The firms closing the gap join one model to the system that runs the work and watch a number they already report.',
+  thesis: 'AI produces an operating return when it is joined to the record system that carries the work, and the test of that join is movement in a measure the business was already reporting before the tool arrived.',
+  sceneLabel: 'The monthly review',
+  sceneTitle: 'Every licence is in use and the cycle time has not moved',
   sceneParagraphs: [
-    'At the monthly review of a 120-person services firm, the technology dashboard looks encouraging. Most employees can use an AI assistant and weekly activity is rising. The operating dashboard is less persuasive. Customer-response time, first-time quality and work in progress look much as they did six months earlier. The chief financial officer asks where the return has gone.',
-    'Employees have improved drafts, summarised calls and accelerated research. Those personal gains have left the route from enquiry to accepted outcome largely unchanged. The meeting therefore needs to identify the organisational changes that would turn individual assistance into repeatable operating performance.',
+    'The monthly review of a services firm with a hundred and twenty staff opens on the technology page. Almost every employee holds an assistant licence, weekly use has risen again, and the head of technology has the chart to prove it. The operating page follows. Time from enquiry to proposal, first-time quality and work in progress all sit close to where they were in February. The finance director asks what the licences have bought.',
+    'The answers around the table are all true and none of them settles the question. Drafts come back faster. Research that took an afternoon takes an hour. Meeting notes write themselves. Every one of those gains lands inside an individual’s working day, while the route from enquiry to accepted proposal still runs through four people and two systems, and no part of that route has changed.',
+    'The firm is neither unusual nor badly run. It has bought the part of AI that arrives ready to use, and it has not yet commissioned the part that has to be built.',
   ],
   sections: [
     {
-      heading: 'Adoption is not integration',
+      heading: 'Adoption counts differ by survey and none measures return',
       paragraphs: [
-        { text: 'The first difficulty for the finance team is that even adoption is not one number. The UK Business Data Survey reports AI use among businesses that handle digitised data, while separate government research measures use across the wider business population. The former found 41 percent use in its survey population; the latter found 16 percent of UK businesses using at least one AI technology. Different populations, definitions and survey designs explain much of the gap.', sources: [ukBusinessData, ukAdoption] },
-        { text: 'Neither figure answers the chief financial officer. A business can count an employee researching with a general assistant and another firm running an embedded workflow under the same broad heading of AI use. One records access to a capability; the other may alter how work is controlled. The distinction means adoption can be an early signal of experimentation without being evidence of economic return.' },
-        { text: 'Where the usage dashboard cannot establish value, the narrower measure is the share of that activity connected to a business system and to a decision the business already tracks.' },
+        { text: 'Three UK surveys published within a year of each other put business AI use at 41 percent, 29 percent and 16 percent. The UK Business Data Survey asked businesses that handle digitised data and found 41 percent using AI for at least one purpose. The Office for National Statistics asked the wider business population in June 2026 and found 29 percent using at least one AI technology. Government adoption research, working to a different definition again, found 16 percent.', sources: [ukBusinessData, onsBusinessAi, ukAdoption] },
+        { text: 'None of those figures is wrong and none of them answers a finance director. A survey that counts any use will count an analyst who summarised a call on Tuesday alongside a firm whose credit checks now pass through a model. The first is a personal habit that leaves the operating record untouched. The second alters how work is controlled, who answers for an error, and what the firm can safely promise a customer. Both sit inside the same headline percentage.' },
+        { text: 'The ONS series also measures how far use has travelled inside the firms reporting it. Since September 2023 the average number of AI technologies in use per adopting business has moved from about 1.4 to about 1.6, while the share of businesses reporting any use has roughly tripled. Adoption is spreading sideways across the economy and going very little deeper inside each firm. A headline that triples on a base that barely moves describes distribution, and it says nothing about depth.', sources: [onsBusinessAi] },
+        { text: 'That is the shape of the problem the review has to solve. Licence counts and weekly active users record how many people have been given access to a capability. The narrower measure worth having is the share of that activity joined to a system that carries the work, and pointed at a number the firm was already reporting. Two firms with identical licence counts can sit on opposite sides of that measure, and the operating page will tell them apart long before the technology page does.' },
       ],
       exhibits: [{ kind: 'evidence', view: 0, afterParagraph: 0 }],
     },
     {
-      heading: 'System-integration gap',
-      transition: 'Since adoption cannot establish value, the more useful question is how much of that use is connected to an operational system.',
+      heading: 'Connecting one system forces every buried decision into view',
+      transition: 'A count of adopters cannot show a return, so the figure worth having is the one that records whether the tool has been joined to work the firm already measures.',
       paragraphs: [
-        { text: 'That narrower question exposes a genuine gap. Among businesses in the UK Business Data Survey that already used AI, 21 percent reported that their tools were integrated with an existing business system. The rate rose from 18 percent among sole traders to 57 percent among large businesses. The result suggests that resources and digital maturity matter, although the survey definition includes relatively light forms of integration such as an assistant embedded in office software.', sources: [ukBusinessData] },
-        { text: 'Formal connection remains much less common than tool use. The figure says nothing about the value achieved by the other adopters, and it cannot establish causation between integration and performance. Its practical force lies elsewhere: a connector forces the investment decision to confront the inputs, the permissions, the business rules, the exceptions and the question of who answers when it goes wrong.' },
-        { text: 'That evidence changes the monthly review. Licence counts reveal activity while leaving the intended customer or operating decision undefined. Management must choose that decision before it can design the surrounding workflow.' },
+        { text: 'Among UK businesses already using AI, 21 percent reported that their tools were integrated with an existing business system. The rate runs from 18 percent among sole traders to 57 percent among large businesses, with small and medium firms level at 31 percent. The spread by sector is wider still: 39 percent in information and communication against 12 percent in manufacturing and 14 percent in construction. Integration is most common where the work already sits inside software.', sources: [ukBusinessData] },
+        { text: 'Those figures flatter the field. The survey counts an assistant embedded in office software as integration, so the 21 percent includes connections that changed no decision at all. The number is best read as a ceiling. Even on that generous definition, four in five AI-using businesses have their tools sitting beside the systems that carry the work.', sources: [ukBusinessData] },
+        { text: 'Building the connection earns its cost through what it obliges a firm to settle. It has to decide which record is authoritative when two of them disagree, which fields must be present before work can start, which outputs may pass without a human reading them, and which exception stops the run and goes to a named person. A firm can leave all of that open while the tool sits beside the work. It cannot leave it open once the tool is inside the work.' },
+        { text: 'Klarna’s customer service assistant is the clearest public account of what that changes. In February 2024 the company reported that the assistant had handled 2.3 million conversations in its first month, about two thirds of its service chats, that average resolution time had fallen from 11 minutes to under 2 minutes, and that repeat enquiries had dropped by a quarter. Resolution time and repeat contact were on Klarna’s operating report before the assistant existed, which is the reason the change could be seen at all.', sources: [klarnaLaunch] },
+        { text: 'The transferable step has nothing to do with that volume. A services firm should choose the measure before the connector: elapsed time from an eligible enquiry to an accepted outcome, first-time quality, rework, and the effort spent clearing exceptions. A measure invented for the pilot, and reported only by the team running it, will not survive its first contact with the finance function.' },
       ],
-      exhibits: [{ kind: 'evidence', view: 1, afterParagraph: 0 }],
+      exhibits: [
+        { kind: 'evidence', view: 1, afterParagraph: 0 },
+        { kind: 'system', afterParagraph: 2 },
+      ],
     },
     {
-      heading: 'Workflow authority and measurement',
-      transition: 'The integration gap identifies where to look; the next question is which authority and measurement choices make that connection operational.',
-      paragraphs: [
-        { text: 'Once a material decision is selected, integration becomes less about moving data and more about allocating authority. Management must decide which record is authoritative, which fields are sufficient, which outputs may proceed without review and which exception stops the workflow. A confidence score has no operating value unless a low score changes what happens next: a different route, a second pair of eyes, or a longer promised turnaround.' },
-        { text: 'The strongest design usually combines ordinary software with bounded AI. Required fields, calculations and known notifications should remain deterministic. A model belongs where language or variation makes fixed rules inadequate. Source attribution and evaluation then connect interpretation back to evidence, while a named reviewer decides the exceptions that carry commercial or regulatory weight.' },
-        { text: 'This architecture gives the finance team something measurable: elapsed time from eligible input to accepted outcome, first-time quality, rework and exception effort. Yet it also creates cost and control obligations. A formal workflow is not always worth that burden, and the threshold should be set before the work starts.' },
-      ],
-      exhibits: [{ kind: 'system', afterParagraph: 1 }],
-    },
-    {
-      heading: 'Limits of informal use',
+      heading: 'Connection scales a mistake as fast as a gain',
       role: 'counterargument',
-      transition: 'Formal workflow carries cost and control obligations, so there is a threshold below which informal assistance remains the better answer.',
+      transition: 'Forcing those decisions into the open carries a cost, and a connected tool can also drive a poor decision further and faster than an informal habit ever could.',
       paragraphs: [
-        { text: 'Formal integration can be disproportionate. A researcher who drafts faster or a manager who prepares a meeting more efficiently may create real value without a new system of record. OECD respondents most often identified improved employee performance as a benefit of generative AI, although the survey did not measure the size of that improvement.', sources: [oecdWorkforce] },
-        { text: 'Management should not suppress these gains merely because they are difficult to aggregate. Personal tools are sensible where consequences are low, context is local and the employee can judge the output. The case for integration begins when work crosses people or systems, when the decision recurs at meaningful volume, or when a failure has to be answered for outside the team that caused it.' },
-        { text: 'That boundary resolves the apparent conflict. Informal assistance can remain a useful productivity layer, while investment discipline is reserved for workflows where repeatability, traceability and scale matter. The monthly review can now ask which activities belong on each side of that boundary.' },
+        { text: 'Klarna went on to make the case against itself. In May 2025 its chief executive said publicly that the company had pushed cost efficiency too hard, that quality had suffered as a result, and that it would recruit human agents again for the work the assistant handled badly. The integration was real and the reported measures did move. The measures chosen were resolution time and repeat contact, and neither would register a customer who was answered quickly, was answered poorly, and quietly took their business elsewhere.', sources: [klarnaReversal] },
+        { text: 'Below that scale the objection is simpler. A formal connection carries a build cost, a control burden and a permanent maintenance obligation, and a good deal of the value being reported today sits outside any workflow at all. OECD survey respondents most often named improved employee performance as the benefit of generative AI, although the survey did not measure how large that improvement was or where in the working day it landed. The shallow pattern the ONS series records is open to a reading that favours the sceptic as well. Firms may be holding AI at the edge of the work deliberately, because the cheap half of the benefit arrives with the licence and the expensive half rests on assumptions about volume and quality that a mid-sized firm cannot yet test.', sources: [oecdWorkforce] },
+        { text: 'So the boundary deserves stating plainly. Personal assistance is the right answer where the consequence is local, the volume is low, and the person using the output is competent to judge it. Integration repays its cost where work crosses people or systems, where the same decision recurs often enough to repay being designed, and where a failure has to be explained outside the team that caused it. On either side of that line, one throughput measure and one quality measure should be named before anything is built.' },
       ],
     },
     {
-      heading: 'CFO decision threshold',
+      heading: 'Fund one workflow, one connector and one measure',
       role: 'conclusion',
-      transition: 'Having separated low-risk personal use from recurring operational work, the monthly review can now set an investment threshold.',
+      transition: 'If a connection can amplify an error as readily as a gain, the choice of measure has to be settled before the connector is commissioned.',
       paragraphs: [
-        { text: 'The chief financial officer will not find the return by examining prompts or active users more closely. The next credible unit of analysis is one eligible workflow. Management should name the manager answerable for it, record what it currently costs in time and rework, define what an accepted outcome looks like, and identify the data and permissions the work needs.' },
-        { text: 'A bounded release supplies the evidence missing from the licence dashboard. Improvement in cycle time, quality or capacity must survive the inclusion of review and exception effort. Without that improvement, higher activity supports a change of scope or an end to the programme.' },
-        { text: 'The original dashboard was not wrong. It was incomplete. It showed that colleagues were willing to experiment. The management task is to convert that willingness into one governed route from input to outcome, and to fund the next route only when the first has produced evidence.' },
+        { text: 'For the finance director the next unit of analysis is a single workflow. Name the manager answerable for it. Record what it costs today in elapsed time, rework and exception handling. Define what an accepted outcome looks like in that particular workflow, and list the records and permissions the work needs before a model is allowed near it.' },
+        { text: 'Then commission the connection against two figures that already appear in the management pack, one for throughput and one for quality, and agree in advance what movement in them would justify funding a second workflow. Any improvement has to survive the review time and exception effort added to produce it, which is where reported gains most often disappear. Set the observation window before the release as well, because a workflow that runs a few times a week needs a longer look than one that runs a hundred times a day.' },
+        { text: 'The size gradient in the survey reads as a budget statement. Large businesses report integration more often because they fund the data preparation, the redesign and the staff time around the licence, while smaller firms commonly fund the licence alone and expect the rest to follow. That difference is a spending decision, and it is available to a hundred-person firm on one workflow at a time. It is not available across ten at once.' },
+        { text: 'None of this makes the technology page wrong. It reports something real, which is that colleagues are willing to use these tools and have found their own uses for them. The management task is to take one of those uses, put it inside the system that carries the work, and let a number the firm already publishes decide whether the next connection gets funded.' },
       ],
     },
   ],
@@ -67,34 +80,35 @@ export const article: NewsEditorial = {
 
 export const evidenceViews: EvidenceView[] = [
   {
-    label: 'Adoption context',
-    title: 'Use has spread further than operating integration',
-    summary: 'These figures use different respondent bases. The contrast is useful as context. It does not describe a conversion funnel.',
+    label: 'Adoption counts',
+    title: 'One question about AI use, three official answers',
+    summary: 'Three UK statistical sources covering the same period report materially different adoption rates, because each asks a different population a differently worded question.',
     interpretation: {
-      establishes: 'Reported AI use is widespread in a digitally active survey population, while reported connection to business systems is less common.',
-      doesNotEstablish: 'The bars do not share one denominator and do not measure a progression from adoption to value.',
-      management: 'Treat usage as evidence of experimentation, then evaluate value at the level of a defined workflow.',
+      establishes: 'Reported UK business AI use ranges from 16 to 41 percent depending on the survey population and the definition of use applied.',
+      doesNotEstablish: 'The three bars share no denominator, so the differences between them cannot be read as growth, decline or a conversion funnel.',
+      management: 'Name the survey and its population whenever an adoption rate is quoted, and avoid building an investment case on the highest available figure.',
     },
-    source: 'UK Business Data Survey 2026',
+    source: 'UK Business Data Survey 2026; ONS Business Insights and Conditions Survey, June 2026; DSIT AI Adoption Research 2026',
     href: 'https://www.gov.uk/government/statistics/uk-business-data-survey-2026/uk-business-data-survey-2026',
     points: [
-      { label: 'AI use among data-handling firms', value: 41, display: '41%', detail: 'Share of businesses handling digitised data that reported using AI for any purpose.' },
-      { label: 'System integration among AI users', value: 21, display: '21%', detail: 'Share of AI-using businesses that reported integration with an existing business system.' },
-      { label: 'Comfort with external model training', value: 18, display: '18%', detail: 'Share comfortable with business data being used to train an external AI model.' },
+      { label: 'Businesses handling digitised data', value: 41, display: '41%', detail: 'UK Business Data Survey 2026: share of businesses handling digitised data that reported using AI for at least one purpose.' },
+      { label: 'All UK businesses, June 2026', value: 29, display: '29%', detail: 'ONS Business Insights and Conditions Survey: share of UK businesses reporting at least one AI technology in use.' },
+      { label: 'DSIT adoption research', value: 16, display: '16%', detail: 'DSIT AI Adoption Research 2026: share of UK businesses using at least one AI technology on that survey’s definition.' },
     ],
   },
   {
     label: 'Integration by size',
-    title: 'Scale still buys an integration advantage',
-    summary: 'Among businesses already using AI, larger firms report materially higher integration with existing systems.',
+    title: 'Integration climbs with size and stalls in the middle',
+    summary: 'Among UK businesses already using AI, the share reporting integration with an existing business system rises from 18 percent at sole traders to 57 percent at large businesses, with small and medium firms level at 31 percent.',
     interpretation: {
-      establishes: 'Larger AI-using businesses report system integration more frequently than smaller adopters.',
-      doesNotEstablish: 'The survey does not prove that size caused integration or that every reported connection changed operating performance.',
-      management: 'Smaller firms should budget for the data work, the workflow redesign and the staff time to run it, because the connector supplies none of that.',
+      establishes: 'Reported system integration among AI users is around three times as common in large businesses as among sole traders, and flat across the small and medium bands.',
+      doesNotEstablish: 'The survey does not show that size caused integration, and it counts light forms of connection such as an assistant embedded in office software.',
+      management: 'Budget the data preparation, the workflow redesign and the staff time separately from the licence, because the connector supplies none of them.',
     },
     source: 'UK Business Data Survey 2026',
     href: 'https://www.gov.uk/government/statistics/uk-business-data-survey-2026/uk-business-data-survey-2026',
     points: [
+      { label: 'All AI-using businesses', value: 21, display: '21%', detail: 'Share of AI-using businesses reporting that their tools are integrated with an existing business system.' },
       { label: 'Sole traders', value: 18, display: '18%', detail: 'Reported system integration among sole traders already using AI.' },
       { label: 'Micro businesses', value: 27, display: '27%', detail: 'Reported system integration among AI-using micro businesses.' },
       { label: 'Small businesses', value: 31, display: '31%', detail: 'Reported system integration among AI-using small businesses.' },
