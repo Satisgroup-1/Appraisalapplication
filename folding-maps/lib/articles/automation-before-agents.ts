@@ -1,12 +1,11 @@
 import type { EvidenceView } from '@/lib/editorialGraphics';
 import type { NewsEditorial } from '@/lib/newsEditorial';
-import { jaggedFrontier, ukAdoption } from '@/lib/sources';
+import { gartnerAgents, jaggedFrontier, ukAdoption } from '@/lib/sources';
 
 // Citations used only by this article. The orchestrator hoists anything that
 // turns out to be shared into lib/sources.ts.
 const agentBenchmark = { label: 'TheAgentCompany benchmark, Carnegie Mellon University, 2025', href: 'https://arxiv.org/abs/2412.14161' };
 const crmBenchmark = { label: 'CRMArena-Pro, Salesforce AI Research, 2025', href: 'https://arxiv.org/abs/2505.18878' };
-const gartnerAgents = { label: 'Gartner, over 40 percent of agentic AI projects will be canceled by end of 2027, June 2025', href: 'https://www.gartner.com/en/newsroom/press-releases/2025-06-25-gartner-predicts-over-40-percent-of-agentic-ai-projects-will-be-canceled-by-end-of-2027' };
 const humanAiMeta = { label: 'Vaccaro, Almaatouq and Malone, Nature Human Behaviour, 2024', href: 'https://www.nature.com/articles/s41562-024-02024-1' };
 
 export const article: NewsEditorial = {
@@ -53,7 +52,7 @@ export const article: NewsEditorial = {
       exhibits: [{ kind: 'system', afterParagraph: 2 }],
     },
     {
-      heading: 'Bounded agents can earn authority before redesign finishes',
+      heading: 'Bounded agents can hold authority before redesign finishes',
       role: 'counterargument',
       transition: 'Granting authority by consequence delays useful work, and the objection that the delay costs more than the failures it prevents deserves its strongest statement.',
       paragraphs: [

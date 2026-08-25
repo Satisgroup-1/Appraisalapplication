@@ -23,7 +23,7 @@ const alarmBenchmark: ReportSource = {
 export const article: NewsEditorial = {
   title: 'A temperature excursion changes nothing until it triggers a defined response',
   standfirst: 'Studies that instrument every leg of a distribution path report excursion rates several times higher than studies that instrument a single storage point. Detection is the cheap half of the problem.',
-  thesis: 'Cold-chain monitoring earns its cost where a qualifying excursion reaches a named colleague inside a stated time and closes with the reading, the operating context and the corrective action held together in one record.',
+  thesis: 'Cold-chain monitoring repays its cost where a qualifying excursion reaches a named colleague inside a stated time and closes with the reading, the operating context and the corrective action held together in one record.',
   sceneLabel: 'The excursion',
   sceneTitle: 'Eight minutes above threshold, and four systems holding part of the answer',
   sceneParagraphs: [
@@ -43,7 +43,7 @@ export const article: NewsEditorial = {
     },
     {
       heading: 'Turn a validated reading into an assignable case',
-      transition: 'Lighting the dark stretches multiplies readings, and a reading earns attention only once it can be told apart from an instrument fault.',
+      transition: 'Lighting the dark stretches multiplies readings, and a reading deserves attention only once it can be told apart from an instrument fault.',
       paragraphs: [
         { text: 'Wider coverage brings more ways to be wrong. Missing heartbeats, implausible jumps, probes reading through a defrost cycle and calibration that drifted three months ago all arrive looking like temperature data. Each of these should surface as a data exception in its own right, with the gap left visible on the record. Filling a gap by interpolation, or presenting a suspect reading to one decimal place, conceals exactly the operating risk that matters. A service unable to say which of its readings it trusts is producing an opinion with a unit attached.' },
         { text: 'Security guidance points the same way. NCSC operational technology guidance asks for a definitive view of what is deployed and for data to be validated where it crosses a trust boundary, and its connectivity principles ask for architectural separation when information moves from plant equipment into analytical services. Applied here, those principles stop the monitoring path from becoming a route back into refrigeration control.', sources: [ncscOt, ncscProtocols] },
@@ -59,7 +59,7 @@ export const article: NewsEditorial = {
       paragraphs: [
         { text: 'The case against building any of this is that operators are already saturated, and that a service converting routine movement into cases would deepen the saturation. Process operations have measured that problem for decades. EEMUA 191 recommends no more than one alarm per operator per ten minutes in normal running and no more than ten alarms in the first ten minutes of an upset, and it pairs those rates with an expected time to respond.', sources: [alarmBenchmark] },
         { text: 'Benchmarking by the ASM Consortium against that guide, across 37 operator consoles, found about a third holding the normal-operation rate and about a quarter more sitting in the band the guide calls manageable, which by subtraction leaves roughly two consoles in five above it. Only two of the 37 came close to the guideline for upset conditions. Those are refineries and chemical plants with dedicated control rooms. A chilled warehouse with one duty manager overnight has considerably less attention to spend.', sources: [alarmBenchmark] },
-        { text: 'That objection survives, and it should change the design. Continuous records earn their place in assurance, trend analysis, maintenance planning and retrospective investigation without ever interrupting anybody. A case should form only where signal quality, duration, product and context together clear a threshold the operators themselves agreed, and the number of cases per shift belongs in the specification as a ceiling, tested against history before anything escalates live. A ceiling of that kind is unusual in monitoring specifications and ordinary in process control, which is where the evidence on operator attention comes from. The service should be judged on whether its cases displace work the operator was doing anyway.' },
+        { text: 'That objection survives, and it should change the design. Continuous records hold their place in assurance, trend analysis, maintenance planning and retrospective investigation without ever interrupting anybody. A case should form only where signal quality, duration, product and context together clear a threshold the operators themselves agreed, and the number of cases per shift belongs in the specification as a ceiling, tested against history before anything escalates live. A ceiling of that kind is unusual in monitoring specifications and ordinary in process control, which is where the evidence on operator attention comes from. The service should be judged on whether its cases displace work the operator was doing anyway.' },
       ],
       exhibits: [{ kind: 'evidence', view: 1, afterParagraph: 1 }],
     },

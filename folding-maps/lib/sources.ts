@@ -25,7 +25,10 @@ export const googleTaua = { label: 'Google Cloud, Tauá Resorts customer story (
 export const microsoftSno = { label: 'Microsoft, SNÖ Hotels customer story (vendor material)', href: 'https://www.microsoft.com/en/customers/story/25861-sno-hotels-dynamics-365-business-central' };
 export const openAiBooking = { label: 'OpenAI, Booking.com customer story (vendor material)', href: 'https://openai.com/index/booking-com/' };
 
+export const gartnerAgents = { label: 'Gartner, over 40 percent of agentic AI projects will be cancelled by end of 2027, June 2025', href: 'https://www.gartner.com/en/newsroom/press-releases/2025-06-25-gartner-predicts-over-40-percent-of-agentic-ai-projects-will-be-canceled-by-end-of-2027' };
+
 export const allSources: ReportSource[] = [
+  gartnerAgents,
   ukBusinessData,
   ukAdoption,
   oecdWorkforce,

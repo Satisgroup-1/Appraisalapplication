@@ -1,79 +1,66 @@
 import type { EvidenceView } from '@/lib/editorialGraphics';
 import type { NewsEditorial } from '@/lib/newsEditorial';
-import { googleRadisson, googleTaua, icoAi, microsoftSno, openAiBooking } from '@/lib/sources';
+import { googleRadisson, icoAi } from '@/lib/sources';
+
+const cipdTurnover = { label: 'CIPD, Benchmarking employee turnover: latest trends and insights', href: 'https://www.cipd.org/uk/views-and-insights/thought-leadership/cipd-voice/benchmarking-employee-turnover/' };
+const sonaPineapple = { label: 'Hotel Magazine, reporting Sona and Pineapple hospitality workforce analysis, 2025', href: 'https://thehotelmagazine.co.uk/hospitality-staff-turnover-drops-by-close-to-10/' };
+const deMatosRecovery = { label: 'de Matos, Henrique and Vargas Rossi, Service Recovery Paradox: A Meta-Analysis, Journal of Service Research, 2007', href: 'https://journals.sagepub.com/doi/10.1177/1094670507303012' };
+const doubleDeviation = { label: 'International Journal of Consumer Studies, The Burden of Double Deviation in Services: A Systematic Review, 2022', href: 'https://onlinelibrary.wiley.com/doi/10.1111/ijcs.12836' };
+const empowermentRecovery = { label: 'International Journal of Hospitality Management, Service recovery through empowerment? HRM, employee performance and job satisfaction in hotels', href: 'https://www.sciencedirect.com/science/article/abs/pii/S0278431918306960' };
 
 export const article: NewsEditorial = {
-  title: 'Recovering a disrupted stay means reconciling five systems before anyone can act',
-  standfirst: 'A disrupted stay becomes harder when reservation, property, loyalty and maintenance systems tell different versions of the same journey. AI can help staff explain and coordinate recovery after identity, entitlement and authority are reconciled.',
-  thesis: 'A dependable guest-recovery service must reconcile guest identity, booking entitlement and live property state, then route feasible remedies through explicit compensation and escalation authority.',
-  sceneLabel: 'The situation',
-  sceneTitle: 'The guest has a confirmation and the room cannot be occupied',
+  title: 'Guest recovery depends on the colleague most likely to leave',
+  standfirst: 'An experienced colleague resolves a ruined stay faster than any integration can assemble the case. Hospitality also loses those colleagues faster than any other UK sector.',
+  thesis: 'Connected guest records pay off on the shifts when nobody with years of local knowledge is working. That makes the weakest shift the design target, and it makes handling cost and avoided second failures the only returns the published evidence will support.',
+  sceneLabel: 'The late arrival',
+  sceneTitle: 'Quarter past one, and the assigned room is unusable',
   sceneParagraphs: [
-    'After a delayed journey, a guest arrives with a valid confirmation. The property-management system shows the room assigned, a maintenance note marks it unavailable and the loyalty profile appears under a second email address. The front-desk colleague must resolve the stay while checking facts across several screens and waiting for authority to offer an alternative.',
-    'This composite scene describes no real property or guest. It follows one disruption from identification to closure to show where connected records, controlled automation and human judgement can shorten recovery.',
+    'The guest reaches the desk at quarter past one after a diverted flight. The reservation is confirmed and paid, the property management system shows the room assigned, and a maintenance note taken in the early evening marks it out of service. The loyalty record sits under an older email address, so the profile on screen shows no status at all. One colleague is on duty. The duty manager is asleep on site and can be woken.',
+    'Whether this stay is recovered in ten minutes or ninety depends almost entirely on who is standing at that desk. A colleague in their fourth year knows which rooms are genuinely unusable, which maintenance notes are stale, what the duty manager will approve without being woken, and which nearby property will take a walked guest at that hour. A colleague in their third week knows none of it.',
   ],
   sections: [
     {
-      heading: 'Recovery case formation',
+      heading: 'Experienced colleagues beat the recovery case on speed',
       paragraphs: [
-        { text: 'The confirmation proves a reservation, while leaving the feasible remedy unresolved. The colleague needs to know who the guest is, what was promised, which room and service alternatives exist now, what the policy permits and who can approve an exception.' },
-        { text: 'A recovery case should therefore preserve guest and booking identifiers, promised product, disruption type, live property state, entitlement, the options offered, the colleague handling it, what was said to the guest and the evidence of closure. Every source retains its timestamp because availability and maintenance facts can change during the conversation.' },
-        { text: 'The first evidence graphic treats all five record groups as required. Equal values express dependency and carry no measured contribution to satisfaction, speed or cost. A complete record will not guarantee a good recovery, but a missing identity or property state can make the proposed remedy invalid.' },
-        { text: 'The scene now has a unit of work. The next problem is reconciling multiple identifiers without joining the wrong guest or booking.' },
+        { text: 'That advantage is real and it is not sentimental. The colleague in their fourth year is running a reconciliation in their head that no connector has been asked to perform. They hold the booking, the current state of the floor, the standing arrangement with the property across the square, the manager’s tolerance for a waived night, and the guest’s face. They reach a decision while a case-management screen is still resolving identity.' },
+        { text: 'Set out formally, that work has five parts. Establish who the guest is across booking reference, channel identifier and loyalty record. Establish what was sold to them. Establish what the building can actually deliver tonight, which depends on housekeeping and maintenance as much as on inventory. Establish what the colleague may offer without asking permission. Record what was promised, so the morning shift is not told a different story.' },
+        { text: 'Written down, the sequence looks like a specification, and the specification is the part of this subject that has been published most often. It is also the part nobody argues with. Every operator agrees that identity should resolve correctly and that a colleague should know the limit of their own authority. Agreement at that level costs nothing and decides nothing, because the question a property actually faces is whether building it changes an outcome the experienced colleague was already producing.' },
+        { text: 'The honest answer, for that colleague, is that it does not. With them on shift, a connected recovery record is a slower route to a decision they can already reach, and a badly designed one will stop them reaching it at all. That is a real cost and it is paid on every shift the system sits in the way. Front-of-house teams already carry several systems introduced on the same reasoning, and each one added a screen to be checked before a decision could be made. Any case for building the thing has to be made somewhere else.' },
       ],
-      exhibits: [{ kind: 'evidence', view: 0, afterParagraph: 2 }],
+      exhibits: [{ kind: 'system', afterParagraph: 1 }],
     },
     {
-      heading: 'Identity and entitlement',
-      transition: 'Once the recovery case is defined, identity resolution determines which promises and permissions legitimately belong inside it.',
+      heading: 'Hospitality cannot keep the experience recovery relies on',
+      transition: 'Because the case for a recovery record cannot be won against the best colleague on the rota, it has to be argued against the composition of the rota itself.',
       paragraphs: [
-        { text: 'A guest may appear under a booking reference, channel identifier, loyalty number, email and telephone number. Exact matches can be deterministic. Probabilistic matches need confidence, visible evidence and manual review. The system should never silently merge profiles because an incorrect match can expose personal data and apply another guest’s preferences or entitlement.' },
-        { text: 'Entitlement derives from the booked product, rate conditions, loyalty status, disruption and approved service policy. These inputs should be versioned and reviewable. A model may explain the result in natural language; it should not invent a benefit or reinterpret a failed eligibility rule.' },
-        { text: 'Purpose limitation matters when CRM history or inferred preferences enter the case. ICO guidance requires processing to be lawful and documented at every stage. The colleague handling the recovery needs only the information that helps resolve this service failure, with retention and access aligned to that purpose.', sources: [icoAi] },
-        { text: 'Identity and entitlement establish what may be offered. Live property state determines what can actually be delivered.' },
+        { text: 'Attrition in the sector is the highest in the economy. CIPD’s benchmarking of UK employee turnover puts hospitality at around 52 percent a year against an all-industry average near 34 percent, with public administration and defence at about 25 percent. The same benchmarking records accommodation and food services as having the lowest average tenure of any industry group.', sources: [cipdTurnover] },
+        { text: 'Improvement does not change the order of magnitude. An analysis by Sona and Pineapple covering more than 35,000 hospitality employees reported annual turnover falling from about 75 percent to about 67 percent in the year to late 2025, and the trade press covered that as a substantial improvement. It is one. A property at 67 percent still replaces two thirds of its people every year.', sources: [sonaPineapple] },
+        { text: 'Read those figures against the rota and the design question changes shape. A property cannot schedule its failures, so the colleague who takes the call is drawn from the whole rota, and at this rate of churn the experienced part of that rota is being replaced continuously. The spread of recovery quality inside a single property is therefore wide, and the wide part sits at the bottom. Most operators know this and manage it by rostering a strong colleague onto the difficult shifts, which works until that person resigns, takes leave or is needed elsewhere in the building. What the property owes the guest on the nights when that cover fails is the question the design has to answer.' },
+        { text: 'What follows is a much smaller system than the specification implies. The colleague in their third week does not need a recovery workflow. They need four facts they cannot otherwise assemble at speed: which guest this is across the booking and loyalty records, what was sold, what is genuinely available in the building tonight, and what they may offer before waking anyone. Matching a guest across records is the only item on that list carrying a data protection consequence, and ICO guidance expects the purpose, access and retention for that processing to be documented before it runs.', sources: [icoAi] },
+        { text: 'Permission is the item most often left out, and it decides whether the record helps or obstructs. A screen that shows a colleague what is available while leaving them to guess what they may offer has moved the delay from the search to the approval, and the guest waits either way. Studies of frontline hotel employees report empowerment as a positive predictor of service recovery performance, which is a finding about permission, and no quantity of connected data supplies it.', sources: [empowermentRecovery] },
       ],
+      exhibits: [{ kind: 'evidence', view: 0, afterParagraph: 0 }],
     },
     {
-      heading: 'Property state and remedy options',
-      transition: 'Entitlement sets the permitted remedy space; current operational state narrows it to options the property can fulfil.',
-      paragraphs: [
-        { text: 'Reservation systems describe sold inventory and booking commitments. The property-management system carries room assignment and stay state. Housekeeping and maintenance records can make nominal inventory unavailable. Recovery logic must reconcile timestamps and source authority across those systems before proposing a room move, upgrade, external relocation or service credit.' },
-        { text: 'The architecture uses connectors to form a read model for the recovery case. It does not replace source systems. Each option records the facts and policy version used, its capacity reservation and any dependency such as transport or manager approval. A stale connector places the option on hold.' },
-        { text: 'First-party customer stories from Radisson, Tauá Resorts and SNÖ Hotels describe programmes built around more connected data and operating systems. They illustrate the feasibility of shared records in specific estates. The accounts do not establish a guest-recovery result for another group.', sources: [googleRadisson, googleTaua, microsoftSno] },
-        { text: 'The system diagram shows where data converges and where authority remains. The colleague chooses among feasible options within policy, while a manager handles exceptions above the delegated limit.' },
-      ],
-      exhibits: [{ kind: 'system', afterParagraph: 3 }],
-    },
-    {
-      heading: 'Authority and recovery economics',
-      transition: 'Feasible options still require a controlled decision, so the operating design must connect service judgement with compensation authority and measurement.',
-      paragraphs: [
-        { text: 'Compensation policy should define bands by disruption, entitlement and local operating context. Front-desk colleagues need enough authority to resolve common cases during the interaction. Higher-cost, unusual or sensitive remedies move to a named approver with the same evidence view.' },
-        { text: 'A language model can draft a clear explanation from approved facts and remedies. The colleague checks the tone, the accuracy and what is being promised before it is sent. Accepted communications become events in the recovery history so another colleague can continue without asking the guest to repeat the story.' },
-        { text: 'Measurement begins with acknowledgement time, time to feasible option, handoffs, repeat contacts, policy adherence, compensation by band and closure completeness. Guest feedback and future behaviour may add outcome evidence, with careful treatment of attribution and privacy. The second evidence view is a measurement architecture. It predicts no uplift.' },
-        { text: 'Booking.com describes AI use across travel planning and service contexts. Its own account shows the breadth of channel coordination across a large estate, while supplying no forecast for the property-level recovery measures proposed here.', sources: [openAiBooking] },
-      ],
-      exhibits: [{ kind: 'evidence', view: 1, afterParagraph: 2 }],
-    },
-    {
-      heading: 'Human service can outrun integration',
+      heading: 'Recovery may not buy what the business case assumes',
       role: 'counterargument',
-      transition: 'A controlled service can make evidence and authority clearer, but the strongest objection is that hospitality recovery depends on human discretion under local conditions.',
+      transition: 'Setting the design target at the weakest shift invites the two hardest objections, and both of them attack the return: whether recovery pays for itself at all, and whether a property with this rate of churn can keep any record accurate.',
       paragraphs: [
-        { text: 'An experienced colleague can often resolve disruption through local knowledge and discretion faster than a new system can reconcile imperfect records. A rigid workflow may narrow empathy, delay a simple gesture or turn policy into a ceiling when an unusual situation warrants generosity.' },
-        { text: 'Integration can also create a fragile dependency. A central case that waits for every connector may be slower than direct inspection, and centralised identity increases privacy and security consequence. The right fallback is an explicit manual route with delegated authority, later reconciliation and no requirement to wait for generated text.' },
-        { text: 'The service belongs on recurring cross-system failures where reconstruction and approval delay are material. It should stay out of a straightforward conversation that one colleague can resolve safely. Override reasons become evidence about where policy, data or interface design is too restrictive.' },
-        { text: 'This counterargument keeps the release focused on coordination. It does not ask software to substitute for judgement or care.' },
+        { text: 'Evidence on service recovery does not support the loyalty claim usually attached to it. The meta-analysis by de Matos, Henrique and Vargas Rossi pooled the published studies and found the recovery effect significant and positive on satisfaction, and nonsignificant on repurchase intentions, word of mouth and corporate image. A well-handled failure makes the guest feel better about the failure. The pooled evidence does not show it bringing them back.', sources: [deMatosRecovery] },
+        { text: 'Take that seriously and the return most recovery business cases are written on disappears. If the payoff is absent from repeat stays, what remains is narrower and duller: the labour cost of the handling itself, the compensation given because nobody could establish what the guest was actually owed, and the failures that get worse because the first attempt to fix them failed. Service research calls the last of those a double deviation, and reviews of it find the second failure eroding trust further than the original one did.', sources: [doubleDeviation] },
+        { text: 'Churn cuts the other way as well. A property replacing most of its front-of-house staff each year will struggle to keep any system accurate, and a recovery record is worth no more than the maintenance notes and room states feeding it. Few people train hard on a tool they expect to use for a single season. Override reasons go unrecorded, connectors drift, and the record becomes another screen that has to be checked against a phone call. Published examples of connected guest data come from groups such as Radisson with central engineering teams, described in their vendor’s own account, and a four-property operator has none of that.', sources: [googleRadisson] },
+        { text: 'Those objections narrow the case and they do not close it. Handling cost and avoided second failures are smaller prizes than loyalty, and they have the advantage of being measurable at one property in one quarter, which loyalty has never been. The maintenance risk is real and it argues for connecting less, so the number of things that can drift stays small enough for one named person to check on a Monday morning. The sharpest form of the objection is that the same budget would buy retention, and a property that held on to its people for another year would need less of this. That is probably true. It is also unavailable to most operators at the wage the sector currently pays, and the connected record is what remains once the retention argument has been made and lost.' },
       ],
+      exhibits: [{ kind: 'evidence', view: 1, afterParagraph: 0 }],
     },
     {
-      heading: 'Recovery release threshold',
+      heading: 'Build for the third week, measure the handling',
       role: 'conclusion',
-      transition: 'The value of local discretion defines the release test: connected evidence must improve coordination while preserving the colleague’s ability to act.',
+      transition: 'Once the return is stated as handling cost and avoided second failures, the release test follows from it, and it is a test about the least experienced person on the rota.',
       paragraphs: [
-        { text: 'For the guest in the opening scene, the service should reconcile identity, confirm what was promised, show the maintenance conflict, hold a feasible alternative and show the colleague’s authority before a commitment is made. Uncertain identity, stale property state or an out-of-band remedy triggers review.' },
-        { text: 'A pilot should cover one disruption type at a small group of properties and run beside current escalation. Release requires fewer reconstructive handoffs, controlled policy exceptions, reliable connector health, no material privacy incident and staff evidence that the case helps them resolve the guest’s problem.' },
-        { text: 'The guest should experience one conversation with a colleague who can act. The architecture behind it should be invisible to them. Connected systems matter when they give the colleague accurate options and authority at the moment recovery is still possible.' },
+        { text: 'For the guest at quarter past one, success is a colleague in their third week reaching the decision the fourth-year colleague would have reached, in a comparable time, without waking anyone who did not need waking. That is the whole specification. It is narrower than a recovery platform, and it can be tested on a single night shift.' },
+        { text: 'Staff the pilot deliberately, because this is where parallel runs usually go wrong. Running it on the day shift with the strongest team measures the case where the system has least to offer, and it produces a flattering result nobody can act on. Run it at night, on one disruption type, at a small number of properties, and compare handling time, compensation given, escalations and repeat contacts with the same shift before the change. Report the spread across colleagues, because the argument here concerns the bottom of that spread.' },
+        { text: 'Two results should stop the release. One is a colleague reaching a worse decision because the screen was authoritative and stale. The other is an experienced colleague slowed by a route built for somebody else, which is the version of this failure the industry has already had once with printed policy manuals. Neither of those is a reason to leave the property on five systems and a good memory, and both are reasons to keep the built part small.' },
       ],
     },
   ],
@@ -81,39 +68,38 @@ export const article: NewsEditorial = {
 
 export const evidenceViews: EvidenceView[] = [
   {
-    label: 'Case completeness',
-    title: 'Recovery depends on five reconciled records',
-    summary: 'A modelled dependency model for a guest-recovery case. Equal values are requirements and contain no measured hotel outcome.',
+    label: 'Sector attrition',
+    title: 'Experience is the input hospitality retains worst',
+    summary: 'Approximate annual attrition by UK sector, as reported in CIPD benchmarking of employee turnover. The hospitality figure covers accommodation and food services.',
     interpretation: {
-      establishes: 'The proposed route needs identity, promise, property state, authority and closure evidence before a colleague can act on it.',
-      doesNotEstablish: 'A complete case does not guarantee guest satisfaction, faster resolution or lower compensation.',
-      management: 'Test how fresh each connector is, and who maintains it, before measuring the quality of generated messages.',
+      establishes: 'A property cannot assume that the colleague handling a service failure has been there long enough to know the building.',
+      doesNotEstablish: 'The rates say nothing about how well any individual colleague handles a disruption, and nothing about whether a connected record improves it.',
+      management: 'Set the design target at the colleague in their first month, and report the spread across the team alongside the average.',
     },
-    source: 'Quiet Gears hospitality operating design (design values awaiting measurement)',
+    source: 'CIPD, benchmarking of UK employee turnover (sector attrition rates)',
+    href: 'https://www.cipd.org/uk/views-and-insights/thought-leadership/cipd-voice/benchmarking-employee-turnover/',
     points: [
-      { label: 'Guest and booking identity', value: 100, display: 'Required', detail: 'The case must link the right guest, stay and channel reference.' },
-      { label: 'Entitlement and promise', value: 100, display: 'Required', detail: 'The booked product and policy determine the permitted remedy space.' },
-      { label: 'Live property state', value: 100, display: 'Required', detail: 'Room, housekeeping and maintenance state determine what can be fulfilled.' },
-      { label: 'Recovery authority', value: 100, display: 'Required', detail: 'A named colleague or approver must hold authority for the remedy.' },
-      { label: 'Action and closure evidence', value: 100, display: 'Required', detail: 'Commitments and outcomes must remain visible to the next colleague.' },
+      { label: 'Hospitality', value: 52, display: 'About 52%', detail: 'Accommodation and food services records the highest churn and the lowest tenure of any UK industry group.' },
+      { label: 'All UK industries', value: 34, display: 'About 34%', detail: 'The all-industry average against which the sector figure should be read.' },
+      { label: 'Public administration and defence', value: 25, display: 'About 25%', detail: 'The lowest-churn sector in the same benchmarking, included to show the range.' },
     ],
   },
   {
-    label: 'Pilot measures',
-    title: 'Recovery quality cannot be reduced to compensation cost',
-    summary: 'Modelled measurement priorities for a parallel pilot. Values show proposed decision relevance. None of them forecasts an improvement.',
+    label: 'Recovery outcomes',
+    title: 'Recovery restores satisfaction and little else',
+    summary: 'Pooled findings of a meta-analysis of the service recovery paradox. Bar length marks whether the cumulative mean effect was reported as significant. It is not an effect size.',
     interpretation: {
-      establishes: 'The evaluation must cover who picks the case up, whether the remedy is feasible, the hand-offs, the policy and the guest outcome, across the complete recovery route.',
-      doesNotEstablish: 'The weights do not predict satisfaction, loyalty, revenue or operating savings.',
-      management: 'Use a balanced review so lower compensation cannot disguise slower or less humane recovery.',
+      establishes: 'Across the pooled studies a good recovery raised satisfaction, and it did not raise repurchase intention, word of mouth or corporate image.',
+      doesNotEstablish: 'The analysis covers service recovery in general and tests no hotel system, so it cannot say what a connected recovery record would do at one property.',
+      management: 'Write the business case on handling cost and avoided second failures, and treat any loyalty benefit as unproven until the property measures it.',
     },
-    source: 'Quiet Gears evaluation design (design values awaiting measurement)',
+    source: 'de Matos, Henrique and Vargas Rossi, Service Recovery Paradox: A Meta-Analysis, Journal of Service Research, 2007',
+    href: 'https://journals.sagepub.com/doi/10.1177/1094670507303012',
     points: [
-      { label: 'Time until a colleague takes the case', value: 90, display: 'Core', detail: 'Measure the gap between the disruption being logged and one named colleague picking it up.' },
-      { label: 'Time to feasible option', value: 100, display: 'Core', detail: 'Measure when a deliverable remedy becomes available. It is not when text is generated.' },
-      { label: 'Repeat contacts and handoffs', value: 82, display: 'Material', detail: 'Repeated explanation is evidence of coordination failure.' },
-      { label: 'Policy and compensation control', value: 88, display: 'Material', detail: 'Track approved bands, overrides and escalation decisions.' },
-      { label: 'Guest outcome evidence', value: 78, display: 'Material', detail: 'Use feedback and subsequent behaviour carefully because attribution is incomplete.' },
+      { label: 'Satisfaction', value: 100, display: 'Significant positive effect', detail: 'The cumulative mean effect supported the recovery paradox on stated satisfaction.' },
+      { label: 'Repurchase intentions', value: 0, display: 'No significant effect', detail: 'The pooled effect on intention to buy again was reported as nonsignificant.' },
+      { label: 'Word of mouth', value: 0, display: 'No significant effect', detail: 'The pooled effect on what customers told other people was reported as nonsignificant.' },
+      { label: 'Corporate image', value: 0, display: 'No significant effect', detail: 'The pooled effect on how customers regarded the firm was reported as nonsignificant.' },
     ],
   },
 ];

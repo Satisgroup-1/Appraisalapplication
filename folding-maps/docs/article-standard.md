@@ -105,19 +105,20 @@ carry the recommendation:
 **[searched]** A reader who reads only the headings has read the argument. This
 is the same discipline as the action title on an exhibit (§5).
 
-> **Conflict with the site's tests.** `content.test.ts` enforces headings of six
-> words or fewer that do not begin with an article. Two of the three BCG
-> headings above would fail on length; two would also fail the house ban on the
-> "x, not y" construction. The six-word cap forces the site's headings into
-> compressed noun stacks — "Gross-to-net value bridge", "Workflow authority and
-> measurement" — which is the label form the genre avoids. **This is a decision
-> for the human, not for the editor.** The options are: keep the cap and accept
-> label headings; raise the cap to about ten words and require headings to be
-> propositions; or keep the cap and require a verb.
+> **Resolved, after this document was written.** `content.test.ts` enforced
+> headings of six words or fewer that do not begin with an article. Two of the
+> three BCG headings above would have failed on length. The six-word cap forced
+> the site's headings into compressed noun stacks ("Gross-to-net value bridge",
+> "Workflow authority and measurement"), which is the label form the genre
+> avoids. **The cap is now nine words.** The ban on a leading article stands,
+> and headings are expected to state a claim, which no test can check. Two of
+> those BCG headings would still fail the house ban on the "x, not y"
+> construction, and that ban stands: the construction was removed from this
+> site twice and is now enforced in the suite.
 
 ## 4. Transitions
 
-**Rule: one signpost per seam, and it earns its place by stating the causal step.
+**Rule: one signpost per seam, and it justifies its place by stating the causal step.
 A section does not both end by announcing the next section and get announced
 again by the next section's transition.** **[reading]**
 

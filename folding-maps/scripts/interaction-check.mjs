@@ -49,6 +49,13 @@ const check = (name, ok, extra = '') => results.push(`${ok ? 'PASS' : 'FAIL'}  $
   check('every section renders without scripting', headings >= 4 && hidden === 0, `${headings} sections, ${hidden} hidden`);
   await noScript.close();
 
+  // 3b. The site's own typeface actually reaches the page. --sans is derived
+  // from the font variable at :root, so setting that variable anywhere below
+  // <html> silently serves the whole site in the browser default serif.
+  await p.goto(B + '/', { waitUntil: 'networkidle' });
+  const family = await p.evaluate(() => getComputedStyle(document.body).fontFamily);
+  check('body renders in the site typeface', /IBM Plex Sans/.test(family), family);
+
   // 4. Evidence chart selection
   await p.goto(B + '/case-studies/cold-chain', { waitUntil: 'networkidle' });
   const bars = p.locator('.evidence-bar-row');

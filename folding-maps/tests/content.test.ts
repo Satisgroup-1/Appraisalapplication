@@ -263,6 +263,11 @@ describe('editorial content', () => {
     expect(corpus).not.toContain('the graphic establishes');
     expect(corpus).not.toContain('the unresolved question');
     expect(corpus).not.toContain('ai-powered transformation');
+    // Two tics that have now been removed from this site twice. The 'x, not y'
+    // construction and 'earns' phrasing both reappeared during the article
+    // rewrite, so they are enforced rather than remembered.
+    expect(corpus).not.toMatch(/,\s+not\s+/);
+    expect(corpus).not.toMatch(/\bearn(s|ed|ing)?\b/);
     expect(readFileSync('app/news/[slug]/page.tsx', 'utf8')).not.toContain('<table');
     expect(readFileSync('app/case-studies/[slug]/page.tsx', 'utf8')).not.toContain('<table');
   });

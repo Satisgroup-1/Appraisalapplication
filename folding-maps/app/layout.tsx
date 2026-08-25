@@ -32,5 +32,9 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="en"><body className={`${body.variable}`}><a className="skip-link" href="#main">Skip to content</a><Header/><main id="main">{children}</main><Footer/></body></html>;
+  // The font variable belongs on <html>: globals.css derives --sans and
+  // --display from --body at :root, and a custom property set on <body> is not
+  // visible to its own ancestor. Setting it here served the whole site in the
+  // browser default serif.
+  return <html lang="en" className={body.variable}><body><a className="skip-link" href="#main">Skip to content</a><Header/><main id="main">{children}</main><Footer/></body></html>;
 }
