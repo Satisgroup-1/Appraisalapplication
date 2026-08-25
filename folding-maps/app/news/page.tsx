@@ -71,8 +71,8 @@ export default function News() {
             <span className="kicker">Enquiries</span>
             <h2>Disagreement is the more useful reply.</h2>
             <p>
-              These are arguments, not conclusions, and they are better for being tested
-              against a real operation. If your own data contradicts one, we would sooner
+              These are arguments, and they are better for being tested against a real
+              operation. If your own data contradicts one, we would sooner
               hear it than defend the piece.
             </p>
           </div>

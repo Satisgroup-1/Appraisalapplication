@@ -19,7 +19,7 @@ const routes = [
   {
     question: '“We think AI could help, but we cannot tell where.”',
     answer:
-      'This is a diagnostic problem, not a technology one. The work starts by measuring where effort actually goes, which usually contradicts the process map and occasionally contradicts the executive team. It ends with a ranked list of candidates and an honest note on the ones not worth doing.',
+      'The problem here is diagnostic before it is technical. The work starts by measuring where effort actually goes, which usually contradicts the process map and occasionally contradicts the executive team. It ends with a ranked list of candidates and an honest note on the ones not worth doing.',
     service: 'Strategy and readiness',
     slug: 'ai-strategy',
   },
@@ -91,10 +91,10 @@ export default function ServicesPage() {
         <div className="container inner">
           <div>
             <span className="kicker">Enquiries</span>
-            <h2>Start with the problem, not the service.</h2>
+            <h2>Start with the problem.</h2>
             <p>
-              Describe the problem, not the solution, and we will tell you which kind of work
-              it is, including when the answer is that it is not ours.
+              Describe the problem and we will tell you which kind of work it is, including
+              when the answer is that it is not ours.
             </p>
           </div>
           <Link className="button" href="/contact">

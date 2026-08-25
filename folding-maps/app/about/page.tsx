@@ -76,7 +76,7 @@ export default function About() {
           <p>
             That is the gap we work in. Our job is to understand the operating detail well
             enough to decide what genuinely deserves to change, then take responsibility for
-            a focused release, not a programme. Sometimes AI belongs in the answer.
+            one focused release. Sometimes AI belongs in the answer.
             Often the honest answer is simpler software, better data, or a process change
             that costs nothing at all. We would sooner say so and be trusted next time.
           </p>

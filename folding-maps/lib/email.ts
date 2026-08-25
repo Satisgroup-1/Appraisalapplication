@@ -157,9 +157,9 @@ export function buildAcknowledgementEmail() {
   const text = [
     'Thank you for your enquiry.',
     '',
-    'One of our two lead consultants will read it and reply within one working day. That reply either sets up an initial consultation or tells you plainly that this is not work for us, and who might be better placed.',
+    'One of our two lead consultants will read it and reply within one working day. That reply either sets up an initial consultation or explains why this is not something we should take on, and who might be better placed.',
     '',
-    'The initial consultation is a conversation about your operation, not about our credentials. You should leave it with at least one thing worth doing, whether or not you engage us.',
+    'The initial consultation is a scheduled call. We ask how the work runs today, where it slows down and what has already been tried, then set out the constraint as we understand it and what we would look at first.',
     '',
     'Quiet Gears',
     '4 Foscote Mews, London · working UK-wide',
@@ -168,8 +168,8 @@ export function buildAcknowledgementEmail() {
   const html = wrap(
     'We received your enquiry',
     `<h1 style="margin:0 0 20px;font-size:19px;font-weight:600;letter-spacing:-0.02em;">Thank you for your enquiry.</h1>
-     <p style="margin:0 0 16px;">One of our two lead consultants will read it and reply <strong>within one working day</strong>. That reply either sets up an initial consultation or tells you plainly that this is not work for us, and who might be better placed.</p>
-     <p style="margin:0 0 16px;">The initial consultation is a conversation about your operation, not about our credentials. You should leave it with at least one thing worth doing, whether or not you engage us.</p>
+     <p style="margin:0 0 16px;">One of our two lead consultants will read it and reply <strong>within one working day</strong>. That reply either sets up an initial consultation or explains why this is not something we should take on, and who might be better placed.</p>
+     <p style="margin:0 0 16px;">The initial consultation is a scheduled call. We ask how the work runs today, where it slows down and what has already been tried, then set out the constraint as we understand it and what we would look at first.</p>
      <p style="margin:24px 0 0;padding-top:16px;border-top:1px solid rgba(10,27,42,0.14);font-size:13px;color:#56687c;">
        This is an acknowledgement, not a mailing list. Your details are used only to answer this enquiry.
      </p>`,

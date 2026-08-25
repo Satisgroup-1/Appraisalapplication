@@ -16,13 +16,13 @@ const process = [
     step: '01',
     title: 'A reply within one working day',
     detail:
-      'One of the two lead consultants reads every enquiry and answers it. There is no qualification call with someone who will not be doing the work, and no automated sequence.',
+      'One of the two lead consultants reads your enquiry and writes back. The reply either sets out the questions we would need answered to scope the work, or explains why this is not something we should take on and who might be better placed.',
   },
   {
     step: '02',
     title: 'An initial consultation',
     detail:
-      'A scheduled conversation about your operation, not our credentials. We use it to establish what the constraint actually is and what we would do first, and you should leave it with at least one thing worth doing whether or not you engage us.',
+      'A scheduled call. We ask how the work runs today, where it slows down, what has already been tried and what that cost. We then set out the constraint as we understand it, what we would look at first, and roughly what that would take.',
   },
 ];
 
@@ -33,9 +33,9 @@ export default function Contact() {
         <span className="kicker">Contact</span>
         <h1>Tell us what is not working.</h1>
         <p className="lede">
-          The most useful enquiries describe a constraint, not a solution: what slows down,
-          who it affects, and what has already been tried. You do not need a brief. An
-          enquiry results in a reply within one working day and an initial consultation.
+          The most useful enquiries describe the constraint itself: what slows down, who it
+          affects, and what has already been tried. You do not need a brief. An enquiry gets
+          a reply within one working day, followed by an initial consultation.
         </p>
       </section>
 

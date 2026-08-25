@@ -43,7 +43,7 @@ const positions = [
     claim: 'The model is rarely the constraint.',
     body: [
       'Frontier models are now good enough for most of the work an SME would put to them. What decides whether a system holds up is the process around it: whether the data it reads is current, whether the hand-offs between people are defined, and whether somebody owns the exception when the answer is wrong.',
-      'So the first weeks of an engagement go on the workflow, not on model selection. It is the least interesting part of the work and the most reliable source of value in it.',
+      'So the first weeks of an engagement go on the workflow. Model selection comes later and matters less than most people expect. It is the least interesting part of the work and the most reliable source of value in it.',
     ],
   },
   {
@@ -54,7 +54,7 @@ const positions = [
     ],
   },
   {
-    claim: 'Automation should be argued for, not assumed.',
+    claim: 'Automation has to be argued for.',
     body: [
       'The case for automating a task is an empirical claim, and it is usually made without evidence. Multiplying estimated minutes by a salary rate produces a number, not a business case, because the minutes saved are rarely contiguous and the quality cost is rarely counted.',
       'We baseline before we build, and we say so when the evidence does not support the work. Declining a project is cheaper for both sides than delivering one that cannot be defended at the next budget review.',
@@ -128,7 +128,7 @@ export default function Home() {
             <dl>
               <div>
                 <dt>Practice</dt>
-                <dd>Advice and delivery in one team, not a strategy deck and a referral</dd>
+                <dd>Advice and delivery in one team, so the advice has to survive being built</dd>
               </div>
               <div>
                 <dt>Clients</dt>
@@ -299,8 +299,8 @@ export default function Home() {
             <span className="kicker">Enquiries</span>
             <h2 id="contact-title">Tell us where the work is getting stuck.</h2>
             <p>
-              A first conversation is diagnostic, not a pitch. If the problem does not need
-              us, we will say so and tell you what we would do instead.
+              The first conversation is diagnostic. If the problem does not need us, we will
+              say so and tell you what we would do instead.
             </p>
           </div>
           <Link className="button" href="/contact">
