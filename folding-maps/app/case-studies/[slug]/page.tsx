@@ -58,7 +58,10 @@ export default async function CaseDetail({ params }: { params: Promise<{ slug: s
         label: bar.label,
         value: bar.value,
         display: bar.display,
-        detail: 'A priority agreed in discovery. The figure is a design target and has not yet been measured in operation.',
+        // A project charting an observed count supplies its own wording. The
+        // fallback covers the projects still charting a design priority, and
+        // must not describe a counted figure as an unmeasured target.
+        detail: bar.detail ?? 'A priority agreed in discovery. The figure is a design target and has not yet been measured in operation.',
       })),
     },
   ];

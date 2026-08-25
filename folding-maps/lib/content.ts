@@ -5,7 +5,10 @@ import { study as professional_services_intake, research as professional_service
 import { study as field_service_planning, research as field_service_planning_research } from '@/lib/cases/field-service-planning';
 
 export type Metric = { value: string; label: string; detail?: string };
-export type Bar = { label: string; value: number; display: string };
+// `detail` is the tooltip shown when a reader selects a bar. It is optional
+// because some projects chart a design priority and some chart something
+// discovery counted, and those two need different wording.
+export type Bar = { label: string; value: number; display: string; detail?: string };
 export type Source = { label: string; href: string };
 
 export type CaseStudy = {
