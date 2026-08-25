@@ -1,3 +1,9 @@
+import { study as yacht_operations, research as yacht_operations_research } from '@/lib/cases/yacht-operations';
+import { study as cold_chain, research as cold_chain_research } from '@/lib/cases/cold-chain';
+import { study as property_pipeline, research as property_pipeline_research } from '@/lib/cases/property-pipeline';
+import { study as professional_services_intake, research as professional_services_intake_research } from '@/lib/cases/professional-services-intake';
+import { study as field_service_planning, research as field_service_planning_research } from '@/lib/cases/field-service-planning';
+
 export type Metric = { value: string; label: string; detail?: string };
 export type Bar = { label: string; value: number; display: string };
 export type Source = { label: string; href: string };
@@ -22,179 +28,13 @@ export type CaseStudy = {
   nextSteps: string[];
 };
 
+/** One file per project, under lib/cases. */
 export const cases: CaseStudy[] = [
-  {
-    slug: 'yacht-operations',
-    image: '/images/case-yacht.svg',
-    sector: 'Marine',
-    title: 'A calmer operating system for a growing yacht business',
-    summary: 'One record for every enquiry, project and commitment, with the next action and the colleague taking it visible on each.',
-    status: 'In progress',
-    brief: 'The engagement is creating a shared operational backbone for a specialist sailing business. The immediate priority is visibility: one place to see where each customer stands, what happens next and which colleague is doing it.',
-    metrics: [
-      { value: '1', label: 'shared operational view', detail: 'Target design state' },
-      { value: '4', label: 'workflow layers mapped', detail: 'Enquiry, client, project and follow-up' },
-      { value: '100%', label: 'human approval retained', detail: 'For client-facing decisions' },
-    ],
-    barSubtitle: 'Relative priority score from discovery workshops, normalised to 100.',
-    bars: [
-      { label: 'Shared customer context', value: 100, display: 'Critical' },
-      { label: 'A named next action', value: 88, display: 'High' },
-      { label: 'Management visibility', value: 72, display: 'High' },
-      { label: 'Automated drafting', value: 43, display: 'Later' },
-    ],
-    barNote: 'Source: Quiet Gears discovery synthesis. Scores express design priority. None of them measures performance.',
-    phases: [
-      { label: 'Discover', detail: 'Trace customer journeys, decisions and exceptions.' },
-      { label: 'Establish', detail: 'Create the shared record and explicit workflow states.' },
-      { label: 'Connect', detail: 'Link communications, documents and management views.' },
-      { label: 'Automate', detail: 'Add bounded assistance after the process is stable.' },
-    ],
-    code: {
-      title: 'An event-led backbone keeps every action traceable',
-      lines: ['event = capture(change)', 'record = customer.merge(event)', 'next = policy.resolve(record.state)', 'assignee = roles.assign(next)', 'audit.write(event, next, assignee)'],
-      nodes: ['Enquiry channels', 'Customer record', 'Workflow policy', 'Team workspace', 'Management view'],
-    },
-    nextSteps: ['Release the shared customer and project view', 'Baseline coordination time and overdue actions', 'Review adoption with users after four weeks', 'Introduce automation only where evidence supports it'],
-  },
-  {
-    slug: 'cold-chain',
-    image: '/images/case-cold-chain.svg',
-    sector: 'Cold storage',
-    title: 'Turning temperature data into timely action',
-    summary: 'Exception-led monitoring that reduces manual oversight while strengthening the operational record.',
-    status: 'Anonymised',
-    brief: 'A cold-chain operator moving from scheduled checking to evidence-led intervention. The client is not named here at their request. The design combines sensor readings, asset context and human notes so that teams see the exceptions that matter and keep a complete decision record. Service levels on this page are the targets agreed for the work.',
-    metrics: [
-      { value: '24/7', label: 'signal coverage', detail: 'Design target' },
-      { value: '<15 min', label: 'exception triage', detail: 'Service-level target' },
-      { value: '4', label: 'evidence layers', detail: 'Reading, asset, threshold and action' },
-    ],
-    barSubtitle: 'Modelled contribution of each evidence layer to a triage decision.',
-    bars: [
-      { label: 'Temperature and duration', value: 100, display: 'Core' },
-      { label: 'Asset operating state', value: 78, display: 'Material' },
-      { label: 'Product and location context', value: 66, display: 'Material' },
-      { label: 'Operator notes', value: 48, display: 'Supporting' },
-    ],
-    barNote: 'Source: Quiet Gears service design. The values are relative design weights. None is an empirical finding.',
-    phases: [
-      { label: 'Sense', detail: 'Collect readings, equipment state and connectivity health.' },
-      { label: 'Validate', detail: 'Identify missing, stale or implausible signals.' },
-      { label: 'Prioritise', detail: 'Apply transparent operational thresholds and context.' },
-      { label: 'Resolve', detail: 'Record human action, evidence and closure.' },
-    ],
-    code: {
-      title: 'The monitoring layer makes uncertainty explicit',
-      lines: ['reading = sensors.latest(asset)', 'quality = validate(reading, heartbeat)', 'case = classify(reading, policy, context)', 'decision = operator.review(case)', 'ledger.append(case, decision)'],
-      nodes: ['Sensors and gateways', 'Data quality service', 'Policy engine', 'Exception queue', 'Audit ledger'],
-    },
-    nextSteps: ['Select one asset class and operating site', 'Agree thresholds and who escalation reaches on each shift', 'Run the service in observation mode', 'Compare alert quality with the existing process'],
-  },
-  {
-    slug: 'property-pipeline',
-    image: '/images/case-property.svg',
-    sector: 'Real estate',
-    title: 'Giving property teams one view of the pipeline',
-    summary: 'A transaction workspace connecting enquiries, documents, decisions and follow-ups.',
-    status: 'Anonymised',
-    brief: 'Redesigning the property pipeline around stage gates, each with a named colleague who clears it. The client is not named here at their request, and the control allocations on this page are design judgements agreed for the work. The concept reduces duplicate entry, keeps documents linked to decisions and gives leadership a current view of progress and risk.',
-    metrics: [
-      { value: '1', label: 'pipeline view', detail: 'Across commercial and delivery teams' },
-      { value: '5', label: 'stage gates', detail: 'From qualification to completion' },
-      { value: '3', label: 'control roles', detail: 'Owner, reviewer and approver' },
-    ],
-    barSubtitle: 'Modelled share of control effort by transaction stage.',
-    bars: [
-      { label: 'Qualification', value: 52, display: '12%' },
-      { label: 'Evidence collection', value: 100, display: '31%' },
-      { label: 'Review and negotiation', value: 84, display: '26%' },
-      { label: 'Completion readiness', value: 68, display: '21%' },
-      { label: 'Close and archive', value: 32, display: '10%' },
-    ],
-    barNote: 'Source: Quiet Gears operating model. The percentages are a design allocation offered for discussion. None of them measures staff time.',
-    phases: [
-      { label: 'Qualify', detail: 'Capture the opportunity, parties and decision criteria.' },
-      { label: 'Evidence', detail: 'Collect documents and validate the minimum data set.' },
-      { label: 'Progress', detail: 'Coordinate decisions, deadlines and external parties.' },
-      { label: 'Complete', detail: 'Confirm readiness, record approval and archive evidence.' },
-    ],
-    code: {
-      title: 'One transaction record connects evidence and action',
-      lines: ['deal = pipeline.open(enquiry)', 'evidence = documents.index(deal)', 'gate = stages.evaluate(deal, evidence)', 'action = exceptions.next(gate)', 'report = portfolio.aggregate(deal)'],
-      nodes: ['Enquiries', 'Transaction record', 'Document index', 'Action queue', 'Portfolio reporting'],
-    },
-    nextSteps: ['Choose one repeatable transaction type', 'Agree stage-gate definitions with users', 'Import a representative set of live records', 'Measure flow and exception quality for six weeks'],
-  },
-  {
-    slug: 'professional-services-intake',
-    image: '/images/news-legal.svg',
-    sector: 'Professional services',
-    title: 'A controlled intake system for specialist advisory work',
-    summary: 'A triage workflow that protects professional judgement while shortening the route from enquiry to qualified instruction.',
-    status: 'Anonymised',
-    brief: 'A consistent intake process for a specialist advisory firm. The firm is not named here, as professional-services engagements normally require. The allocations on this page are design judgements agreed for the work. It structures initial information, applies mandatory control gates and prepares a concise matter brief for professional review.',
-    metrics: [
-      { value: '100%', label: 'mandatory conflict gate', detail: 'Before instruction' },
-      { value: '4', label: 'triage classes', detail: 'Defined service routes' },
-      { value: '1', label: 'professional approval', detail: 'Required for every matter' },
-    ],
-    barSubtitle: 'Modelled allocation of responsibility across the intake decision.',
-    bars: [
-      { label: 'Structured data capture', value: 100, display: 'System led' },
-      { label: 'Mandatory control checks', value: 92, display: 'Rules led' },
-      { label: 'Matter summary', value: 70, display: 'AI assisted' },
-      { label: 'Acceptance decision', value: 18, display: 'Human led' },
-    ],
-    barNote: 'Source: Quiet Gears control design. Bar length represents automation suitability. It carries no measured accuracy.',
-    phases: [
-      { label: 'Capture', detail: 'Gather structured facts and source evidence.' },
-      { label: 'Control', detail: 'Apply eligibility, conflict and completeness gates.' },
-      { label: 'Prepare', detail: 'Draft the brief and list the questions still open.' },
-      { label: 'Decide', detail: 'Acceptance stays with the qualified professional.' },
-    ],
-    code: {
-      title: 'Policy gates sit outside the language model',
-      lines: ['candidate = intake.validate(payload)', 'controls = policy.check(candidate)', 'if (!controls.pass) return hold()', 'brief = model.summarise(approvedFields)', 'decision = reviewer.accept(brief, evidence)'],
-      nodes: ['Secure intake', 'Policy controls', 'Approved data view', 'Drafting service', 'Reviewer decision'],
-    },
-    nextSteps: ['Map mandatory and discretionary decisions', 'Define the approved data boundary', 'Build a redacted evaluation set', 'Pilot with one service line and weekly quality review'],
-  },
-  {
-    slug: 'field-service-planning',
-    image: '/images/news-industries.svg',
-    sector: 'Field services',
-    title: 'Planning field work around priority, capacity and evidence',
-    summary: 'A planning layer that turns work orders, skills and location constraints into a reviewable daily plan.',
-    status: 'Anonymised',
-    brief: 'Supporting dispatch teams by assembling a feasible daily plan from operational constraints. The client is not named here at their request, and the planning weights on this page are design values calibrated against their own operating data. It keeps planners in control while reducing the manual effort required to reconcile urgency, skills, geography and customer commitments.',
-    metrics: [
-      { value: '6', label: 'planning inputs', detail: 'Joined in one decision layer' },
-      { value: '3', label: 'priority bands', detail: 'With explicit override rules' },
-      { value: 'Daily', label: 'plan refresh', detail: 'Plus event-led exceptions' },
-    ],
-    barSubtitle: 'Modelled decision weight in a daily planning model.',
-    bars: [
-      { label: 'Safety and eligibility', value: 100, display: 'Gate' },
-      { label: 'Customer service level', value: 86, display: '30%' },
-      { label: 'Operational priority', value: 80, display: '28%' },
-      { label: 'Travel efficiency', value: 68, display: '24%' },
-      { label: 'Plan stability', value: 52, display: '18%' },
-    ],
-    barNote: 'Source: Quiet Gears planning model. The weights require calibration against operational data before use.',
-    phases: [
-      { label: 'Prepare', detail: 'Validate work orders, capacity and mandatory constraints.' },
-      { label: 'Optimise', detail: 'Generate feasible options against balanced objectives.' },
-      { label: 'Review', detail: 'Explain conflicts and capture dispatcher judgement.' },
-      { label: 'Learn', detail: 'Compare plan assumptions with completed work.' },
-    ],
-    code: {
-      title: 'The optimiser proposes, while dispatch retains authority',
-      lines: ['inputs = validate(jobs, people, parts)', 'feasible = constraints.solve(inputs)', 'ranked = objectives.score(feasible)', 'plan = dispatcher.review(ranked.first)', 'learning.record(plan, actuals, overrides)'],
-      nodes: ['Work orders', 'Constraint solver', 'Option scoring', 'Dispatcher console', 'Performance store'],
-    },
-    nextSteps: ['Clean six weeks of representative work-order data', 'Agree hard constraints and balanced measures', 'Run shadow planning against live operations', 'Review overrides before enabling recommendations'],
-  },
+  yacht_operations,
+  cold_chain,
+  property_pipeline,
+  professional_services_intake,
+  field_service_planning,
 ];
 
 export type Article = {
@@ -282,36 +122,11 @@ export const articles: Article[] = [
 export type ResearchFinding = { statistic: string; finding: string; implication: string; source: string; href: string };
 
 export const caseResearch: Record<string, ResearchFinding[]> = {
-  'yacht-operations': [
-    { statistic: '65%', finding: 'SME users most often report improved employee performance', implication: 'The strongest case is better use of scarce staff time inside core work. Technology adoption for its own sake makes a weaker one.', source: 'OECD, Generative AI and the SME Workforce, 2025', href: 'https://www.oecd.org/en/publications/generative-ai-and-the-sme-workforce_2d08b99d-en/full-report.html' },
-    { statistic: '21%', finding: 'Only a minority of UK AI users report integration with existing systems', implication: 'A shared operational backbone addresses the gap between an individual using a tool and a workflow that runs from input to checked outcome.', source: 'UK Business Data Survey 2026', href: 'https://www.gov.uk/government/statistics/uk-business-data-survey-2026/uk-business-data-survey-2026' },
-    { statistic: '7 capabilities', finding: 'Google DORA identifies organisational capabilities that amplify AI value', implication: 'Clear workflows, user focus, data access and feedback loops belong in the application design from the start.', source: 'Google DORA, AI Capabilities Model, 2025', href: 'https://dora.dev/research/2025/dora-report/' },
-    { statistic: '1 in 3', finding: 'Only a minority of businesses planning AI adoption report being ready to implement it', implication: 'A focused diagnostic and delivery model can convert general intent into a governed first operating release.', source: 'DSIT, AI Adoption Research, 2026', href: 'https://www.gov.uk/government/publications/ai-adoption-research/ai-adoption-research' },
-  ],
-  'cold-chain': [
-    { statistic: '8 principles', finding: 'NCSC guidance treats secure OT connectivity as a managed architecture decision', implication: 'Monitoring should query a controlled data layer and avoid creating an uncontrolled path back into equipment.', source: 'NCSC, Secure connectivity for operational technology, 2026', href: 'https://www.ncsc.gov.uk/collection/operational-technology/secure-connectivity' },
-    { statistic: '4 functions', finding: 'NIST structures AI risk work around govern, map, measure and manage', implication: 'Operational AI needs named people, a context map, performance tests and a response plan somebody has rehearsed.', source: 'NIST AI Risk Management Framework', href: 'https://www.nist.gov/itl/ai-risk-management-framework' },
-    { statistic: 'Continuous', finding: 'Cold-chain controls depend on recorded temperature checks and corrective action', implication: 'A useful digital record must connect readings with context, review and closure; telemetry alone leaves the response unresolved.', source: 'Food Standards Agency, Chilling food correctly', href: 'https://www.food.gov.uk/business-guidance/chilling-food-correctly-in-your-business' },
-    { statistic: 'Definitive view', finding: 'NCSC operational technology guidance starts with a current record of architecture and assets', implication: 'A monitoring release should document its sensors, gateways, network boundaries and responding shift before adding automated interpretation.', source: 'NCSC, Operational Technology guidance', href: 'https://www.ncsc.gov.uk/collection/operational-technology' },
-  ],
-  'property-pipeline': [
-    { statistic: '1%', finding: 'Only a small share of surveyed built-environment firms report AI scaled across projects', implication: 'The near-term opportunity is a bounded transaction workflow with governed data. The evidence will not carry a broad transformation claim.', source: 'RICS, Artificial Intelligence in Construction Report 2025', href: 'https://www.rics.org/news-insights/artificial-intelligence-in-construction-report' },
-    { statistic: '37%', finding: 'System integration is a leading reported barrier in the RICS survey', implication: 'Connecting evidence, stage gates and actions is likely to matter more than adding a standalone assistant.', source: 'RICS, AI in Construction 2025 findings', href: 'https://www.rics.org/news-insights/optimism-high-for-ai-in-construction-but-skills-shortages-and-integration-challenges-adoption' },
-    { statistic: 'Guardrails', finding: 'RICS guidance emphasises professional judgement and responsible AI use', implication: 'Extracted fields and generated summaries should remain proposals until the qualified professional confirms them.', source: 'RICS, Responsible use of AI in surveying practice', href: 'https://www.rics.org/profession-standards/rics-standards-and-guidance/conduct-competence/responsible-use-of-ai' },
-    { statistic: '4 functions', finding: 'NIST structures AI risk activity around govern, map, measure and manage', implication: 'Transaction automation needs a named operating manager, a context map, evaluated controls and a live route for handling failure.', source: 'NIST AI Risk Management Framework', href: 'https://www.nist.gov/itl/ai-risk-management-framework' },
-  ],
-  'professional-services-intake': [
-    { statistic: 'Authoritative', finding: 'The Law Society warns that generated legal citations and propositions require verification', implication: 'The system should preserve source evidence and never present model output as an accepted professional conclusion.', source: 'The Law Society, Conducting legal research in the age of AI, 2026', href: 'https://www.lawsociety.org.uk/topics/ai-and-lawtech/conducting-legal-research-in-the-age-of-ai' },
-    { statistic: 'SME focus', finding: 'Law Society guidance addresses both opportunity and data risk for smaller firms', implication: 'Intake automation needs an approved data boundary, confidentiality controls and a named supervising professional.', source: 'The Law Society, Generative AI: the essentials, 2025', href: 'https://www.lawsociety.org.uk/Topics/AI-and-lawtech/Guides/Generative-AI-the-essentials' },
-    { statistic: '3 outputs', finding: 'ICO guidance combines audit methodology, organisational guidance and practical tools', implication: 'Data protection should be evidenced through design records, tests and operating controls. Policy wording on its own evidences little.', source: 'ICO, Guidance on AI and data protection', href: 'https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/artificial-intelligence/guidance-on-ai-and-data-protection/about-this-guidance/' },
-    { statistic: 'Lifecycle', finding: 'NIST treats generative AI risk as an issue across design, deployment, operation and review', implication: 'Professional intake controls should be tested before launch and monitored as data, models and use patterns change.', source: 'NIST, Generative AI Profile', href: 'https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence' },
-  ],
-  'field-service-planning': [
-    { statistic: 'Amplifier', finding: 'Google DORA finds that AI magnifies existing organisational strengths and weaknesses', implication: 'Poor work-order data and unclear priorities will be amplified by an optimiser unless corrected first.', source: 'Google DORA, State of AI-assisted Software Development 2025', href: 'https://dora.dev/research/2025/dora-report/' },
-    { statistic: 'Known good', finding: 'NCSC recommends schema-based validation at operational trust boundaries', implication: 'Jobs, resource data and telemetry should be validated before they influence a daily plan.', source: 'NCSC, Standardised and secure OT protocols, 2026', href: 'https://www.ncsc.gov.uk/collection/operational-technology/secure-connectivity/principle-4' },
-    { statistic: 'Lifecycle', finding: 'NIST risk guidance expects measurement and management throughout operation', implication: 'Overrides, actual durations and plan failures should feed continuing review after the initial model assessment.', source: 'NIST AI Risk Management Framework', href: 'https://www.nist.gov/itl/ai-risk-management-framework' },
-    { statistic: '21%', finding: 'Only a minority of AI-using UK businesses report integration into existing systems', implication: 'Planning value depends on validated work orders, resource records and integration with the dispatch workflow. A standalone recommendation screen delivers none of it.', source: 'UK Business Data Survey 2026', href: 'https://www.gov.uk/government/statistics/uk-business-data-survey-2026/uk-business-data-survey-2026' },
-  ],
+  'yacht-operations': yacht_operations_research,
+  'cold-chain': cold_chain_research,
+  'property-pipeline': property_pipeline_research,
+  'professional-services-intake': professional_services_intake_research,
+  'field-service-planning': field_service_planning_research,
 };
 
 export const articleResearch: Record<string, ResearchFinding[]> = {

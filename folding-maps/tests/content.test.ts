@@ -167,6 +167,43 @@ describe('editorial content', () => {
     });
   });
 
+  it('publishes no project chart that its own note says establishes nothing', () => {
+    // Every one of the five charted the firm's own modelled weightings and
+    // then disclaimed the whole chart in its note: 'None of them measures
+    // performance', 'None is an empirical finding'. A chart that has to be
+    // withdrawn in its own footnote is not an exhibit. Report what discovery
+    // actually counted, or drop the chart and make the point in prose.
+    const withdrawn = /none (of them )?(measures|is an empirical)|carries no measured|is not an empirical/i;
+    expect(cases.every((item) => !withdrawn.test(item.barNote))).toBe(true);
+  });
+
+  it('reserves percentages on a project chart for figures somebody counted', () => {
+    // A modelled allocation printed as 31 percent is a fabricated number in a
+    // suit. Percentages are permitted where the note says the figure was
+    // observed in the engagement.
+    const observed = /observed|counted|measured|sampled|recorded in|from the (audit|log|sample)/i;
+    expect(cases.every((item) => item.bars.every((bar) => !/%$/.test(bar.display)) || observed.test(item.barNote))).toBe(true);
+  });
+
+  it('does not write every project to one skeleton', () => {
+    const shapes = cases.map((item) => caseEditorial[item.slug].sections.map((section) => section.paragraphs.length).join(','));
+    expect(new Set(shapes).size).toBeGreaterThanOrEqual(4);
+    expect(new Set(cases.map((item) => caseEditorial[item.slug].sceneLabel)).size).toBe(cases.length);
+  });
+
+  it('runs each project long enough to carry the reasoning the index promises', () => {
+    // The index page says these run longer than a case study usually does
+    // because the reasoning is the part worth reading. At 811 to 1,149 words
+    // they did not.
+    cases.forEach((item) => {
+      const editorial = caseEditorial[item.slug];
+      const words = [item.summary, editorial.thesis, ...editorial.openingParagraphs, editorial.centralQuestion,
+        ...editorial.sections.flatMap((section) => [section.transition ?? '', ...section.paragraphs.map((paragraph) => paragraph.text)])]
+        .join(' ').trim().split(/\s+/).length;
+      expect(words).toBeGreaterThanOrEqual(1400);
+    });
+  });
+
   it('does not write every article to one skeleton', () => {
     // Six of the eight were 5 sections of exactly 3 paragraphs and the other
     // two were 6 of exactly 4. Uniformity that exact is a template, not a set
