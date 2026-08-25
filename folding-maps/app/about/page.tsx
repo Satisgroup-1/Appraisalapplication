@@ -91,8 +91,9 @@ export default function About() {
               <h2 id="refusals-title">Four things we will not do.</h2>
             </div>
             <p className="lede">
-              Capability lists are interchangeable. Constraints are not: they tell you what
-              happens when the commercially convenient answer and the correct one diverge.
+              Every firm's capability list reads the same. A constraint tells you something
+              a list cannot: what happens when the commercially convenient answer and the
+              correct one diverge.
             </p>
           </div>
 
