@@ -17,8 +17,6 @@ export type ReportSection<TExhibit> = {
   exhibits?: TExhibit[];
 };
 
-export type ReadingMode = 'simple' | 'advanced';
-
 export type ReportOpening = {
   label: string;
   title: string;
@@ -26,13 +24,12 @@ export type ReportOpening = {
   centralQuestion?: string;
 };
 
-export type ReportVariant<TExhibit> = {
+export type Report<TExhibit> = {
   standfirst: string;
   thesis: string;
   opening?: ReportOpening;
   sections: ReportSection<TExhibit>[];
   actionAgenda: string[];
-  estimatedReadingTime: string;
 };
 
 export function dedupeSources(sources: ReportSource[]) {

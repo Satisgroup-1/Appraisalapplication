@@ -21,10 +21,10 @@
     "@types/react-dom": "latest",
     "autoprefixer": "^10.5.4",
     "jsdom": "^26.1.0",
+    "playwright": "^1.56.0",
     "postcss": "^8.5.26",
     "tailwindcss": "^3.4.19",
     "typescript": "latest",
-    "vitest": "latest",
-    "playwright": "^1.56.0"
+    "vitest": "latest"
   }
 }

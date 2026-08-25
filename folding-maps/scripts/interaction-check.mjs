@@ -37,17 +37,17 @@ const check = (name, ok, extra = '') => results.push(`${ok ? 'PASS' : 'FAIL'}  $
   await p.waitForTimeout(250);
   check('industry search shows an empty state', (await p.locator('text=Nothing matches').count()) === 1);
 
-  // 3. Reading mode
+  // 3. One reading level: the whole report is in the page with scripting off
   await p.goto(B + '/case-studies/cold-chain', { waitUntil: 'networkidle' });
-  const advVisible = await p.locator('[data-report-mode="advanced"]').isVisible();
-  await p.getByRole('button', { name: 'Simple' }).click();
-  await p.waitForTimeout(200);
-  const simpleVisible = await p.locator('[data-report-mode="simple"]').isVisible();
-  const advHidden = !(await p.locator('[data-report-mode="advanced"]').isVisible());
-  check('reading mode defaults to advanced', advVisible);
-  check('reading mode switches to simple', simpleVisible && advHidden);
-  const stored = await p.evaluate(() => localStorage.getItem('quiet-gears-reading-mode'));
-  check('reading mode persists', stored === 'simple');
+  check('no reading-level control is rendered', (await p.locator('.reading-mode-control').count()) === 0);
+  const noScript = await b.newContext({ javaScriptEnabled: false });
+  const plain = await noScript.newPage();
+  await plain.goto(B + '/case-studies/cold-chain', { waitUntil: 'domcontentloaded' });
+  const headings = await plain.locator('.report-body h2').count();
+  const hidden = await plain.locator('.report-body h2').evaluateAll((nodes) =>
+    nodes.filter((node) => !node.getBoundingClientRect().height).length);
+  check('every section renders without scripting', headings >= 4 && hidden === 0, `${headings} sections, ${hidden} hidden`);
+  await noScript.close();
 
   // 4. Evidence chart selection
   await p.goto(B + '/case-studies/cold-chain', { waitUntil: 'networkidle' });

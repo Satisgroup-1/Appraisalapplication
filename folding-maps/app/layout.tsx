@@ -32,6 +32,5 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  const readingModeInitializer = `(function(){try{var mode=localStorage.getItem('quiet-gears-reading-mode');document.documentElement.dataset.readingMode=mode==='simple'?'simple':'advanced'}catch(e){document.documentElement.dataset.readingMode='advanced'}})();`;
-  return <html lang="en" data-reading-mode="advanced" suppressHydrationWarning><head><script dangerouslySetInnerHTML={{ __html: readingModeInitializer }}/></head><body className={`${body.variable}`}><a className="skip-link" href="#main">Skip to content</a><Header/><main id="main">{children}</main><Footer/></body></html>;
+  return <html lang="en"><body className={`${body.variable}`}><a className="skip-link" href="#main">Skip to content</a><Header/><main id="main">{children}</main><Footer/></body></html>;
 }

@@ -516,51 +516,6 @@ th { font-weight: 600; font-size: var(--step--1); letter-spacing: 0.04em; text-t
   color: var(--ink);
 }
 
-/* Reading level. Two panels exist in the HTML; the root data attribute decides
-   which is shown, so the choice survives navigation and never depends on a
-   round trip. Without JavaScript the technical panel is the one that shows. */
-.reading-mode-control {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--s-6);
-  margin: var(--s-8) 0 var(--s-7);
-  padding: var(--s-5) 0;
-  border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
-}
-.reading-mode-control > div:first-child > span {
-  display: block;
-  margin-bottom: var(--s-2);
-  font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-.reading-mode-control p { margin: 0; font-size: 0.9375rem; color: var(--ink-90); }
-
-.reading-mode-buttons { display: flex; gap: var(--s-2); flex-shrink: 0; }
-.reading-mode-buttons button {
-  padding: 8px 16px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: transparent;
-  font-size: 0.9375rem;
-  cursor: pointer;
-  transition: background var(--speed) var(--ease), border-color var(--speed) var(--ease), color var(--speed) var(--ease);
-}
-.reading-mode-buttons button:hover { border-color: var(--line-strong); }
-.reading-mode-buttons button[aria-pressed='true'] {
-  background: var(--ink);
-  border-color: var(--ink);
-  color: var(--paper);
-}
-
-html[data-reading-mode='simple'] [data-report-mode='advanced'],
-html[data-reading-mode='advanced'] [data-report-mode='simple'] { display: none; }
-
-
 /* The one-sentence argument of the piece. */
 .executive-brief, .thesis-panel {
   display: grid;
@@ -722,7 +677,6 @@ html[data-reading-mode='advanced'] [data-report-mode='simple'] { display: none; 
   .report-body { grid-template-columns: 1fr; gap: var(--s-6); }
   .report-contents { position: static; }
   .report-contents a { padding: var(--s-2) 0; }
-  .reading-mode-control { flex-direction: column; align-items: flex-start; gap: var(--s-4); }
   .executive-brief, .thesis-panel { grid-template-columns: 1fr; gap: var(--s-4); }
 }
 

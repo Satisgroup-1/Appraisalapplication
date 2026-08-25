@@ -6,13 +6,12 @@ import { SystemExhibit } from '@/components/ConsultingExhibits';
 import { NarrativeOpening } from '@/components/EditorialNarrative';
 import { InteractiveEvidence } from '@/components/InteractiveEvidence';
 import { NarrativeSections, ReportActionAgenda, ReportReferences } from '@/components/NarrativeReport';
-import { ReadingModeSwitch } from '@/components/ReadingModeSwitch';
 import { JsonLd } from '@/components/JsonLd';
 import { articleResearch, articles } from '@/lib/content';
 import { newsEvidenceViews } from '@/lib/editorialGraphics';
 import { newsEditorial, type NewsExhibitPlacement } from '@/lib/newsEditorial';
 import { dedupeSources } from '@/lib/reportNarrative';
-import { getNewsVariants } from '@/lib/reportVariants';
+import { getNewsReport } from '@/lib/reportModel';
 import { absoluteUrl, breadcrumbJsonLd, createPageMetadata, SITE_NAME, SITE_URL, toIsoDate } from '@/lib/seo';
 
 export function generateStaticParams() {
@@ -39,7 +38,7 @@ export default async function Article({ params }: { params: Promise<{ slug: stri
   const article = articles.find((item) => item.slug === slug);
   if (!article) notFound();
   const editorial = newsEditorial[article.slug];
-  const variants = getNewsVariants(article, editorial);
+  const report = getNewsReport(article, editorial);
   const references = dedupeSources([
     ...article.sources,
     ...articleResearch[article.slug].map(({ source, href, finding }) => ({ label: source, href, detail: finding })),
@@ -77,19 +76,11 @@ export default async function Article({ params }: { params: Promise<{ slug: stri
       <div className="report-meta"><span>{article.tag}</span><span>{article.date}</span><span>{article.read}</span></div>
       <h1>{editorial.title}</h1>
 
-      <ReadingModeSwitch simplePanelId={`simple-news-${article.slug}`} advancedPanelId={`advanced-news-${article.slug}`}/>
-      {(['simple', 'advanced'] as const).map((mode) => {
-        const variant = variants[mode];
-        return (
-          <section className="report-mode-panel" id={`${mode}-news-${article.slug}`} data-report-mode={mode} aria-label={`${mode} reading level`} key={mode}>
-            <p className="lede">{variant.standfirst}</p>
-            {variant.opening && <NarrativeOpening label={variant.opening.label} title={variant.opening.title} paragraphs={variant.opening.paragraphs} centralQuestion={variant.opening.centralQuestion}/>}
-            <section className="thesis-panel"><span>The contention</span><p>{variant.thesis}</p></section>
-            <NarrativeSections sections={variant.sections} className="editorial-report-sections continuous-report-sections" contentsLabel={mode === 'simple' ? 'Executive analysis' : 'Technical analysis'} idPrefix={`${mode}-news-${article.slug}`} renderExhibit={renderExhibit}/>
-            <ReportActionAgenda eyebrow="What follows" title="Decisions arising from the analysis" actions={variant.actionAgenda}/>
-          </section>
-        );
-      })}
+      <p className="lede">{report.standfirst}</p>
+      {report.opening && <NarrativeOpening label={report.opening.label} title={report.opening.title} paragraphs={report.opening.paragraphs} centralQuestion={report.opening.centralQuestion}/>}
+      <section className="thesis-panel"><span>The contention</span><p>{report.thesis}</p></section>
+      <NarrativeSections sections={report.sections} className="editorial-report-sections continuous-report-sections" contentsLabel="Contents" idPrefix={`news-${article.slug}`} renderExhibit={renderExhibit}/>
+      <ReportActionAgenda eyebrow="What follows" title="Decisions arising from the analysis" actions={report.actionAgenda}/>
 
       <ReportReferences id="news-references" title="Sources" introduction="External evidence is used for context. Charts drawn from our own analysis are identified as such on the exhibit itself." sources={references}/>
 

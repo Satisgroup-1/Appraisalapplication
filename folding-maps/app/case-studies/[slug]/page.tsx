@@ -6,13 +6,12 @@ import { ProcessExhibit, SystemExhibit } from '@/components/ConsultingExhibits';
 import { NarrativeOpening } from '@/components/EditorialNarrative';
 import { InteractiveEvidence } from '@/components/InteractiveEvidence';
 import { NarrativeSections, ReportActionAgenda, ReportReferences } from '@/components/NarrativeReport';
-import { ReadingModeSwitch } from '@/components/ReadingModeSwitch';
 import { JsonLd } from '@/components/JsonLd';
 import type { CaseExhibitPlacement } from '@/lib/caseEditorial';
 import { caseEditorial } from '@/lib/caseEditorial';
 import { caseResearch, cases } from '@/lib/content';
 import { dedupeSources } from '@/lib/reportNarrative';
-import { getCaseVariants } from '@/lib/reportVariants';
+import { getCaseReport } from '@/lib/reportModel';
 import { absoluteUrl, breadcrumbJsonLd, createPageMetadata, SITE_NAME, SITE_URL } from '@/lib/seo';
 
 export function generateStaticParams() {
@@ -43,7 +42,7 @@ export default async function CaseDetail({ params }: { params: Promise<{ slug: s
 
   const editorial = caseEditorial[study.slug];
   const research = caseResearch[study.slug];
-  const variants = getCaseVariants(study, research);
+  const report = getCaseReport(study, research);
   const references = dedupeSources(
     research.map(({ source, href, finding }) => ({ label: source, href, detail: finding })),
   );
@@ -133,53 +132,35 @@ export default async function CaseDetail({ params }: { params: Promise<{ slug: s
           {editorial.statusStatement}
         </p>
 
-        <ReadingModeSwitch
-          simplePanelId={`simple-case-${study.slug}`}
-          advancedPanelId={`advanced-case-${study.slug}`}
+        <p className="lede">{report.standfirst}</p>
+
+        <div className="executive-brief">
+          <span>The argument</span>
+          <p>{report.thesis}</p>
+        </div>
+
+        {report.opening && (
+          <NarrativeOpening
+            label={report.opening.label}
+            title={report.opening.title}
+            paragraphs={report.opening.paragraphs}
+            centralQuestion={report.opening.centralQuestion}
+          />
+        )}
+
+        <NarrativeSections
+          sections={report.sections}
+          className="continuous-case-sections"
+          contentsLabel="Contents"
+          idPrefix={`case-${study.slug}`}
+          renderExhibit={renderExhibit}
         />
 
-        {(['simple', 'advanced'] as const).map((mode) => {
-          const variant = variants[mode];
-          return (
-            <section
-              className="report-mode-panel"
-              id={`${mode}-case-${study.slug}`}
-              data-report-mode={mode}
-              aria-label={`${mode} reading level`}
-              key={mode}
-            >
-              <p className="lede">{variant.standfirst}</p>
-
-              <div className="executive-brief">
-                <span>The argument</span>
-                <p>{variant.thesis}</p>
-              </div>
-
-              {variant.opening && (
-                <NarrativeOpening
-                  label={variant.opening.label}
-                  title={variant.opening.title}
-                  paragraphs={variant.opening.paragraphs}
-                  centralQuestion={variant.opening.centralQuestion}
-                />
-              )}
-
-              <NarrativeSections
-                sections={variant.sections}
-                className="continuous-case-sections"
-                contentsLabel={mode === 'simple' ? 'Executive case' : 'Technical case'}
-                idPrefix={`${mode}-case-${study.slug}`}
-                renderExhibit={renderExhibit}
-              />
-
-              <ReportActionAgenda
-                eyebrow="Next release"
-                title="Decisions required before the next release"
-                actions={variant.actionAgenda}
-              />
-            </section>
-          );
-        })}
+        <ReportActionAgenda
+          eyebrow="Next release"
+          title="Decisions required before the next release"
+          actions={report.actionAgenda}
+        />
 
         <ReportReferences
           id="case-references"
