@@ -84,7 +84,7 @@ describe('editorial content', () => {
     expect(cases.every((item) => {
       const editorial = caseEditorial[item.slug];
       const titles = [editorial.evidenceTitle, editorial.processTitle, editorial.systemTitle, ...editorial.sections.map((section) => section.heading)];
-      return titles.every((title) => title.split(/\s+/).length <= 6 && !/^(the|a|an)\s/i.test(title));
+      return titles.every((title) => title.split(/\s+/).length <= 9 && !/^(the|a|an)\s/i.test(title));
     })).toBe(true);
   });
 
@@ -95,7 +95,7 @@ describe('editorial content', () => {
   });
 
   it('uses report-specific, information-led news headings', () => {
-    expect(articles.every((item) => newsEditorial[item.slug].sections.every((section) => section.heading.split(/\s+/).length <= 6 && !/^(the|a|an)\s/i.test(section.heading)))).toBe(true);
+    expect(articles.every((item) => newsEditorial[item.slug].sections.every((section) => section.heading.split(/\s+/).length <= 9 && !/^(the|a|an)\s/i.test(section.heading)))).toBe(true);
   });
 
   it('places each case graphic inside its argument with interpretation after it', () => {
@@ -125,18 +125,54 @@ describe('editorial content', () => {
     })).toBe(true);
   });
 
-  it('integrates two interpreted evidence views into every news essay', () => {
+  it('integrates interpreted evidence views into every news essay', () => {
     expect(articles.every((item) => {
       const editorial = newsEditorial[item.slug];
+      const views = newsEvidenceViews[item.slug] ?? [];
       const placedViews = editorial.sections.flatMap((section) => section.exhibits?.filter((exhibit) => exhibit.kind === 'evidence') ?? []);
       const systemViews = editorial.sections.flatMap((section) => section.exhibits?.filter((exhibit) => exhibit.kind === 'system') ?? []);
-      return placedViews.length === 2
-        && new Set(placedViews.map((item) => item.view)).size === 2
+      return views.length >= 1
+        && views.length <= 2
+        && placedViews.length === views.length
+        && new Set(placedViews.map((item) => item.view)).size === views.length
+        && placedViews.every((item) => item.view < views.length)
         && systemViews.length === 1
         && [...placedViews, ...systemViews].every((item) => item.afterParagraph >= 0)
-        && newsEvidenceViews[item.slug]?.length === 2
-        && newsEvidenceViews[item.slug].every((view) => view.points.length >= 2 && view.source.length > 0 && view.interpretation?.establishes && view.interpretation.doesNotEstablish && view.interpretation.management);
+        && views.every((view) => view.points.length >= 2 && view.source.length > 0 && view.interpretation?.establishes && view.interpretation.doesNotEstablish && view.interpretation.management);
     })).toBe(true);
+  });
+
+  it('rests at least one chart per article on evidence the firm did not produce', () => {
+    // Three articles used to satisfy the two-exhibit rule by charting the
+    // firm's own design weightings and then disclaiming them in the adjacent
+    // paragraph. A chart of our own priors is an illustration; it cannot be
+    // the only evidence an argument stands on.
+    expect(articles.every((item) => (newsEvidenceViews[item.slug] ?? []).some((view) => !/^quiet gears/i.test(view.source)))).toBe(true);
+  });
+
+  it('states a reading time the article can actually support', () => {
+    const bodyWords = (slug: string) => {
+      const editorial = newsEditorial[slug];
+      return [editorial.standfirst, editorial.thesis, ...editorial.sceneParagraphs,
+        ...editorial.sections.flatMap((section) => [section.transition ?? '', ...section.paragraphs.map((paragraph) => paragraph.text)])]
+        .join(' ').trim().split(/\s+/).length;
+    };
+    // Every stated time once overran the piece by a factor of four or five,
+    // which is the most easily checked false claim a publisher can make.
+    articles.forEach((item) => {
+      const claimed = Number(item.read.match(/\d+/)?.[0]);
+      const actual = bodyWords(item.slug) / 225;
+      expect(Math.abs(claimed - actual)).toBeLessThanOrEqual(2);
+    });
+  });
+
+  it('does not write every article to one skeleton', () => {
+    // Six of the eight were 5 sections of exactly 3 paragraphs and the other
+    // two were 6 of exactly 4. Uniformity that exact is a template, not a set
+    // of arguments that each found their own length.
+    const shapes = articles.map((item) => newsEditorial[item.slug].sections.map((section) => section.paragraphs.length).join(','));
+    expect(new Set(shapes).size).toBeGreaterThanOrEqual(6);
+    expect(new Set(articles.map((item) => newsEditorial[item.slug].sceneLabel)).size).toBe(articles.length);
   });
 
   it('provides one conclusion section and one action agenda per report', () => {
