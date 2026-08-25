@@ -84,7 +84,7 @@ describe('editorial content', () => {
   it('uses concise, information-led case section and exhibit titles', () => {
     expect(cases.every((item) => {
       const editorial = caseEditorial[item.slug];
-      const titles = [editorial.evidenceTitle, editorial.processTitle, editorial.systemTitle, ...editorial.sections.map((section) => section.heading)];
+      const titles = [editorial.evidenceTitle, editorial.processTitle, editorial.systemTitle, ...editorial.sections.map((section) => section.heading)].filter((title): title is string => Boolean(title));
       return titles.every((title) => title.split(/\s+/).length <= 9 && !/^(the|a|an)\s/i.test(title));
     })).toBe(true);
   });
@@ -103,12 +103,18 @@ describe('editorial content', () => {
     expect(cases.every((item) => {
       const editorial = caseEditorial[item.slug];
       const placements = editorial.sections.flatMap((section) => (section.exhibits ?? []).map((placement) => ({ placement, paragraphCount: section.paragraphs.length })));
-      return placements.length === 3
-        && new Set(placements.map(({ placement }) => placement.kind)).size === 3
+      const kinds = placements.map(({ placement }) => placement.kind);
+      // Process and system always. An evidence placement only where the firm
+      // has supplied the count behind the chart, since the page renders
+      // nothing for one that has no data.
+      return kinds.includes('process')
+        && kinds.includes('system')
+        && kinds.includes('evidence') === Boolean(item.chart)
+        && new Set(kinds).size === kinds.length
         && placements.every(({ placement, paragraphCount }) => placement.afterParagraph < paragraphCount - 1)
-        && editorial.evidenceInterpretation.establishes.length > 0
-        && editorial.evidenceInterpretation.doesNotEstablish.length > 0
-        && editorial.evidenceInterpretation.management.length > 0;
+        && (!editorial.evidenceInterpretation || (editorial.evidenceInterpretation.establishes.length > 0
+          && editorial.evidenceInterpretation.doesNotEstablish.length > 0
+          && editorial.evidenceInterpretation.management.length > 0));
     })).toBe(true);
   });
 
@@ -174,7 +180,7 @@ describe('editorial content', () => {
     // withdrawn in its own footnote is not an exhibit. Report what discovery
     // actually counted, or drop the chart and make the point in prose.
     const withdrawn = /none (of them )?(measures|is an empirical)|carries no measured|is not an empirical/i;
-    expect(cases.every((item) => !withdrawn.test(item.barNote))).toBe(true);
+    expect(cases.every((item) => !item.chart || !withdrawn.test(item.chart.note))).toBe(true);
   });
 
   it('reserves percentages on a project chart for figures somebody counted', () => {
@@ -182,7 +188,7 @@ describe('editorial content', () => {
     // suit. Percentages are permitted where the note says the figure was
     // observed in the engagement.
     const observed = /observed|counted|measured|sampled|recorded in|from the (audit|log|sample)/i;
-    expect(cases.every((item) => item.bars.every((bar) => !/%$/.test(bar.display)) || observed.test(item.barNote))).toBe(true);
+    expect(cases.every((item) => !item.chart || item.chart.bars.every((bar) => !/%$/.test(bar.display)) || observed.test(item.chart.note))).toBe(true);
   });
 
   it('does not write every project to one skeleton', () => {
@@ -303,7 +309,9 @@ describe('editorial content', () => {
     // Two tics that have now been removed from this site twice. The 'x, not y'
     // construction and 'earns' phrasing both reappeared during the article
     // rewrite, so they are enforced rather than remembered.
-    expect(corpus).not.toMatch(/,\s+not\s+/);
+    // 'not yet' is temporal and legitimate; the banned tic is the rhetorical
+    // contrast pair, 'a decision, not a tool'.
+    expect(corpus).not.toMatch(/,\s+not\s+(?!yet\b)/);
     expect(corpus).not.toMatch(/\bearn(s|ed|ing)?\b/);
     expect(readFileSync('app/news/[slug]/page.tsx', 'utf8')).not.toContain('<table');
     expect(readFileSync('app/case-studies/[slug]/page.tsx', 'utf8')).not.toContain('<table');

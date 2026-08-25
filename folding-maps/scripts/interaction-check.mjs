@@ -56,8 +56,9 @@ const check = (name, ok, extra = '') => results.push(`${ok ? 'PASS' : 'FAIL'}  $
   const family = await p.evaluate(() => getComputedStyle(document.body).fontFamily);
   check('body renders in the site typeface', /IBM Plex Sans/.test(family), family);
 
-  // 4. Evidence chart selection
-  await p.goto(B + '/case-studies/cold-chain', { waitUntil: 'networkidle' });
+  // 4. Evidence chart selection. Aimed at an article: the projects publish a
+  // chart only once the firm has supplied the count behind it, and none has.
+  await p.goto(B + '/news/measure-automation-value', { waitUntil: 'networkidle' });
   const bars = p.locator('.evidence-bar-row');
   if (await bars.count() > 1) {
     const readingBefore = await p.locator('.evidence-reading strong').first().innerText();
@@ -66,6 +67,12 @@ const check = (name, ok, extra = '') => results.push(`${ok ? 'PASS' : 'FAIL'}  $
     const readingAfter = await p.locator('.evidence-reading strong').first().innerText();
     check('evidence chart updates the reading', readingBefore !== readingAfter, `${readingBefore} -> ${readingAfter}`);
   } else check('evidence chart present', false, 'no bars found');
+
+  // 4b. A project with no supplied count renders no empty chart frame.
+  await p.goto(B + '/case-studies/cold-chain', { waitUntil: 'networkidle' });
+  const strayChart = await p.locator('.evidence-bar-row').count();
+  const stillReads = await p.locator('.report-body h2').count();
+  check('project without a count shows no chart', strayChart === 0 && stillReads >= 4, `${strayChart} bars, ${stillReads} sections`);
 
   // 5. Section nav scroll-spy
   await p.goto(B + '/industries/agriculture', { waitUntil: 'networkidle' });

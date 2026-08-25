@@ -18,10 +18,10 @@ export type CaseEditorial = {
   openingTitle: string;
   openingParagraphs: string[];
   centralQuestion: string;
-  evidenceTitle: string;
+  evidenceTitle?: string;
   processTitle: string;
   systemTitle: string;
-  evidenceInterpretation: { establishes: string; doesNotEstablish: string; management: string };
+  evidenceInterpretation?: { establishes: string; doesNotEstablish: string; management: string };
   sections: CaseEditorialSection[];
 };
 

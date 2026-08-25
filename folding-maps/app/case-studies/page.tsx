@@ -29,8 +29,8 @@ export default function Cases() {
         <p className="lede">
           Each one sets out what the client asked for, what we found when we looked at the
           work, what we built, what we decided against and how it is being measured. Clients
-          are unnamed where they asked to be. These run longer than a case study usually
-          does, because the reasoning is the part worth reading.
+          are unnamed where they asked to be. Where a page describes something we are
+          measuring, it says so and gives no figure until the measurement exists.
         </p>
       </section>
 

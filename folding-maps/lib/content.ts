@@ -23,9 +23,11 @@ export type CaseStudy = {
   status: 'In progress' | 'Anonymised';
   brief: string;
   metrics: Metric[];
-  bars: Bar[];
-  barSubtitle: string;
-  barNote: string;
+  // A project publishes an evidence chart only when the firm has supplied the
+  // count behind it. Absent means the engagement has specified what it is
+  // measuring and the figures are not in yet, so the page shows the process
+  // and system exhibits and the text says what is being counted.
+  chart?: { subtitle: string; note: string; bars: Bar[] };
   phases: { label: string; detail: string }[];
   code: { title: string; lines: string[]; nodes: string[] };
   nextSteps: string[];

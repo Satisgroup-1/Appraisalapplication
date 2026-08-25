@@ -47,24 +47,26 @@ export default async function CaseDetail({ params }: { params: Promise<{ slug: s
     research.map(({ source, href, finding }) => ({ label: source, href, detail: finding })),
   );
 
-  const evidenceViews = [
-    {
-      label: 'Operating evidence',
-      title: editorial.evidenceTitle,
-      summary: study.barSubtitle,
-      source: study.barNote.replace(/^Source:\s*/i, '').replace(/\.$/, ''),
-      interpretation: editorial.evidenceInterpretation,
-      points: study.bars.map((bar) => ({
-        label: bar.label,
-        value: bar.value,
-        display: bar.display,
-        // A project charting an observed count supplies its own wording. The
-        // fallback covers the projects still charting a design priority, and
-        // must not describe a counted figure as an unmeasured target.
-        detail: bar.detail ?? 'A priority agreed in discovery. The figure is a design target and has not yet been measured in operation.',
-      })),
-    },
-  ];
+  // Only a project whose count the firm has supplied carries an evidence
+  // chart. The others specify what they are measuring in the text, and the
+  // page shows the process and system exhibits alone.
+  const evidenceViews = study.chart && editorial.evidenceTitle && editorial.evidenceInterpretation
+    ? [
+        {
+          label: 'Operating evidence',
+          title: editorial.evidenceTitle,
+          summary: study.chart.subtitle,
+          source: study.chart.note.replace(/^Source:\s*/i, '').replace(/\.$/, ''),
+          interpretation: editorial.evidenceInterpretation,
+          points: study.chart.bars.map((bar) => ({
+            label: bar.label,
+            value: bar.value,
+            display: bar.display,
+            detail: bar.detail ?? 'A priority agreed in discovery. The figure is a design target and has not yet been measured in operation.',
+          })),
+        },
+      ]
+    : [];
 
   const pageUrl = absoluteUrl(`/case-studies/${study.slug}`);
   const jsonLd = [
@@ -87,7 +89,9 @@ export default async function CaseDetail({ params }: { params: Promise<{ slug: s
 
   const renderExhibit = (placement: CaseExhibitPlacement) => {
     if (placement.kind === 'evidence')
-      return <InteractiveEvidence key="evidence" eyebrow="Decision evidence" views={evidenceViews} />;
+      return evidenceViews.length
+        ? <InteractiveEvidence key="evidence" eyebrow="Decision evidence" views={evidenceViews} />
+        : null;
     if (placement.kind === 'process')
       return (
         <ProcessExhibit key="process" number="1" title={editorial.processTitle} steps={study.phases} />
