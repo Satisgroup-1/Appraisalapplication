@@ -1,64 +1,75 @@
 import type { EvidenceView } from '@/lib/editorialGraphics';
 import type { NewsEditorial } from '@/lib/newsEditorial';
-import { jaggedFrontier, metrStudy, ukAdoption } from '@/lib/sources';
+import { jaggedFrontier, ukAdoption } from '@/lib/sources';
+
+// Citations used only by this article. The orchestrator hoists anything that
+// turns out to be shared into lib/sources.ts.
+const agentBenchmark = { label: 'TheAgentCompany benchmark, Carnegie Mellon University, 2025', href: 'https://arxiv.org/abs/2412.14161' };
+const crmBenchmark = { label: 'CRMArena-Pro, Salesforce AI Research, 2025', href: 'https://arxiv.org/abs/2505.18878' };
+const gartnerAgents = { label: 'Gartner, over 40 percent of agentic AI projects will be canceled by end of 2027, June 2025', href: 'https://www.gartner.com/en/newsroom/press-releases/2025-06-25-gartner-predicts-over-40-percent-of-agentic-ai-projects-will-be-canceled-by-end-of-2027' };
+const humanAiMeta = { label: 'Vaccaro, Almaatouq and Malone, Nature Human Behaviour, 2024', href: 'https://www.nature.com/articles/s41562-024-02024-1' };
 
 export const article: NewsEditorial = {
   title: 'Agents fail on the exceptions the workflow never defined',
-  standfirst: 'Agent demonstrations make complicated work appear smooth. Real organisations contain missing information, conflicting policies and awkward exceptions. Autonomy amplifies those conditions unless the underlying process is made explicit first.',
-  thesis: 'An agent should inherit a well-defined operating system. Asking it to invent one while handling live work is where these deployments fail.',
-  sceneLabel: 'The situation',
-  sceneTitle: 'The agent completed the task exactly as instructed. The customer still received the wrong answer',
+  standfirst: 'Model capability varies from one task to the adjacent one, and nothing in an agent’s output marks the boundary. Fixed rules, a bounded model and a named person on exceptions put that boundary where management can see it.',
+  thesis: 'Authority over live work should be granted in tiers by consequence, and only once the fixed parts of the workflow run deterministically and every known exception routes to a named person.',
+  sceneLabel: 'The demonstration',
+  sceneTitle: 'Between the demonstration and the live queue, one enquiry gains three complications',
   sceneParagraphs: [
-    'In the demonstration, an agent reads an enquiry, updates the customer record and prepares a response. In live operation, the record contains two addresses, the latest policy is attached to an old email and a credit hold is known only to finance. The agent follows the visible path and misses the organisation’s invisible one.',
-    'A colleague would probably pause and ask. That pause contains tacit knowledge: the sign that the case is unusual, the person who understands the exception and the consequence of proceeding. The management question is how to expose enough of that knowledge before software receives authority to act.',
+    'In the demonstration the agent reads an enquiry, updates the customer record and returns a courteous reply in under a minute. The same enquiry in the live queue carries two addresses that disagree, a policy superseded by an attachment nobody re-filed, and a credit hold that finance applied on Friday and mentioned to no one. The agent takes the visible path and completes the task. The answer it sends is wrong.',
+    'An experienced colleague would have stopped somewhere in the middle. That stop appears nowhere in the documented process. It comes from recognising the shape of an unusual case, knowing which person holds the missing fact, and knowing what it costs to be wrong. Software inherits the documented process. It does not inherit the stop.',
   ],
   sections: [
     {
-      heading: 'Demonstration-to-production gap',
+      heading: 'Demonstrations select away the conditions that break agents',
       paragraphs: [
-        { text: 'The smooth demonstration is attractive because its input is complete, its policy is consistent and its successful ending has been selected in advance. Production work is less cooperative. Customers change their minds, records conflict and exceptions cross departmental boundaries. Employees resolve these cases through informal routes that a process map may never have captured.' },
-        { text: 'Current adoption data supports caution about treating agency as a mature default. In DSIT research, agentic AI was the least used technology among AI adopters at 7 percent, compared with 85 percent using natural-language or text-generation tools. Reported use reveals neither safety nor value. It does show that operational experience remains relatively limited.', sources: [ukAdoption] },
-        { text: 'The failed enquiry therefore needs to be observed as work. Reconstructing it as a better demonstration teaches nothing. Follow the case from arrival to completion and record the states it passes through, the evidence used, the decisions taken, the waiting between them and who acts at each step. The next question is which parts of that route require intelligence at all.' },
+        { text: 'Every agent demonstration is a selected path through work that also contains unselected ones. The record is clean because a clean record was chosen. The policy is current because the demonstration was built in the week the policy changed. The task ends well because a task that ended well is the one worth showing. None of that is dishonest. It is a poor guide to the distribution of cases a live queue produces in a week.' },
+        { text: 'Benchmarks built on unselected work read differently. In TheAgentCompany, a simulated firm of 175 long-horizon professional tasks with colleagues to consult and internal systems to navigate, the strongest agent tested completed 30.3 percent of tasks outright and scored 39.3 percent when partial credit was allowed. Salesforce’s CRMArena-Pro reports a similar shape: roughly 58 percent success on single-exchange business tasks, falling to about 35 percent once the same work runs over several turns of interaction. That second benchmark also reports close to no inherent awareness of confidentiality among the agents it tested, improvable by prompting and at some cost to task performance.', sources: [agentBenchmark, crmBenchmark] },
+        { text: 'UK adoption sits about where those numbers would predict. DSIT’s 2026 research found agentic AI the least used category among adopters at 7 percent, against 85 percent using text generation and natural-language tools. Gartner forecasts that more than 40 percent of agentic projects will be cancelled by the end of 2027, and the reasons it gives are managerial: escalating cost, unclear business value, weak risk controls. Model capability appears nowhere in that list.', sources: [ukAdoption, gartnerAgents] },
       ],
       exhibits: [{ kind: 'evidence', view: 1, afterParagraph: 1 }],
     },
     {
-      heading: 'Deterministic workflow repair',
-      transition: 'The demonstration fails because it omits ordinary constraints, so the first design task is to repair the deterministic path.',
+      heading: 'Capability is jagged and its edge is unmarked',
+      transition: 'A selected demonstration establishes that one path exists, which leaves open the harder matter of predicting where capability stops on work nobody selected.',
       paragraphs: [
-        { text: 'That observation usually exposes work that can be removed, standardised or validated. Ordinary workflow software should handle required fields, fixed calculations, known notifications and state changes. With those controls in place, the model faces fewer occasions on which it must infer what the organisation meant.' },
-        { text: 'In the customer enquiry, address validation can expose the conflict, the current policy can be versioned and the credit hold can become a controlled field. AI may still help interpret free text or prepare a response, but it no longer has to invent the process while executing it.' },
-        { text: 'This combined design is less theatrical than a general agent and more dependable. Once the workflow has a stable state and explicit exceptions, management can settle the point the demonstration avoided, which is how much authority the model should receive.' },
+        { text: 'Harvard Business School and BCG ran a pre-registered field experiment with 758 consultants to find out where that boundary falls. On tasks inside the reach of the model, consultants working with it completed 12.2 percent more tasks, worked 25.1 percent faster and produced results graded more than 40 percent higher in quality. Those are large effects, and they are the ones quoted in most vendor material.', sources: [jaggedFrontier] },
+        { text: 'The same experiment included a task built to sit outside that reach, requiring quantitative data and interview evidence to be reconciled before any answer was possible. On that task, consultants using the model were 19 percentage points less likely to reach the correct solution than consultants working without it. Same people, same tool, same week. From the outside the task looked no harder.', sources: [jaggedFrontier] },
+        { text: 'The researchers called the resulting shape a jagged frontier, and the jaggedness is the operational problem. Difficulty as a person judges it does not predict which side of the line a step falls on. A workflow arrives as a sequence of steps, none of them labelled. An agent chains those steps, so a crossing at step three is inherited by steps four and five, and what would have been a wrong sentence becomes a completed action. The fall from single-exchange to multi-turn success in the CRM benchmark is what that compounding looks like once somebody measures it.', sources: [crmBenchmark] },
+        { text: 'In office work the line tends to fall on the exception. The routine case is well represented in the material the model learned from and well represented in the workflow’s own design. The exception is where the record disagrees with itself, where the policy is newer than the document that states it, where the decisive fact sits with another department and was never written down. Those cases are also the ones a process map is least likely to contain.' },
+        { text: 'Hence the difficulty of catching the failure in review. An agent produces the same register, the same structure and the same apparent confidence on both sides of the frontier. Nothing in the output separates a step the model handled from a step it improvised. That separation has to come from the workflow, because it will not come from the text.' },
       ],
+      exhibits: [{ kind: 'evidence', view: 0, afterParagraph: 1 }],
     },
     {
-      heading: 'Authority by consequence',
-      transition: 'A stable workflow makes selective interpretation possible; the next decision is how much authority each interpreted output should receive.',
+      heading: 'Rebuild the fixed path, then grant authority in tiers',
+      transition: 'An unmarked boundary cannot be managed by better instructions, so the workable response is to shrink the territory in which the model is required to guess.',
       paragraphs: [
-        { text: 'Drafting an internal summary, recommending a route and changing a customer record are not points on one technical scale. They create different consequences and require different evidence. A practical authority model separates draft, recommend and act, then gives each level the minimum tools and permissions it needs.' },
-        { text: 'Research reinforces the need for task-level evaluation. One randomised METR study found experienced open-source developers took 19 percent longer with early-2025 AI tools on familiar repositories, while other studies found substantial gains in different occupations and tasks. The combined evidence rejects any universal effect for experts. Performance has to be established inside the relevant workflow.', sources: [metrStudy, jaggedFrontier] },
-        { text: 'For the enquiry, a representative test set should include duplicate addresses, outdated attachments, credit holds and ambiguous requests. Safe completion, correction and rescue effort matter together. The authority gate can then expand only when those cases show that the system understands when to proceed and when to stop.' },
+        { text: 'Three kinds of work sit in most business processes and three different mechanisms should hold them. Required fields, calculations, entitlement checks, state transitions and standard notifications belong in ordinary workflow software, where they behave identically every time and can be tested once. Language and variation belong to the model, which is where its advantage is real. Every exception the first two cannot settle belongs to a named person, identified while the release is being designed.' },
+        { text: 'Applied to the failed enquiry, that division does most of the work before the model is involved at all. Address validation makes the conflict visible at intake. Versioned policy means retrieval returns the text in force on the date of the enquiry. The credit hold becomes a field with a rule attached, so a promise about payment cannot be composed while it is set. What is left for the model is an awkwardly worded request to read and a reply to draft, which is the part it is good at.' },
+        { text: 'Authority over the result should then be granted in three tiers. Drafting produces text a person sends. Recommending produces a proposed action a person approves. Acting changes a record, a commitment or a customer’s money with no further intervention. These are separate decisions carrying separate evidence thresholds, and consequence and reversibility set the tier. A general impression that the model has become capable is evidence for none of them.' },
+        { text: 'Moving a workflow up a tier calls for a test set holding the awkward cases in something close to their real proportions: duplicate records, superseded attachments, held accounts, requests that ask two things at once. What matters in that test is safe completion, the effort spent correcting near-misses, and the effort spent rescuing cases the agent should have stopped on. A system that stops where it should deserves more authority than one that finishes everything.' },
       ],
-      exhibits: [{ kind: 'evidence', view: 0, afterParagraph: 1 }, { kind: 'system', afterParagraph: 2 }],
+      exhibits: [{ kind: 'system', afterParagraph: 2 }],
     },
     {
-      heading: 'Conditions for earlier autonomy',
+      heading: 'Bounded agents can earn authority before redesign finishes',
       role: 'counterargument',
-      transition: 'Consequence-based authority is conservative by design, and the strongest case against it is worth stating at full strength.',
+      transition: 'Granting authority by consequence delays useful work, and the objection that the delay costs more than the failures it prevents deserves its strongest statement.',
       paragraphs: [
-        { text: 'The strongest counterargument is that some organisations already have clean records, stable policies and reversible actions. Requiring a long redesign before every release would waste that maturity. A bounded agent can remove real coordination work when the tools, inputs and fallback route are already dependable.' },
-        { text: 'Controls should rise with consequence. A low-consequence internal task with strong observability may move quickly from recommendation to action. A financial, regulated or customer-facing commitment requires a higher evidence threshold. Human review adds value when the reviewer sees the source, proposed action and reason the case deserves attention.' },
-        { text: 'Nominal oversight can still fail at this point. Relentless review volume or weak evidence turns approval into a reflex. Useful control measures include meaningful challenges, corrections and rescue effort; the presence of a human click carries little information by itself.' },
+        { text: 'The strongest case against sequencing the work this way is that the sequence never finishes. Defining a process end to end is a project most organisations have started and abandoned more than once, and part of what makes the model attractive is precisely its tolerance of the undefined parts. Where actions are reversible, volumes are modest and the cost of a wrong output is an apology, running a bounded agent and reading what it produces is cheaper than rebuilding the workflow around it. Some firms already hold clean records and stable policy, and asking them to prove that again is waste.' },
+        { text: 'That argument holds under conditions it should be made to state. The action has to be reversible. The output has to be observable. The volume has to stay inside what a reviewer can genuinely read. The reviewer has to see the source material and the reason the case was flagged. All four conditions rest on the review being real.' },
+        { text: 'Review is where the argument is weakest. A meta-analysis of 106 experiments published in Nature Human Behaviour found that human and system combinations performed on average worse than the better of the human alone or the system alone, with the losses concentrated in decision tasks. Approval under volume pressure degrades into acknowledgement, and the presence of a human click carries little information by itself. The measures worth reporting are the rate at which reviewers change something, the corrections that still reach the customer, and the effort spent on rescue.', sources: [humanAiMeta] },
       ],
     },
     {
-      heading: 'Controlled-pause decision',
+      heading: 'Autonomy becomes a management decision once exceptions surface',
       role: 'conclusion',
-      transition: 'The case for earlier autonomy survives only under narrow conditions, and those conditions define the release decision for the failed enquiry.',
+      transition: 'Because early autonomy is defensible only where review is genuinely informed, the release decision turns on what the repaired workflow can show about its own exceptions.',
       paragraphs: [
-        { text: 'When the original enquiry returns, the repaired workflow detects the address conflict, retrieves the current policy and exposes the credit hold. The agent can prepare a response, but the case goes to the finance manager before anything is promised to the customer. The pause that once depended on tacit knowledge has become an explicit control.' },
-        { text: 'Management can now decide whether to expand authority using observed evidence: correct completion by risk category, material corrections, manual rescue, incidents and unresolved exception age. Greater autonomy is justified only when it improves the whole route without weakening recovery.' },
-        { text: 'The agent did not need a more ambitious instruction. It needed an operating system that distinguished a normal case from a consequential exception. Repairing that system first turns autonomy from a product setting into a management decision.' },
+        { text: 'Put the same enquiry back through the repaired process and the sequence changes. Validation raises the address conflict at intake. Retrieval returns the policy in force. The credit hold blocks any composed promise about payment and routes the case to the finance manager, who sees the enquiry, the hold and the draft together. What once depended on a colleague noticing something odd is now a property of the system.' },
+        { text: 'From there the authority decision can be taken on evidence the organisation already holds: correct completion by risk band, material corrections made downstream, cases rescued by hand, incidents, and the age of exceptions still open. A tier is worth expanding when those measures improve together, and the decision belongs at a scheduled review attended by the manager who carries the exception queue, so that the tier moves on a record the reviewers can inspect. Where completion rises and rescue effort rises with it, the workflow has moved cost around and the tier should hold.' },
+        { text: 'The agent in the demonstration needed no more ambitious instruction. It needed a process that separates an ordinary case from a consequential one, and a route for the second kind. Where an organisation cannot state that separation, its agent will make the separation on the organisation’s behalf, one live case at a time, and the first written record of the decision will be a complaint.' },
       ],
     },
   ],
@@ -66,37 +77,39 @@ export const article: NewsEditorial = {
 
 export const evidenceViews: EvidenceView[] = [
   {
-    label: 'Productivity evidence',
-    title: 'The empirical record is positive, negative and highly task-specific',
-    summary: 'Results come from different studies, tasks and populations. They should not be averaged or treated as a forecast for another workflow.',
+    label: 'Task-level effects',
+    title: 'One tool, one week, opposite results on adjacent tasks',
+    summary: 'The first three bars index the treated group against a control group set at 100. The last bar is a percentage-point difference in correct answers, placed on the same scale for comparison.',
     interpretation: {
-      establishes: 'Observed AI effects vary materially across occupations, tasks and operating contexts.',
-      doesNotEstablish: 'The studies are not a league table of models and cannot be combined into an expected return for agent deployment.',
-      management: 'Require representative workflow tests before granting broader authority or importing a productivity assumption.',
+      establishes: 'A single model produced large gains on tasks inside its reach and a material loss of accuracy on a task outside it, among the same people in the same experiment.',
+      doesNotEstablish: 'It does not locate the frontier for any other organisation, and neither effect size will transfer to a different task, population or workflow.',
+      management: 'Test the specific steps of the target workflow before granting authority, and treat confident output as uninformative about which side of the frontier a step fell on.',
     },
-    source: 'OECD research synthesis and METR, 2025',
-    href: 'https://metr.org/blog/2025-07-10-early-2025-ai-experienced-os-dev-study/',
+    source: 'Dell’Acqua and others, Harvard Business School working paper 24-013, 2023',
+    href: 'https://www.hbs.edu/ris/download.aspx?name=24-013.pdf',
     points: [
-      { label: 'Customer-support study', value: 114, display: '+14%', detail: 'Reported performance uplift in a customer-support setting cited by the OECD.' },
-      { label: 'Consulting-task study', value: 140, display: 'nearly +40%', detail: 'Reported performance uplift on selected consulting tasks cited by the OECD.' },
-      { label: 'Programming-task study', value: 150, display: 'over +50%', detail: 'Reported uplift in a bounded programming experiment cited by the OECD.' },
-      { label: 'Experienced developers', value: 81, display: '-19%', detail: 'METR found experienced open-source developers took longer with early-2025 tools on their own repositories.' },
+      { label: 'Tasks completed, inside reach', value: 112, display: '+12.2%', detail: 'Consultants working with the model completed 12.2 percent more tasks than the control group.' },
+      { label: 'Speed per task, inside reach', value: 125, display: '25.1% faster', detail: 'Tasks inside the reach of the model were completed 25.1 percent more quickly.' },
+      { label: 'Quality grade, inside reach', value: 140, display: 'over +40%', detail: 'Graded output quality was more than 40 percent higher than the control group.' },
+      { label: 'Correct answers, outside reach', value: 81, display: '19pp lower', detail: 'On a task built to sit outside the reach of the model, consultants using it were 19 percentage points less likely to reach the correct solution.' },
     ],
   },
   {
-    label: 'Adoption maturity',
-    title: 'Agentic systems remain a minority use case',
-    summary: 'Language use dominates current adoption, while agentic systems remain relatively uncommon in the UK research sample.',
+    label: 'Unassisted completion',
+    title: 'Agents finish a minority of realistic multi-step office tasks',
+    summary: 'Two independent benchmarks of business work, reported side by side. The environments differ and the figures should not be combined into a single completion rate.',
     interpretation: {
-      establishes: 'Reported agentic AI use is much less common than text and language use among current UK adopters.',
-      doesNotEstablish: 'Low adoption does not prove that agents are ineffective, unsafe or unsuitable for a particular mature workflow.',
-      management: 'Treat deployment as an emerging operating-model decision and demand stronger evidence for consequential tool access.',
+      establishes: 'Current agents complete well under half of long-horizon business tasks without help, and success falls further once the work runs over several turns.',
+      doesNotEstablish: 'Benchmark scores do not predict performance on one firm’s workflow, and neither study measures an agent operating inside deterministic controls.',
+      management: 'Treat unattended completion as the exception at present and design the release so an unfinished case stops somewhere a person will see it.',
     },
-    source: 'DSIT, AI Adoption Research 2026',
-    href: 'https://www.gov.uk/government/publications/ai-adoption-research/ai-adoption-research',
+    source: 'TheAgentCompany (Carnegie Mellon University, 2025) and CRMArena-Pro (Salesforce AI Research, 2025)',
+    href: 'https://arxiv.org/abs/2412.14161',
     points: [
-      { label: 'Text and language use', value: 85, display: '85%', detail: 'Share of adopting organisations reporting text generation or natural-language processing.' },
-      { label: 'Agentic AI use', value: 7, display: '7%', detail: 'Share reporting agentic AI, the least adopted category in the study.' },
+      { label: 'Office tasks completed outright', value: 30.3, display: '30.3%', detail: 'Best agent tested across 175 long-horizon tasks in a simulated software company.' },
+      { label: 'Same tasks, partial credit', value: 39.3, display: '39.3%', detail: 'Score on the same 175 tasks when partially completed work is given credit.' },
+      { label: 'CRM tasks, single exchange', value: 58, display: 'about 58%', detail: 'Reported success for leading agents on single-turn business tasks in CRMArena-Pro.' },
+      { label: 'CRM tasks, multi-turn dialogue', value: 35, display: 'about 35%', detail: 'Success on the same benchmark once the task requires several turns of interaction.' },
     ],
   },
 ];

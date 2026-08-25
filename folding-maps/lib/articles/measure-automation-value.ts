@@ -2,64 +2,63 @@ import type { EvidenceView } from '@/lib/editorialGraphics';
 import type { NewsEditorial } from '@/lib/newsEditorial';
 import { metrStudy, qjeStudy, ukAdoption } from '@/lib/sources';
 
+const metrRerun = { label: 'METR, Changing our developer productivity experiment design, 2026', href: 'https://metr.org/blog/2026-02-24-uplift-update/' };
+const danishRecords = { label: 'Humlum and Vestergaard, Large Language Models, Small Labor Market Effects, NBER, 2025', href: 'https://www.nber.org/system/files/working_papers/w33777/w33777.pdf' };
+const usAdoptionSurvey = { label: 'Bick, Blandin and Deming, The Rapid Adoption of Generative AI, NBER, 2024', href: 'https://www.nber.org/papers/w32966' };
+const genaiDivide = { label: 'MIT NANDA, The GenAI Divide: State of AI in Business 2025', href: 'https://mlq.ai/media/quarterly_decks/v0.1_State_of_AI_in_Business_2025_Report.pdf' };
+
 export const article: NewsEditorial = {
-  title: 'Hours saved are not cash, and the gap between them can be measured',
-  standfirst: 'Multiplying theoretical minutes saved by salary produces an attractive number and a weak business case. Credible value measurement begins with a counterfactual, includes exception effort and distinguishes released capacity from cash.',
-  thesis: 'Automation should be judged through a transparent benefits ledger that connects operating change to financial consequence and records the confidence behind each claim.',
-  sceneLabel: 'The situation',
-  sceneTitle: 'The programme reports 100 hours saved. Finance cannot find a single pound',
+  title: 'Hours saved reach the budget only when someone moves them',
+  standfirst: 'A field study found customer-support productivity up 15 percent. A randomised trial found experienced developers 19 percent slower. Neither figure belongs in a business case, and the reason it does not is the whole method.',
+  thesis: 'Automation value should be reported as a bridge from an observed baseline to a financial or operating consequence, with each stage evidenced separately and the confidence behind every claim recorded beside it.',
+  sceneLabel: 'The business case',
+  sceneTitle: 'Finance cannot locate the hundred hours the programme reported',
   sceneParagraphs: [
-    'The calculation is familiar. A task once took ten minutes, the new workflow takes five and monthly volume is 1,200. The programme reports 100 hours saved and multiplies the result by salary. The number is precise, positive and disconnected from what happened next.',
-    'Employees may have used only part of the system, reviewed difficult outputs or spent the released time on activity whose contribution was never measured. Cost did not leave the budget and capacity was not deliberately redeployed. The technology may still be valuable, but the financial claim has moved ahead of the evidence.',
+    'The arithmetic is familiar. A task took ten minutes and now takes five. Monthly volume is 1,200. The programme reports 100 hours released, multiplies by a loaded hourly rate and presents the product as a saving. The figure is precise, positive and unconnected to anything the finance system will ever record.',
+    'What the arithmetic omits is everything between the task and the ledger. Part of the volume never reached the new route. Some outputs came back for correction. The time genuinely released landed in whatever the team did next, which nobody was measuring. A year on, the operating cost is unchanged and the productivity claim is still on the slide.',
   ],
   sections: [
     {
-      heading: 'Counterfactual benefit baseline',
+      heading: 'Opposite findings agree about who gains from assistance',
       paragraphs: [
-        { text: 'The first question for the investment committee is what would have happened without the release. A representative baseline should cover eligible volume, elapsed time, hands-on effort, error, rework and service. One difficult week can flatter the project; staff estimates alone can create precision without a dependable denominator.' },
-        { text: 'Where data is weak, the correct response is not to invent a stronger baseline. Management should record the uncertainty, identify the measures the pilot can improve and state the range of outcomes consistent with current knowledge.' },
-        { text: 'The 100-hour claim assumes full adoption, stable demand and no new work. Testing those assumptions establishes how much of the theoretical saving remains available for the business to use.' },
-      ],
-    },
-    {
-      heading: 'Gross-to-net value bridge',
-      transition: 'A credible counterfactual establishes the gross change. That change is then reduced at several points before any of it reaches economic value.',
-      paragraphs: [
-        { text: 'The value bridge begins with eligible volume actually completed through the new process. Review, exception handling, support and workarounds reduce gross time released. The remainder is capacity. It becomes financial value only when cost is removed or avoided, or when the capacity is deliberately redirected to work with a measured contribution.' },
-        { text: 'The graphic illustrates that logic using 100 theoretical hours. Every deduction is an assumption, so the result carries no predictive claim about another project or a 20 percent conversion into cash. Its value lies in separating the stages that management must record in the ledger.' },
-        { text: 'In the opening case, finance could not find the saving because nobody owned the movement from released time to budget or output. Before naming anyone to run it, the committee must test whether the original productivity assumption is credible for this particular work.' },
-      ],
-      exhibits: [{ kind: 'evidence', view: 1, afterParagraph: 1 }],
-    },
-    {
-      heading: 'Workflow-specific productivity evidence',
-      transition: 'The gross-to-net bridge depends on local assumptions, so external productivity evidence must be tested for transferability.',
-      paragraphs: [
-        { text: 'A large field study of customer-support agents found AI assistance increased issues resolved per hour by about 15 percent on average, with substantial differences between workers. A separate randomised study found experienced open-source developers took 19 percent longer with early-2025 tools on familiar repositories. The occupations, systems and research designs differ, so the figures should not be averaged or treated as competing model scores.', sources: [qjeStudy, metrStudy] },
-        { text: 'Taken together, the studies show wide variation. AI can accelerate a well-matched workflow and impede work where context, verification or interruption overwhelms the assistance. No imported study supplies the expected return for the programme in the opening scene; its own operating environment must provide that evidence.' },
-        { text: 'The committee should therefore replace the borrowed productivity percentage with observed eligible volume, accepted output, net effort and correction demand. Yet a narrow focus on cash could still miss legitimate reasons to invest.' },
+        { text: 'Two of the most cited measurements of AI at work disagree in direction. Brynjolfsson, Li and Raymond studied 5,172 customer-support agents and found issues resolved per hour rose 15 percent on average once the assistant was available. METR randomised 246 real tasks across 16 experienced open-source maintainers working in repositories they knew intimately, and found completion times 19 percent worse with the tools than without.', sources: [qjeStudy, metrStudy] },
+        { text: 'Presented as competing headline percentages the two results are unusable, and averaging them would be worse. Read at the level of who was measured, they converge. The support study found its gains concentrated among the least experienced and lowest-skilled agents, with the most experienced showing small speed gains and small declines in quality. METR measured maintainers who already held years of context in the exact codebase they were asked to change.', sources: [qjeStudy, metrStudy] },
+        { text: 'What transfers between the two studies is a moderator. Assistance pays most where the worker lacks context the model can supply, and pays least, or costs time, where the worker already holds more context than the model can reconstruct. METR published a second reading of its own experiment in February 2026, reporting a smaller and statistically inconclusive slowdown among newly recruited developers. That is the direction the moderator predicts.', sources: [metrStudy, metrRerun] },
+        { text: 'For an investment committee the consequence is direct. A percentage lifted from either study describes the workforce that study observed. The equivalent local measurement is eligible volume, the share of it completed through the new route, the effort spent reviewing and correcting output, and elapsed time from request to accepted result, taken over a window long enough to survive one unrepresentative week. Staff estimates cannot stand in for that measurement. METR asked its developers to forecast the effect before the trial and to estimate it afterwards. They predicted a 24 percent speed-up, believed after the fact that they had gained 20 percent, and had in fact lost 19. A programme whose baseline rests on what the team believes the tool saved is reading the instrument that produced that error.', sources: [metrStudy] },
       ],
       exhibits: [{ kind: 'evidence', view: 0, afterParagraph: 1 }],
     },
     {
-      heading: 'Non-cash value conversion',
-      role: 'counterargument',
-      transition: 'Conflicting productivity studies weaken imported savings claims. They also direct attention to value that may convert through quality, capacity or risk.',
+      heading: 'Gross hours contract three times before reaching cash',
+      transition: 'Because the moderator has to be measured locally, the arithmetic that turns a local measurement into money has to be built stage by stage.',
       paragraphs: [
-        { text: 'Quality, service, resilience and risk can matter even when headcount or budget does not change. Faster response may improve conversion; fewer errors may reduce remediation; stronger evidence may lower the probability or consequence of control failure. Rejecting these effects because they are not immediate cash would produce an artificially narrow investment case.' },
-        { text: 'Benefit types need separate treatment. DSIT found 56 percent of current AI users reporting higher employee productivity while 77 percent reported no revenue change. The self-reported findings leave the value of that productivity unresolved. They still show why an operating improvement and a financial result belong to different points in the causal chain.', sources: [ukAdoption] },
-        { text: 'Each material benefit needs a mechanism, a named manager and a result that would disprove it. A service claim should identify the customer measure expected to move. A risk claim should identify the exposure and control. Management can then value the benefit without disguising it as salary removed.' },
+        { text: 'Gross released time is the starting quantity, and three deductions stand between it and a financial consequence. Eligible volume that never reached the new route removes the first slice. Review, exception handling, support and the workarounds people invent for themselves remove the second. What survives both is capacity, and capacity becomes money only where a cost leaves the budget or where the freed hours are deliberately pointed at work whose output is already counted. None of the three deductions is exotic. Each is a quantity the workflow can produce once somebody decides that it should.' },
+        { text: 'The exhibit below runs that logic across 100 modelled hours. Its stages matter more than its values. Each stage is a point at which a programme can lose the entire benefit while continuing to report it, and each is answered by a different person holding a different piece of evidence.' },
+        { text: 'Exception effort is the deduction programmes most often omit, because it accrues to people who were never part of the pilot. A checker who reads every output before release, a supervisor who fields the cases the system declines, a colleague who keeps the old spreadsheet alive for the awkward accounts: all three are real hours, all three are caused by the automation, and none of them appears in a before-and-after comparison of task time. Counting that effort requires a decision about scope before the pilot begins, because it stays invisible to any measurement bounded by the automated step.' },
+        { text: 'Redeployment decides whether anything financial happens at all. Released capacity absorbed into general availability leaves no trace in any account, and it is indistinguishable from a benefit that never existed. Capacity pointed at a named queue, a named backlog or a piece of demand the business already counts can be observed moving. The ledger structure below shows which reading supports each stage and where the confidence level attaches.' },
+        { text: 'Recording the bridge honestly usually reduces the headline number by a large fraction, and that is the point of building it. A programme carrying a modelled twenty-hour cash equivalent against a hundred theoretical hours sits in a defensible position, because it can say where the other eighty went and what would have to change to recover any of them. A committee can interrogate that position. It can ask why adoption stalled short of eligible volume, whether the review step is permanent or an artefact of an immature model, and which queue the redeployed capacity was meant to reach. None of those questions is available against a single multiplied figure.' },
       ],
-      exhibits: [{ kind: 'system', afterParagraph: 2 }],
+      exhibits: [{ kind: 'evidence', view: 1, afterParagraph: 1 }, { kind: 'system', afterParagraph: 3 }],
     },
     {
-      heading: 'Investment continuation threshold',
-      role: 'conclusion',
-      transition: 'Once cash and non-cash benefits share an explicit causal chain, the benefits ledger can support a continuation decision.',
+      heading: 'Requiring a cash trace would decline almost everything',
+      role: 'counterargument',
+      transition: 'Following the bridge to its last stage exposes how rarely the final conversion can be evidenced, which turns the method into an argument against the investments it was built to assess.',
       paragraphs: [
-        { text: 'The programme’s 100 hours should be restated as a hypothesis. Finance and the manager who runs the process should review the baseline, eligible adoption, net effort, quality, service and the named destination of any released capacity. Confidence should rise only as observed evidence replaces assumptions.' },
-        { text: 'The review should conclude with one of four decisions: expand where the causal chain is working, adjust where a bottleneck is visible, hold where observation is insufficient, or stop where the result no longer justifies the operating cost. Measurement is worth its cost when it changes that choice.' },
-        { text: 'Finance could not find a pound because the original calculation ended at the automated task. A credible case follows the effect until it reaches an operating or financial consequence, then states honestly what remains unproven. A range supported by that chain is stronger than a precise saving that exists only on a slide.' },
+        { text: 'The strongest objection to this method is that almost nothing survives it. DSIT’s UK adoption research found 56 percent of current AI users reporting higher employee productivity while 77 percent reported no change in revenue. Humlum and Vestergaard, using Danish administrative records for occupations with high adoption, found users reporting time savings of about 2.8 percent of work hours and no significant effect on earnings or recorded hours, with confidence intervals ruling out effects above one percent. A nationally representative US survey by Bick, Blandin and Deming put self-reported savings at 5.4 percent of work hours among users. The pattern across all three is the same. Reported hours move and reported money does not.', sources: [ukAdoption, danishRecords, usAdoptionSurvey] },
+        { text: 'MIT’s NANDA review of more than 300 enterprise initiatives arrived at the same place from the opposite direction, reporting that 95 percent of organisations could show no measurable profit-and-loss return from generative AI pilots. Applied as a gate at the point of decision, a cash trace would have stopped the programmes that later mattered alongside the ones that never did, because at that point the two are indistinguishable.', sources: [genaiDivide] },
+        { text: 'Benefits that never pass through a salary line can still be the reason to invest. Faster response can change conversion on a pipeline the sales team already quotes. Fewer errors can reduce a remediation cost the business already books. Better-evidenced decisions can lower the probability or the consequence of a control failure. Refusing all of these because they arrive as quality, service or risk would leave a firm holding the most conservative investment case in its market and none of the option value. There is a timing problem underneath this. Capability built on one workflow lowers the cost of the next one, and that transfer is real even though it never appears in the benefits case for the workflow that paid for it.' },
+        { text: 'The concession the method has to make is about pricing, and about how confidence is carried. A benefit may sit in the ledger with a named mechanism, a named manager and a stated result that would disprove it, at low confidence and with no pound attached. The programme in the opening arithmetic reported as cash a quantity it had never observed. That is the defect, and it survives whatever the true benefit turns out to be.' },
+      ],
+    },
+    {
+      heading: 'Report confidence alongside every figure in the ledger',
+      role: 'conclusion',
+      transition: 'Since a cash test on its own would reject benefits the firm has good reason to buy, the ledger has to carry claims it cannot yet price and say plainly that it cannot.',
+      paragraphs: [
+        { text: 'Restate the hundred hours as a hypothesis with a date on it. The entry should hold the baseline period and eligible volume, the observed share completed through the new route, the effort spent on review and exceptions, the named destination of any released capacity, and a confidence level that starts low and moves only as observation replaces assumption. Confidence is the field that does the work, because it is the one a programme cannot inflate without being caught by its own next reading. It also fixes the reporting cadence, since a claim held at low confidence has to name the reading that would raise it and the date by which that reading will exist.' },
+        { text: 'Two disciplines keep the ledger honest at low cost. Measure the workflow you are actually changing, since the research shows the effect size belongs to the worker and the task and travels badly between them. Then separate the operating change from the financial one at the point of entry, so that a genuine improvement in handling time is never quietly promoted into a saving nobody has found.' },
+        { text: 'Measurement earns its cost when it changes a decision, and the decision it should change most often is how much to claim. A programme that reports a range with its causal chain visible, and marks the stages it has not yet observed, gives an investment committee something it can act on. A precise figure with no route to the accounts gives it something to repeat. Most committees see more automation proposals than they can fund. The one to fund first is the one whose arithmetic they can check.' },
       ],
     },
   ],
@@ -67,36 +66,38 @@ export const article: NewsEditorial = {
 
 export const evidenceViews: EvidenceView[] = [
   {
-    label: 'Observed outcomes',
-    title: 'Productivity effects can point in opposite directions',
-    summary: 'The two studies cover different occupations, tasks and operating contexts. The comparison demonstrates how much results vary by setting. It says nothing about relative model quality.',
+    label: 'Measured effects',
+    title: 'Measured effect tracks how much context the worker already holds',
+    summary: 'Three measurements from two randomised or quasi-experimental designs, ordered by how much task-specific context the measured workers brought with them.',
     interpretation: {
-      establishes: 'Credible studies have found both positive and negative productivity effects in different settings.',
-      doesNotEstablish: 'The results cannot be averaged, compared as model performance or imported into another business case.',
-      management: 'Measure the target workflow with its own baseline, adoption, review and exception costs.',
+      establishes: 'Published studies have found positive, negative and statistically inconclusive productivity effects, and the differences track worker experience with the task.',
+      doesNotEstablish: 'The figures cannot be averaged, read as model quality, or transferred into a business case for a different workforce.',
+      management: 'Measure the target workflow with its own baseline, adoption share, review effort and exception cost.',
     },
-    source: 'Quarterly Journal of Economics, 2025 and METR, 2025',
+    source: 'Quarterly Journal of Economics 2025; METR 2025 and 2026',
     href: 'https://academic.oup.com/qje/article/140/2/889/7990658',
     points: [
-      { label: 'Customer-support agents', value: 115, display: '+15%', detail: 'Issues resolved per hour increased in a field study of 5,172 support agents.' },
-      { label: 'Experienced developers', value: 81, display: '-19%', detail: 'Completion time worsened in the METR randomised study of experienced developers on familiar repositories.' },
+      { label: 'Customer-support agents', value: 115, display: '+15%', detail: 'Issues resolved per hour across 5,172 agents, with gains concentrated among the least experienced.' },
+      { label: 'Newly recruited developers', value: 96, display: '-4%', detail: 'METR’s 2026 re-run, with a confidence interval running from -15% to +9%, so the direction is unresolved.' },
+      { label: 'Maintainers on own repositories', value: 81, display: '-19%', detail: 'Completion time worsened for experienced developers working in codebases they knew well.' },
     ],
   },
   {
     label: 'Value bridge',
-    title: 'Gross time released contracts before it becomes financial value',
-    summary: 'A modelled bridge showing why adoption, exceptions and redeployment must be observed before a cash claim is made.',
+    title: 'Three deductions separate released time from a financial consequence',
+    summary: 'A modelled bridge across 100 theoretical hours, built to show where the evidence for each stage has to come from.',
     interpretation: {
-      establishes: 'A benefits case needs separate stages between theoretical task time, usable capacity and financial consequence.',
-      doesNotEstablish: 'The values are modelled assumptions and do not predict a typical conversion rate.',
-      management: 'Name the manager and the evidence required at each stage before reporting realised value.',
+      establishes: 'A benefits case needs distinct stages between theoretical task time, completed volume, usable capacity and a financial consequence.',
+      doesNotEstablish: 'The values are Quiet Gears design assumptions and predict no conversion rate for any programme.',
+      management: 'Name the person and the reading required at each stage before any realised value is reported.',
     },
     source: 'Quiet Gears benefits model (design values awaiting measurement)',
     points: [
-      { label: 'Gross task time released', value: 100, display: '100 hours', detail: 'The theoretical saving before real operating friction is counted.' },
-      { label: 'After adoption and exceptions', value: 72, display: '72 hours', detail: 'Capacity remaining after usage, review and rescue effort.' },
-      { label: 'Redeployed to measured work', value: 48, display: '48 hours', detail: 'Capacity deliberately redirected to activity with an observed output.' },
-      { label: 'Converted to cash impact', value: 20, display: '20 hours eq.', detail: 'The modelled portion linked to cost removed, avoided or verified contribution.' },
+      { label: 'Gross task time released', value: 100, display: '100 hours', detail: 'The theoretical saving, before any operating friction is counted.' },
+      { label: 'Completed through the new route', value: 82, display: '82 hours', detail: 'Eligible volume that actually travelled the new path, which the workflow can count directly.' },
+      { label: 'Net of review and exceptions', value: 72, display: '72 hours', detail: 'What remains after checking, rescue work and the workarounds people build for themselves.' },
+      { label: 'Redeployed to counted work', value: 48, display: '48 hours', detail: 'Capacity pointed at a named queue or backlog whose output is already measured.' },
+      { label: 'Modelled cash equivalent', value: 20, display: '20 hours eq.', detail: 'The portion the model links to cost removed, cost avoided or verified contribution.' },
     ],
   },
 ];
