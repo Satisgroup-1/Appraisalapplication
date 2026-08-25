@@ -18,7 +18,7 @@ export const advancedNewsDepth: DepthMap = {
     ],
     [
       { text: 'Informal use also creates a discovery channel. Repeated prompts can reveal where colleagues lack a current source, where forms collect the wrong information and where approval depends on a person’s memory. The organisation can study those patterns without treating every prompt as a candidate for automation. Privacy, employee expectations and purpose limits must govern any analysis of usage records.' },
-      { text: 'The boundary should be reviewed as consequence and volume change. A low-risk drafting aid can become an operational dependency when colleagues use it to prepare most customer communications. At that point sampling, source control and contingency become necessary even if no system connector exists. Governance therefore follows the actual role of the tool in work, not the label assigned during procurement.' },
+      { text: 'The boundary should be reviewed as consequence and volume change. A low-risk drafting aid can become an operational dependency when colleagues use it to prepare most customer communications. At that point sampling, source control and contingency become necessary even if no system connector exists. Governance therefore follows the actual role of the tool in the work. The label assigned during procurement ages badly.' },
     ],
     [
       { text: 'The investment paper should price a complete release: process design, data remediation, integration, evaluation, training, support and the management time needed to own exceptions. It should also state which costs continue with volume and which recur when models, policies or source systems change. A small application with an expensive correction queue may have a poorer cost curve than a more controlled design with higher initial engineering.' },
@@ -58,7 +58,7 @@ export const advancedNewsDepth: DepthMap = {
     ],
     [
       { text: 'Authority is multidimensional. The system may read one source, draft in another workspace and act only within a narrow record type. Permissions should be least-privilege, time-bound where possible and linked to the service identity. Credentials must never be embedded in prompts or logs. An administrator should be able to revoke one tool without disabling observation and evaluation of the remaining workflow.' },
-      { text: 'Runtime policy should define spend, action count, elapsed time, destinations and escalation conditions. These limits contain loops and unexpected plans. A supervisor service can stop execution when a limit is reached, when source freshness fails or when the proposed action differs materially from evaluated patterns. Human review then begins with the full trace, not a generic failure message.' },
+      { text: 'Runtime policy should define spend, action count, elapsed time, destinations and escalation conditions. These limits contain loops and unexpected plans. A supervisor service can stop execution when a limit is reached, when source freshness fails or when the proposed action differs materially from evaluated patterns. Human review then begins with the full trace. A generic failure message wastes the reviewer’s first ten minutes.' },
     ],
     [
       { text: 'The counterargument for early agents is strongest in low-consequence, reversible environments where the cost of mapping every path exceeds the cost of correction. Even there, the organisation should capture traces and cluster failure causes. Exploration produces value when it creates a clearer process model and a representative test set for the next release.' },
@@ -97,7 +97,7 @@ export const advancedNewsDepth: DepthMap = {
       { text: 'Customer proximity can improve example selection. Colleagues who handle the work know the rare request, sensitive account and seasonal pattern that a generic benchmark misses. Those examples should enter the evaluation set with appropriate minimisation and access controls. The resulting test reflects the firm’s service promise while keeping personal knowledge from becoming an undocumented production dependency.' },
     ],
     [
-      { text: 'Survey evidence should guide portfolio hypotheses, not supply a return assumption. A firm facing a skills bottleneck can test whether assistance improves preparation, throughput or quality in that specific task. The baseline should also capture demand deferred or refused because capacity is constrained; released time may create growth capacity even when no labour cost leaves the business.' },
+      { text: 'Survey evidence should guide portfolio hypotheses. It cannot supply a return assumption. A firm facing a skills bottleneck can test whether assistance improves preparation, throughput or quality in that specific task. The baseline should also capture demand deferred or refused because capacity is constrained; released time may create growth capacity even when no labour cost leaves the business.' },
       { text: 'Workforce design should identify where expertise is created. If junior colleagues receive finished answers without reviewing sources or reasoning, short-term speed may weaken future capability. A better design can expose evidence, require active review and use correction patterns for coaching. Training quality belongs in the benefit and risk assessment when the workflow develops professional skill.' },
     ],
     [
@@ -150,7 +150,7 @@ export const advancedNewsDepth: DepthMap = {
     ],
     [
       { text: 'Evaluation governance should separate dataset creation, system development and final adjudication where practical. Developers need failure examples to improve the service, while a held-back set reduces the risk of tuning to known cases. Reviewers should document disagreement and the reason a question lacks one defensible answer.' },
-      { text: 'Economic analysis should include professional concentration. If the service shifts routine checks to a few senior reviewers, nominal drafting savings can increase the real bottleneck. Queue age, reviewer mix and correction cause should sit beside task time. The release should prove a better allocation of legal attention, not simply faster text production.' },
+      { text: 'Economic analysis should include professional concentration. If the service shifts routine checks to a few senior reviewers, nominal drafting savings can increase the real bottleneck. Queue age, reviewer mix and correction cause should sit beside task time. The release should prove a better allocation of legal attention. Faster text production on its own proves very little.' },
     ],
     [
       { text: 'Automation bias can be tested through seeded defects and observation of source-opening behaviour during supervised evaluation. The purpose is not to police individuals. It is to determine whether interface design and workload encourage adequate verification. Prominent confidence language has little value if users cannot inspect the underlying evidence efficiently.' },
@@ -176,10 +176,10 @@ export const advancedNewsDepth: DepthMap = {
     ],
     [
       { text: 'Compensation analysis should distinguish policy entitlement from avoidable service cost. A lower payout is not automatically better if the guest requires repeated contact or leaves without resolution. Managers need case severity, remedy type, approval path, handling effort and outcome in one review so policy changes do not optimise one cost line at the expense of recovery.' },
-      { text: 'Closure requires confirmation that the remedy was delivered, not merely approved. A room move, transport booking, refund or service credit has its own completion evidence. Failed fulfilment should reopen the case with the prior promise visible. This prevents a polite message from being counted as resolution before the operating action completes.' },
+      { text: 'Closure requires confirmation that the remedy was delivered. Approval on its own is not delivery. A room move, transport booking, refund or service credit has its own completion evidence. Failed fulfilment should reopen the case with the prior promise visible. This prevents a polite message from being counted as resolution before the operating action completes.' },
     ],
     [
-      { text: 'Local discretion can be protected through documented override, not removed from the workflow. The colleague records the reason, remedy and authority used, while the service captures a case for policy review. Repeated overrides may show that local conditions or guest needs are missing from the policy model.' },
+      { text: 'Local discretion should be protected through a documented override and kept inside the workflow. The colleague records the reason, remedy and authority used, while the service captures a case for policy review. Repeated overrides may show that local conditions or guest needs are missing from the policy model.' },
       { text: 'Manual fallback should support identity verification, entitlement lookup, local availability and approval even when a central service is unavailable. The later reconciliation path needs a temporary case identifier and duplicate controls. Staff training should rehearse this route before reliance because a disrupted guest cannot wait for an incident team.' },
     ],
     [
@@ -197,7 +197,7 @@ export const advancedCaseDepth: DepthMap = {
     ],
     [
       { text: 'Project state should be derived from validated events such as enquiry received, brief confirmed, estimate approved, work scheduled and delivery accepted. An event records source, time, actor and payload. Derived state can then be recomputed when an event is corrected, which is safer than editing a status field whose history has disappeared.' },
-      { text: 'Ownonsibility attaches to the next required action, not only to the customer account. The commercial contact, the delivery lead and the reviewer may all change as the item progresses. The workflow policy assigns a role, due condition and escalation route for each state. Absence or reassignment becomes an explicit event so active work cannot remain attached to a colleague who is unavailable.' },
+      { text: 'Responsibility attaches to the next required action as well as to the customer account. The commercial contact, the delivery lead and the reviewer may all change as the item progresses. The workflow policy assigns a role, due condition and escalation route for each state. Absence or reassignment becomes an explicit event so active work cannot remain attached to a colleague who is unavailable.' },
     ],
     [
       { text: 'The read model used by staff should answer the current state, the last material event, the next action, the colleague taking it, any open exception and the original commitment without exposing the complexity of the event store. Management reporting derives from the same state model. This removes the need for a separate weekly status narrative and makes any discrepancy traceable to a source event or rule.' },
@@ -230,7 +230,7 @@ export const advancedCaseDepth: DepthMap = {
       { text: 'Policy changes require approval and effective dates. A rollback should restore the prior version and identify cases classified during the affected interval. Monitoring health must be visible at the operating point, with a documented manual route for gateway, network or service failure.' },
     ],
     [
-      { text: 'A release decision is limited to the tested asset class, site, policy and staffing model. Expansion needs a fresh context assessment because loading pattern, sensor layout, product sensitivity and response capacity can differ. Reuse belongs in the architecture and evaluation method, not an unexamined assumption about operating behaviour.' },
+      { text: 'A release decision is limited to the tested asset class, site, policy and staffing model. Expansion needs a fresh context assessment because loading pattern, sensor layout, product sensitivity and response capacity can differ. Reuse belongs in the architecture and the evaluation method. It does not extend to an unexamined assumption about how another site behaves.' },
       { text: 'The operator has asked not to be named. The design specifies what evidence the pilot collects and where responsibility stays with their team. It provides no signal coverage, alert precision, response improvement, reporting saving or food-safety outcome.' },
     ],
   ],
@@ -281,11 +281,11 @@ export const advancedCaseDepth: DepthMap = {
   'field-service-planning': [
     [
       { text: 'A work order should carry location confidence, service window, duration range, skill and certification requirements, parts state, priority source and customer constraints. Resource records need availability, working limits, skills, vehicle and start location. Missing or stale inputs remain explicit because false precision can make an invalid plan appear feasible.' },
-      { text: 'Baseline data should compare planned and actual duration, travel, arrival, completion, overtime, reassignment and failure by job category. Dispatcher notes capture constraints that systems do not yet represent. Those notes become candidates for structured data or policy after review, not hidden corrections to the evaluation.' },
+      { text: 'Baseline data should compare planned and actual duration, travel, arrival, completion, overtime, reassignment and failure by job category. Dispatcher notes capture constraints that systems do not yet represent. Those notes become candidates for structured data or policy after review. They should never become hidden corrections to the evaluation.' },
     ],
     [
       { text: 'Hard constraints remove options that violate safety, certification, availability, parts or working rules. Soft objectives score service windows, priority, travel, overtime and plan stability among feasible options. Keeping these stages separate prevents a high score from compensating for an invalid assignment.' },
-      { text: 'Input confidence should affect the plan. An uncertain duration can produce a conservative buffer or manual review; uncertain parts may block publication. Confidence is linked to source and observed error, not generated by the optimiser. Actuals update calibration by job class and operating context.' },
+      { text: 'Input confidence should affect the plan. An uncertain duration can produce a conservative buffer or manual review; uncertain parts may block publication. Confidence is linked to source and observed error. The optimiser does not generate it. Actuals update calibration by job class and operating context.' },
     ],
     [
       { text: 'The solver should return several feasible options with objective contributions and displaced commitments. A dispatcher needs to see why an option ranks higher and which customer or engineer absorbs the change. Publishing records the selected option, override and rationale.' },
@@ -427,7 +427,7 @@ export const advancedCaseSections: Record<string, AddedSection[]> = {
       paragraphs: [
         { text: 'The asset record should connect the site, the room, the equipment, the sensor, the gateway, the network segment, the calibration record, the maintenance team and the product being stored. Each relationship has an effective period. Installation, replacement and relocation need controlled updates so the monitoring service does not apply the wrong context to a valid signal.' },
         { text: 'Ingestion preserves raw value, unit, event time, receive time, device identity and quality flags. Duplicate, late and out-of-order readings need deterministic handling. Derived aggregates reference the raw evidence used. A reviewer can therefore reconstruct why a case opened even after an aggregation or classification rule changes.' },
-        { text: 'Connectivity monitoring covers heartbeat, queue depth, clock offset, certificate and gateway health. A data gap becomes an operating state with a responder and a fallback, not a blank chart. Site staff should know when the service has degraded and which existing check remains authoritative.' },
+        { text: 'Connectivity monitoring covers heartbeat, queue depth, clock offset, certificate and gateway health. A data gap becomes an operating state with a responder and a fallback. A blank chart tells the site nothing. Site staff should know when the service has degraded and which existing check remains authoritative.' },
         { text: 'The monitoring architecture should use controlled, read-only paths from OT into the analytical environment. Firewall, broker, schema and identity decisions belong in the documented design. There is no general route from the model or exception service back to equipment control.' },
         { text: 'Security and safety review should examine third-party maintenance, remote access, patching and incident response. A technically separate service can still increase risk if credentials, gateways or support routes are poorly governed. The pilot does not alter current hazard controls until this boundary is accepted.' },
       ],
@@ -625,7 +625,7 @@ export const advancedCaseExtensionSections: Record<string, AddedSection[]> = {
     heading: 'Matter acceptance and downstream handover',
     transition: 'Professional evaluation proves the intake decision; downstream handover shows whether accepted evidence remains useful after the matter opens.',
     paragraphs: [
-      { text: 'Acceptance should create the matter from approved fields and control evidence, not re-key an unverified summary. The handover includes parties, scope, jurisdiction, urgency, source documents, open questions, gate results and accepting professional. Every transferred field retains provenance.' },
+      { text: 'Acceptance should create the matter from approved fields and control evidence. Re-keying an unverified summary undoes the control. The handover includes parties, scope, jurisdiction, urgency, source documents, open questions, gate results and accepting professional. Every transferred field retains provenance.' },
       { text: 'Conditional acceptance needs explicit actions, each with a name against it. A matter may open subject to engagement terms, additional identity evidence or specialist review. The state remains conditional until those actions complete, and downstream workflows can see the restriction.' },
       { text: 'Rejected and referred items require controlled closure, retention and communication. The system records decision and reason at the appropriate level without storing unnecessary sensitive analysis. A generated response remains subject to professional approval and the permitted disclosure boundary.' },
       { text: 'Downstream users should evaluate whether the intake brief reduces repeated fact gathering and whether material corrections appear after acceptance. Those findings may reveal weak capture, taxonomy or review. They do not retrospectively convert preparation into a professional decision.' },
@@ -646,7 +646,7 @@ export const advancedCaseExtensionSections: Record<string, AddedSection[]> = {
       { text: 'Objective weights should change through evidence and management choice. A period of travel pressure may not justify permanent damage to service stability. Scenario replay shows how proposed weights would have moved outcomes, with dispatchers reviewing representative days.' },
       { text: 'Support analysis should classify failed recommendations, unavailable data, performance delay and confusing explanation. The dispatcher decides whether the fix belongs in the source data, the solver, the interface or the policy. Prompt changes alone cannot repair a hard-constraint or stale-data defect.' },
       { text: 'Authority remains recommendation until continuing evidence supports more. Any automated publication scope would need its own reversible action class, monitoring and rollback. This account makes no claim that such authority is appropriate.' },
-      { text: 'Dispatcher trust should be examined by decision, not sentiment alone. The team can compare accepted options, modification cause and later outcome. A recommendation may be disliked and operationally sound, or accepted quickly because its hidden trade-off was missed.' },
+      { text: 'Dispatcher trust should be examined decision by decision. Sentiment on its own is a poor guide. The team can compare accepted options, modification cause and later outcome. A recommendation may be disliked and operationally sound, or accepted quickly because its hidden trade-off was missed.' },
       { text: 'Engineer and customer communication belong in the change model. Frequent replanning can create cognitive load and missed commitments even when the route score improves. The service should record notification and acknowledgement where a changed plan affects work already under way.' },
       { text: 'The manager running dispatch should set how often estimates, constraints, objectives and override patterns are reviewed. This turns maintenance into a managed planning process. Without it, a once-useful solver will encode an old service policy and gradually lose fit with field reality.' },
     ],

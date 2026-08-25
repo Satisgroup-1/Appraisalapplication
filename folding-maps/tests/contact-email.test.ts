@@ -101,8 +101,8 @@ describe('acknowledgement email', () => {
     }
   });
 
-  it('says it is not a mailing list, because the consent checkbox says so too', () => {
-    expect(email.html).toContain('not a mailing list');
+  it('repeats the consent promise the form makes', () => {
+    expect(email.html).toContain('not added to a mailing list');
   });
 });
 

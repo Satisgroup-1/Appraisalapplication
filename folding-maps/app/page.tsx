@@ -56,7 +56,7 @@ const positions = [
   {
     claim: 'Automation has to be argued for.',
     body: [
-      'The case for automating a task is an empirical claim, and it is usually made without evidence. Multiplying estimated minutes by a salary rate produces a number, not a business case, because the minutes saved are rarely contiguous and the quality cost is rarely counted.',
+      'The case for automating a task is an empirical claim, and it is usually made without evidence. Multiplying estimated minutes by a salary rate produces a number. It falls short of a business case because the minutes saved are rarely contiguous and the quality cost is rarely counted.',
       'We baseline before we build, and we say so when the evidence does not support the work. Declining a project is cheaper for both sides than delivering one that cannot be defended at the next budget review.',
     ],
   },

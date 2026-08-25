@@ -171,7 +171,7 @@ export function buildAcknowledgementEmail() {
      <p style="margin:0 0 16px;">One of our two lead consultants will read it and reply <strong>within one working day</strong>. That reply either sets up an initial consultation or explains why this is not something we should take on, and who might be better placed.</p>
      <p style="margin:0 0 16px;">The initial consultation is a scheduled call. We ask how the work runs today, where it slows down and what has already been tried, then set out the constraint as we understand it and what we would look at first.</p>
      <p style="margin:24px 0 0;padding-top:16px;border-top:1px solid rgba(10,27,42,0.14);font-size:13px;color:#56687c;">
-       This is an acknowledgement, not a mailing list. Your details are used only to answer this enquiry.
+       This is an acknowledgement. Your details are used only to answer this enquiry and are not added to a mailing list.
      </p>`,
   );
 

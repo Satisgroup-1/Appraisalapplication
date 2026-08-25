@@ -58,7 +58,7 @@ const serviceCatalogue: Service[] = [
     slug: 'ai-implementation', number: '02', group: 'Build', title: 'Custom AI Systems', shortTitle: 'Custom AI systems',
     promise: 'Bespoke AI systems engineered around real work, data and controls.',
     summary: 'We design, build, integrate and launch purpose-built AI systems, from a bounded first release through to operational handover.',
-    explanation: 'A custom implementation connects models to the surrounding software system. It includes data preparation, retrieval, orchestration, authentication, evaluation, observability, exception handling and user experience, not only prompts or an off-the-shelf workspace.',
+    explanation: 'A custom implementation connects models to the surrounding software system. It includes data preparation, retrieval, orchestration, authentication, evaluation, observability, exception handling and user experience. Prompts and an off-the-shelf workspace cover very little of it.',
     technologies: ['LLM orchestration', 'Secure APIs', 'Retrieval systems', 'Evaluation harnesses'],
     stages: [
       { label: 'Ingest', detail: 'Validate requests, identity, context and source data.' },

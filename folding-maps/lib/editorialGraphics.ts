@@ -24,7 +24,7 @@ export const newsEvidenceViews: Record<string, EvidenceView[]> = {
     {
       label: 'Adoption context',
       title: 'Use has spread further than operating integration',
-      summary: 'These figures use different respondent bases. The contrast is useful as context, not as a conversion funnel.',
+      summary: 'These figures use different respondent bases. The contrast is useful as context. It does not describe a conversion funnel.',
       interpretation: {
         establishes: 'Reported AI use is widespread in a digitally active survey population, while reported connection to business systems is less common.',
         doesNotEstablish: 'The bars do not share one denominator and do not measure a progression from adoption to value.',
@@ -66,7 +66,7 @@ export const newsEvidenceViews: Record<string, EvidenceView[]> = {
       interpretation: {
         establishes: 'The price of querying a model above one historical benchmark threshold fell sharply between November 2022 and October 2024.',
         doesNotEstablish: 'A shared MMLU threshold does not imply equivalent quality, reliability or total cost on a business workflow.',
-        management: 'Use lower prices to broaden representative testing, not to weaken acceptance standards.',
+        management: 'Use lower prices to broaden representative testing. Acceptance standards should hold where they are.',
       },
       source: 'Stanford HAI, AI Index 2025',
       href: 'https://hai.stanford.edu/news/ai-index-2025-state-of-ai-in-10-charts',
@@ -149,7 +149,7 @@ export const newsEvidenceViews: Record<string, EvidenceView[]> = {
     {
       label: 'Control sequence',
       title: 'The value chain fails if any control stage is skipped',
-      summary: 'A modelled control profile following the argument above. Equal weighting reflects dependency, not measured contribution.',
+      summary: 'A modelled control profile following the argument above. Equal weighting reflects dependency between the stages. None of it is a measured contribution.',
       interpretation: {
         establishes: 'The proposed exception route depends on validating the signal, classifying it in context, putting it in front of the right colleague, and evidencing the close.',
         doesNotEstablish: 'Equal bars do not mean the stages contribute equally to risk reduction or economic value.',
@@ -172,7 +172,7 @@ export const newsEvidenceViews: Record<string, EvidenceView[]> = {
       interpretation: {
         establishes: 'Generative AI is used by a material share of surveyed SMEs and is often associated with reported performance or skills benefits.',
         doesNotEstablish: 'The survey does not measure the size of productivity gains or show that smaller firms outperform larger organisations.',
-        management: 'Use the evidence to justify a focused test, not a general labour-reduction or competitive-advantage claim.',
+        management: 'Use the evidence to justify a focused test. It will not support a general labour-reduction or competitive-advantage claim.',
       },
       source: 'OECD, Generative AI and the SME Workforce, 2025',
       href: 'https://www.oecd.org/en/publications/generative-ai-and-the-sme-workforce_2d08b99d-en/full-report.html',
@@ -185,7 +185,7 @@ export const newsEvidenceViews: Record<string, EvidenceView[]> = {
     {
       label: 'UK readiness',
       title: 'Interest exceeds implementation readiness',
-      summary: 'Readiness is a management capability question, not simply a technology-purchasing question.',
+      summary: 'Readiness is a question about management capability before it is a question about what to buy.',
       interpretation: {
         establishes: 'Many current and prospective adopters do not report being ready to implement or scale AI.',
         doesNotEstablish: 'Self-reported readiness does not identify which delivery model will work or predict project success.',
@@ -204,7 +204,7 @@ export const newsEvidenceViews: Record<string, EvidenceView[]> = {
     {
       label: 'Observed outcomes',
       title: 'Productivity effects can point in opposite directions',
-      summary: 'The two studies cover different occupations, tasks and operating contexts. The comparison demonstrates heterogeneity, not relative model quality.',
+      summary: 'The two studies cover different occupations, tasks and operating contexts. The comparison demonstrates how much results vary by setting. It says nothing about relative model quality.',
       interpretation: {
         establishes: 'Credible studies have found both positive and negative productivity effects in different settings.',
         doesNotEstablish: 'The results cannot be averaged, compared as model performance or imported into another business case.',
@@ -226,7 +226,7 @@ export const newsEvidenceViews: Record<string, EvidenceView[]> = {
         doesNotEstablish: 'The values are modelled assumptions and do not predict a typical conversion rate.',
         management: 'Name the manager and the evidence required at each stage before reporting realised value.',
       },
-      source: 'Quiet Gears benefits model (design values, not measured findings)',
+      source: 'Quiet Gears benefits model (design values awaiting measurement)',
       points: [
         { label: 'Gross task time released', value: 100, display: '100 hours', detail: 'The theoretical saving before real operating friction is counted.' },
         { label: 'After adoption and exceptions', value: 72, display: '72 hours', detail: 'Capacity remaining after usage, review and rescue effort.' },
@@ -263,7 +263,7 @@ export const newsEvidenceViews: Record<string, EvidenceView[]> = {
         doesNotEstablish: 'The bars do not predict defect frequency or assign financial value to any control.',
         management: 'Set thresholds by consequence and keep professional review effort inside the economic denominator.',
       },
-      source: 'Quiet Gears evaluation design (design values, not measured findings)',
+      source: 'Quiet Gears evaluation design (design values awaiting measurement)',
       points: [
         { label: 'Citation existence', value: 100, display: 'Blocking', detail: 'A fabricated or inaccessible source prevents acceptance.' },
         { label: 'Material proposition support', value: 100, display: 'Blocking', detail: 'A material claim without adequate authority prevents acceptance.' },
@@ -283,7 +283,7 @@ export const newsEvidenceViews: Record<string, EvidenceView[]> = {
         doesNotEstablish: 'A complete case does not guarantee guest satisfaction, faster resolution or lower compensation.',
         management: 'Test how fresh each connector is, and who maintains it, before measuring the quality of generated messages.',
       },
-      source: 'Quiet Gears hospitality operating design (design values, not measured findings)',
+      source: 'Quiet Gears hospitality operating design (design values awaiting measurement)',
       points: [
         { label: 'Guest and booking identity', value: 100, display: 'Required', detail: 'The case must link the right guest, stay and channel reference.' },
         { label: 'Entitlement and promise', value: 100, display: 'Required', detail: 'The booked product and policy determine the permitted remedy space.' },
@@ -295,16 +295,16 @@ export const newsEvidenceViews: Record<string, EvidenceView[]> = {
     {
       label: 'Pilot measures',
       title: 'Recovery quality cannot be reduced to compensation cost',
-      summary: 'Modelled measurement priorities for a parallel pilot. Values show proposed decision relevance, not expected improvement.',
+      summary: 'Modelled measurement priorities for a parallel pilot. Values show proposed decision relevance. None of them forecasts an improvement.',
       interpretation: {
         establishes: 'The evaluation must cover who picks the case up, whether the remedy is feasible, the hand-offs, the policy and the guest outcome, across the complete recovery route.',
         doesNotEstablish: 'The weights do not predict satisfaction, loyalty, revenue or operating savings.',
         management: 'Use a balanced review so lower compensation cannot disguise slower or less humane recovery.',
       },
-      source: 'Quiet Gears evaluation design (design values, not measured findings)',
+      source: 'Quiet Gears evaluation design (design values awaiting measurement)',
       points: [
         { label: 'Time until a colleague takes the case', value: 90, display: 'Core', detail: 'Measure the gap between the disruption being logged and one named colleague picking it up.' },
-        { label: 'Time to feasible option', value: 100, display: 'Core', detail: 'Measure when a deliverable remedy becomes available, not when text is generated.' },
+        { label: 'Time to feasible option', value: 100, display: 'Core', detail: 'Measure when a deliverable remedy becomes available. It is not when text is generated.' },
         { label: 'Repeat contacts and handoffs', value: 82, display: 'Material', detail: 'Repeated explanation is evidence of coordination failure.' },
         { label: 'Policy and compensation control', value: 88, display: 'Material', detail: 'Track approved bands, overrides and escalation decisions.' },
         { label: 'Guest outcome evidence', value: 78, display: 'Material', detail: 'Use feedback and subsequent behaviour carefully because attribution is incomplete.' },

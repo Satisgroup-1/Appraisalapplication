@@ -201,7 +201,7 @@ export const caseEditorial: Record<string, CaseEditorial> = {
         heading: 'Evidence-backed stage gates',
         transition: 'Reconstruction shows that activity concealed readiness risk, which makes evidence-backed progression the central design requirement.',
         paragraphs: [
-          { text: 'The target process qualifies the parties and objective, collects minimum evidence, coordinates decisions and dependencies, then confirms completion readiness and archives the record. Its five gates are a starting sequence whose sufficiency has to be tested by transaction type, never assumed.' },
+          { text: 'The target process qualifies the parties and objective, collects minimum evidence, coordinates decisions and dependencies, then confirms completion readiness and archives the record. Its five gates are a starting sequence. Whether five is enough has to be tested by transaction type.' },
           { text: 'The workspace connects enquiries, one transaction record, a source-linked document index, an exception queue and portfolio reporting. The system view shows how daily work and management review can draw from the same evidence. Platform selection remains open.' },
           { text: 'A larger CRM rollout was rejected because it could digitise activity without defining readiness. Fully automatic extraction was also rejected: fields may be proposed, but remain unconfirmed until a professional inspects the source. RICS guidance on responsible AI use supports this boundary.', sources: [2] },
           { text: 'The diagrams connect stage, evidence and action into one operating sequence. Extraction accuracy, adoption and completion timing sit outside their evidential reach. Live records and a comparison baseline are required before any of those outcomes can be claimed.' },
@@ -222,7 +222,7 @@ export const caseEditorial: Record<string, CaseEditorial> = {
         role: 'conclusion',
         transition: 'The single-transaction pilot creates evidence on visibility and burden, which must govern any expansion in scope.',
         paragraphs: [
-          { text: 'What exists is a transaction model, control logic, architecture and evaluation plan. Implementation and measured improvement remain ahead of the work, not behind it.' },
+          { text: 'What exists is a transaction model, control logic, architecture and evaluation plan. Implementation and measured improvement are still ahead of the work.' },
           { text: 'The Friday review sets the acceptance test. The pilot must show whether the missing approval appears as an owned exception early enough to protect the timetable and whether colleagues trust the record without rebuilding status elsewhere.' },
           { text: 'Expansion to another transaction type is justified only if stage evidence is maintained, dependencies appear earlier and the reporting effort does not simply move into another channel. Otherwise the stage model, scope or interface should be revised first.' },
         ],
@@ -245,7 +245,7 @@ export const caseEditorial: Record<string, CaseEditorial> = {
     systemTitle: 'Controlled intake architecture',
     evidenceInterpretation: {
       establishes: 'The design assigns structured capture and mandatory checks to systems while reserving acceptance for a professional.',
-      doesNotEstablish: 'Bar length is a design judgement about automation suitability, not measured accuracy, time saved or capacity.',
+      doesNotEstablish: 'Bar length is a design judgement about automation suitability. It measures no accuracy, no time saved and no capacity.',
       management: 'The pilot should test completeness, reproducibility and summary fidelity before it tests higher throughput.',
     },
     sections: [
@@ -283,7 +283,7 @@ export const caseEditorial: Record<string, CaseEditorial> = {
         transition: 'The authority boundary defines a safe design; the pilot must now test completeness, reproducibility and professional trust across the whole service.',
         paragraphs: [
           { text: 'The pilot uses representative enquiries, including ambiguous referrals, missing documents and attempts to bypass required fields. Professionals compare the structured brief with original evidence and inspect every mandatory result. Sensitive categories follow an approved processing route or remain outside model processing.' },
-          { text: 'Acceptance requires complete first review, reproducible control results, reduced preparation effort and no material omission or distortion in an accepted summary. Time to first substantive decision, clarification rate, reclassification, correction category and queue age are proposed measures, not outcomes.' },
+          { text: 'Acceptance requires complete first review, reproducible control results, reduced preparation effort and no material omission or distortion in an accepted summary. Time to first substantive decision, clarification rate, reclassification, correction category and queue age are the proposed measures. No outcome has been recorded against them.' },
           { text: 'Stricter capture can make the opening exchange less personal or increase abandonment. The design therefore requests only facts needed for the next decision and preserves a human route for unusual matters. Faster preparation is rejected as success if work simply queues longer for acceptance.' },
         ],
       },

@@ -164,7 +164,7 @@ export const newsEditorial: Record<string, NewsEditorial> = {
   'automation-before-agents': {
     title: 'Agents fail on the exceptions the workflow never defined',
     standfirst: 'Agent demonstrations make complicated work appear smooth. Real organisations contain missing information, conflicting policies and awkward exceptions. Autonomy amplifies those conditions unless the underlying process is made explicit first.',
-    thesis: 'An agent should inherit a well-defined operating system, not be asked to invent one while handling live work.',
+    thesis: 'An agent should inherit a well-defined operating system. Asking it to invent one while handling live work is where these deployments fail.',
     sceneLabel: 'The situation',
     sceneTitle: 'The agent completed the task exactly as instructed. The customer still received the wrong answer',
     sceneParagraphs: [
@@ -177,7 +177,7 @@ export const newsEditorial: Record<string, NewsEditorial> = {
         paragraphs: [
           { text: 'The smooth demonstration is attractive because its input is complete, its policy is consistent and its successful ending has been selected in advance. Production work is less cooperative. Customers change their minds, records conflict and exceptions cross departmental boundaries. Employees resolve these cases through informal routes that a process map may never have captured.' },
           { text: 'Current adoption data supports caution about treating agency as a mature default. In DSIT research, agentic AI was the least used technology among AI adopters at 7 percent, compared with 85 percent using natural-language or text-generation tools. Reported use reveals neither safety nor value. It does show that operational experience remains relatively limited.', sources: [ukAdoption] },
-          { text: 'The failed enquiry therefore needs to be observed as work, not reconstructed as a better demonstration. Follow the case from arrival to completion and record the states it passes through, the evidence used, the decisions taken, the waiting between them and who acts at each step. The next question is which parts of that route require intelligence at all.' },
+          { text: 'The failed enquiry therefore needs to be observed as work. Reconstructing it as a better demonstration teaches nothing. Follow the case from arrival to completion and record the states it passes through, the evidence used, the decisions taken, the waiting between them and who acts at each step. The next question is which parts of that route require intelligence at all.' },
         ],
         exhibits: [{ kind: 'evidence', view: 1, afterParagraph: 1 }],
       },
@@ -237,7 +237,7 @@ export const newsEditorial: Record<string, NewsEditorial> = {
         heading: 'Contextual value of telemetry',
         paragraphs: [
           { text: 'The same temperature can represent routine loading, a defrost cycle, a failing unit or a product risk. Duration, asset state, product, location and recent activity change the interpretation. A system that applies a threshold without this context increases alert volume while leaving the operator’s underlying question unanswered.' },
-          { text: 'The proposed evidence model therefore combines the reading and duration with asset state, product context and operator observation. The relative weights in the graphic are modelled design priorities, not measured contributions to food safety or commercial performance.' },
+          { text: 'The proposed evidence model therefore combines the reading and duration with asset state, product context and operator observation. The relative weights in the graphic are modelled design priorities. None measures a contribution to food safety or commercial performance.' },
           { text: 'For the eight-minute event, context is the difference between immediate escalation and documented observation. Yet context is useful only if the underlying signal can be trusted. The next step is to test the physical and digital path that produced it.' },
         ],
         exhibits: [{ kind: 'evidence', view: 0, afterParagraph: 1 }],
@@ -306,7 +306,7 @@ export const newsEditorial: Record<string, NewsEditorial> = {
         heading: 'SME adoption evidence',
         transition: 'Management proximity is only a hypothesis; adoption and workforce data indicate how much real opportunity it may contain.',
         paragraphs: [
-          { text: 'An OECD survey across seven countries found generative AI in use at 31 percent of SMEs. Among users, 65 percent reported improved employee performance and 39 percent of those with a recent skills gap said the technology helped compensate. At the same time, 83 percent reported no change in overall staffing need. These are reported experiences, not measured productivity magnitudes.', sources: [oecdWorkforce] },
+          { text: 'An OECD survey across seven countries found generative AI in use at 31 percent of SMEs. Among users, 65 percent reported improved employee performance and 39 percent of those with a recent skills gap said the technology helped compensate. At the same time, 83 percent reported no change in overall staffing need. These are experiences respondents reported. No productivity magnitude was measured.', sources: [oecdWorkforce] },
           { text: 'The evidence shows that smaller firms can access AI and often perceive it as useful. It offers no basis for claims that they outperform large firms, that jobs will disappear or that a particular workflow will produce a positive return. Management can use the findings to justify a focused test, with no presumption about its result.' },
           { text: 'For the five-person group, the practical agenda is augmentation tied to a visible constraint. Better preparation, interpretation or coordination should release capacity or improve quality in one recurring part of the work.' },
         ],
@@ -328,7 +328,7 @@ export const newsEditorial: Record<string, NewsEditorial> = {
         transition: 'A focused workflow may exploit proximity, but scarce capacity, weak controls and concentration risk all cut the other way.',
         paragraphs: [
           { text: 'Scale still confers protection. Smaller firms often have weaker data, fewer specialist reviewers and little redundancy when one person becomes a bottleneck. Close customer knowledge may remain in memory, and rapid changes can bypass privacy, security or acceptance decisions that a larger organisation is forced to formalise.' },
-          { text: 'A smaller firm needs four named people before it builds anything: a director answerable for the result, the manager who runs the process day to day, whoever controls the data the service is allowed to read, and the engineer who will maintain it. In a firm of twenty that may be three people and one of them wearing two hats, which is the point: the roles are named, not staffed. Each release should end with an expand, adjust, hold or stop decision.' },
+          { text: 'A smaller firm needs four named people before it builds anything: a director answerable for the result, the manager who runs the process day to day, whoever controls the data the service is allowed to read, and the engineer who will maintain it. In a firm of twenty that may be three people and one of them wearing two hats, which is the point: the roles have to be named, and naming them is not the same as hiring for them. Each release should end with an expand, adjust, hold or stop decision.' },
           { text: 'A pilot that sends every exception to the same technical specialist concentrates operational risk and creates little leverage. Reusable evaluation cases, access patterns, logging and training belong in the first release because they determine whether the work can survive ordinary operations.' },
         ],
       },
@@ -367,7 +367,7 @@ export const newsEditorial: Record<string, NewsEditorial> = {
         heading: 'Gross-to-net value bridge',
         transition: 'A credible counterfactual establishes the gross change. That change is then reduced at several points before any of it reaches economic value.',
         paragraphs: [
-          { text: 'The value bridge begins with eligible volume actually completed through the new process. Review, exception handling, support and workarounds reduce gross time released. The remainder is capacity, not cash. It becomes financial value only when cost is removed or avoided, or when the capacity is deliberately redirected to work with a measured contribution.' },
+          { text: 'The value bridge begins with eligible volume actually completed through the new process. Review, exception handling, support and workarounds reduce gross time released. The remainder is capacity. It becomes financial value only when cost is removed or avoided, or when the capacity is deliberately redirected to work with a measured contribution.' },
           { text: 'The graphic illustrates that logic using 100 theoretical hours. Every deduction is an assumption, so the result carries no predictive claim about another project or a 20 percent conversion into cash. Its value lies in separating the stages that management must record in the ledger.' },
           { text: 'In the opening case, finance could not find the saving because nobody owned the movement from released time to budget or output. Before naming anyone to run it, the committee must test whether the original productivity assumption is credible for this particular work.' },
         ],
@@ -431,7 +431,7 @@ export const newsEditorial: Record<string, NewsEditorial> = {
         heading: 'Matter and source boundaries',
         transition: 'Proposition-level review exposes the evidence requirement; matter and source boundaries determine which evidence may enter the draft.',
         paragraphs: [
-          { text: 'A matter workspace should begin with an authorised source manifest. It identifies matter documents, approved internal knowledge and external legal sources, then records the jurisdiction, effective period and access rules attached to each collection. Retrieval runs against that manifest, not an unrestricted pool assembled for convenience.' },
+          { text: 'A matter workspace should begin with an authorised source manifest. It identifies matter documents, approved internal knowledge and external legal sources, then records the jurisdiction, effective period and access rules attached to each collection. Retrieval runs against that manifest. An unrestricted pool assembled for convenience is what the manifest exists to prevent.' },
           { text: 'Matter scoping has a confidentiality function and an analytical function. It reduces cross-client disclosure risk while preventing facts or conclusions from another file from entering the answer. Access control must be enforced before retrieval and repeated when a source is opened, exported or cited. Logs should record the identity and purpose associated with each request.' },
           { text: 'Temporal validity requires more than document date. A source may have been superseded, amended, appealed or limited. The system can propose a validity flag from metadata and citator services, but professional review decides whether the authority remains applicable to the question.' },
           { text: 'ICO guidance makes data protection a lifecycle obligation, while SRA material places technology use within existing professional duties. Together they require whoever runs the service to document its data flow, supervision and incident response before access is widened.', sources: [icoAi, sraAi] },
@@ -455,7 +455,7 @@ export const newsEditorial: Record<string, NewsEditorial> = {
           { text: 'A representative evaluation set should contain ordinary research questions, ambiguous instructions, outdated sources, similar cases from another jurisdiction, conflicting authorities and prompts that attempt to cross matter boundaries. Legal reviewers label the required propositions, acceptable authorities, material omissions and reasons for rejection.' },
           { text: 'The service should report proposition support, citation validity, material omission, confidentiality breach, correction category and professional review time. A single accuracy score would conceal the difference between a stylistic correction and a false authority. Release thresholds should be stricter where an error is harder to detect or more consequential.' },
           { text: 'Vendor stories show that bounded legal tasks can compress. OpenAI reports that Ironclad reduced one contract-review activity from about forty minutes to two in its implementation. That customer-reported figure concerns a specified workflow and supplier context. It neither forecasts research productivity nor changes the professional acceptance standard.', sources: [openAiIronclad] },
-          { text: 'Economics should therefore use accepted propositions or completed matter tasks as the denominator. Retrieval, licences, data preparation, reviewer time, corrections, incidents and knowledge maintenance belong in the cost. The evidence view presents proposed release dimensions, not observed firm performance.' },
+          { text: 'Economics should therefore use accepted propositions or completed matter tasks as the denominator. Retrieval, licences, data preparation, reviewer time, corrections, incidents and knowledge maintenance belong in the cost. The evidence view presents proposed release dimensions. No firm performance has been observed.' },
         ],
         exhibits: [{ kind: 'evidence', view: 1, afterParagraph: 3 }],
       },
@@ -473,7 +473,7 @@ export const newsEditorial: Record<string, NewsEditorial> = {
       {
         heading: 'Matter-scoped release decision',
         role: 'conclusion',
-        transition: 'The risk of false reassurance makes the release boundary a professional operating decision, not a software availability decision.',
+        transition: 'The risk of false reassurance makes the release boundary a professional operating decision, which is a different question from whether the software is ready.',
         paragraphs: [
           { text: 'The solicitor in the opening scene should be able to select each proposition, open the supporting passage, see jurisdiction and date, inspect counterauthority and record acceptance or rejection. A proposition without that route remains a drafting suggestion and cannot enter accepted work.' },
           { text: 'The first release should cover one matter type, one approved source hierarchy and a defined set of professional users. It should stop on uncertain identity, inaccessible source, failed validity check or material evaluation regression. Expansion depends on support, omission, review-effort and confidentiality evidence from live supervised use.' },
@@ -530,7 +530,7 @@ export const newsEditorial: Record<string, NewsEditorial> = {
         paragraphs: [
           { text: 'Compensation policy should define bands by disruption, entitlement and local operating context. Front-desk colleagues need enough authority to resolve common cases during the interaction. Higher-cost, unusual or sensitive remedies move to a named approver with the same evidence view.' },
           { text: 'A language model can draft a clear explanation from approved facts and remedies. The colleague checks the tone, the accuracy and what is being promised before it is sent. Accepted communications become events in the recovery history so another colleague can continue without asking the guest to repeat the story.' },
-          { text: 'Measurement begins with acknowledgement time, time to feasible option, handoffs, repeat contacts, policy adherence, compensation by band and closure completeness. Guest feedback and future behaviour may add outcome evidence, with careful treatment of attribution and privacy. The second evidence view is a measurement architecture, not a predicted uplift.' },
+          { text: 'Measurement begins with acknowledgement time, time to feasible option, handoffs, repeat contacts, policy adherence, compensation by band and closure completeness. Guest feedback and future behaviour may add outcome evidence, with careful treatment of attribution and privacy. The second evidence view is a measurement architecture. It predicts no uplift.' },
           { text: 'Booking.com describes AI use across travel planning and service contexts. Its own account shows the breadth of channel coordination across a large estate, while supplying no forecast for the property-level recovery measures proposed here.', sources: [openAiBooking] },
         ],
         exhibits: [{ kind: 'evidence', view: 1, afterParagraph: 2 }],
@@ -553,7 +553,7 @@ export const newsEditorial: Record<string, NewsEditorial> = {
         paragraphs: [
           { text: 'For the guest in the opening scene, the service should reconcile identity, confirm what was promised, show the maintenance conflict, hold a feasible alternative and show the colleague’s authority before a commitment is made. Uncertain identity, stale property state or an out-of-band remedy triggers review.' },
           { text: 'A pilot should cover one disruption type at a small group of properties and run beside current escalation. Release requires fewer reconstructive handoffs, controlled policy exceptions, reliable connector health, no material privacy incident and staff evidence that the case helps them resolve the guest’s problem.' },
-          { text: 'The guest should experience one conversation with a colleague who can act, not the architecture behind it. Connected systems matter when they give the colleague accurate options and authority at the moment recovery is still possible.' },
+          { text: 'The guest should experience one conversation with a colleague who can act. The architecture behind it should be invisible to them. Connected systems matter when they give the colleague accurate options and authority at the moment recovery is still possible.' },
         ],
       },
     ],

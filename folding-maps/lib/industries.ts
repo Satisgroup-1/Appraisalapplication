@@ -42,7 +42,7 @@ export const industries: Industry[] = [
     contextTitle: 'The hidden cost sits between systems',
     context: [
       'A specialist manufacturer may have excellent engineers, trusted quality processes and capable planning software, yet still coordinate critical programme decisions through inboxes and spreadsheets. Requirements change, supplier evidence arrives late and experienced people spend valuable time reconstructing the current position.',
-      'AI becomes useful when it reduces that reconstruction burden. The objective is a more current operating picture with every recommendation traceable to approved data, not a black box making airworthiness, export-control or mission decisions.',
+      'AI becomes useful when it reduces that reconstruction burden. The objective is a more current operating picture, with every recommendation traceable to approved data. Airworthiness, export-control and mission decisions stay outside the system.',
     ],
     opportunitiesTitle: 'Three practical places to begin',
     opportunities: [
@@ -50,14 +50,14 @@ export const industries: Industry[] = [
       { title: 'Supplier evidence control', copy: 'Classify incoming certificates, inspection records and concessions, then route incomplete packs to the accountable reviewer.', measure: 'Measure: right-first-time evidence packs' },
       { title: 'Aftermarket knowledge', copy: 'Give service teams a cited view across manuals, prior repairs and asset history while keeping final technical disposition with authorised staff.', measure: 'Measure: time to supported response' },
     ],
-    signalTitle: 'A programme signal, not another dashboard',
+    signalTitle: 'A programme signal, read at a glance',
     signalCopy: 'The useful view connects configuration, evidence, schedule and ownership. A weak signal in any one layer should remain visible instead of being averaged away.',
     signalLabels: ['Requirements', 'Configuration', 'Evidence', 'Ownership'],
     decisionsTitle: 'What leadership settles before a controlled release',
     decisions: ['The recurring decision that consumes scarce engineering judgement without changing its underlying rules is the one worth automating first.', 'Every proposed answer has to point back to the approved requirement, record and configuration state.', 'Security, export control and customer restrictions define where model access must be prevented altogether.'],
     controlTitle: 'Design assurance into the workflow',
     controls: [
-      { title: 'Evidence before confidence', copy: 'Retrieved sources, document revisions and configuration identifiers sit beside each generated summary. Missing evidence produces an exception, not a plausible completion.' },
+      { title: 'Evidence before confidence', copy: 'Retrieved sources, document revisions and configuration identifiers sit beside each generated summary. Missing evidence produces an exception. The system will not fill the gap with a plausible completion.' },
       { title: 'Authority stays explicit', copy: 'The system may prepare, compare and route. Named engineers, quality staff and commercial owners retain approval rights under the existing management system.' },
     ],
     roadmapTitle: 'A credible first release in one programme',
@@ -81,7 +81,7 @@ export const industries: Industry[] = [
     contextTitle: 'Agricultural data arrives with mud on it',
     context: [
       'Weather feeds, field notes, sensor readings, input invoices and buyer requirements describe different parts of the same operation. Their timing and quality vary, while the decision window for irrigation, treatment, harvest or dispatch can be short.',
-      'A useful AI system has to show uncertainty and work when connectivity is imperfect. It should make the next inspection or intervention clearer, not pretend that a regional model knows more than the people standing in the field.',
+      'A useful AI system has to show uncertainty and work when connectivity is imperfect. It should make the next inspection or intervention clearer, while conceding that a regional model knows less than the people standing in the field.',
     ],
     opportunitiesTitle: 'Put intelligence close to the operating moment',
     opportunities: [
@@ -116,7 +116,7 @@ export const industries: Industry[] = [
     eyebrow: 'Flow, quality and launch discipline',
     headline: 'Help every shift see the next constraint.',
     lead: 'For component makers, engineering firms and specialist assemblers, AI can connect quality, maintenance, material and planning signals at the point where delay and rework begin.',
-    thesis: 'SME advantage comes from faster exception handling across the plant, not from a distant transformation programme or a model disconnected from standard work.',
+    thesis: 'SME advantage comes from faster exception handling across the plant. A distant transformation programme, or a model disconnected from standard work, will produce none of it.',
     contextTitle: 'Small interruptions compound quickly',
     context: [
       'A late component, ambiguous work instruction or recurring fault can move through planning, production and customer service before its full cost is visible. Supervisors often resolve the issue through experience, then lose the learning in a shift note or private message.',
@@ -198,7 +198,7 @@ export const industries: Industry[] = [
     contextTitle: 'Growth teams face too many partial truths',
     context: [
       'Retailer portals, ecommerce data, campaign platforms, customer feedback and stock files all describe demand differently. Teams spend the first half of a review reconciling what happened and the second half debating which number to trust.',
-      'A focused AI layer can standardise the narrative around category, channel and product, then highlight where a decision is needed. The model should support the brand position and margin logic, not optimise a single platform metric in isolation.',
+      'A focused AI layer can standardise the narrative around category, channel and product, then highlight where a decision is needed. The model should support the brand position and the margin logic. Optimising a single platform metric in isolation will damage both.',
     ],
     opportunitiesTitle: 'A sharper commercial operating system',
     opportunities: [
@@ -231,7 +231,7 @@ export const industries: Industry[] = [
     name: 'Education',
     family: 'Public and social impact',
     eyebrow: 'More capacity for teaching and support',
-    headline: 'Use AI to widen attention, not standardise learners.',
+    headline: 'Use AI to widen attention across a class.',
     lead: 'Schools, training providers and education businesses can reduce administrative load and improve learner support when AI is designed around safeguarding, accessibility and professional judgement.',
     thesis: 'The right system gives educators a clearer view of need and more time to respond. It never treats a model score as a complete account of a learner.',
     contextTitle: 'The operating burden competes with the mission',
@@ -292,7 +292,7 @@ export const industries: Industry[] = [
     controlTitle: 'Reliability requires graceful failure',
     controls: [
       { title: 'Advisory by architecture', copy: 'The AI layer remains separate from safety and control systems, with explicit interfaces and no hidden actuation path.' },
-      { title: 'Fallback is designed, not assumed', copy: 'Teams can continue the essential process without the service, and outage behaviour is tested alongside normal performance.' },
+      { title: 'Fallback is designed in advance', copy: 'Teams can continue the essential process without the service, and outage behaviour is tested alongside normal performance.' },
     ],
     roadmapTitle: 'Prove the service around one asset class',
     roadmap: [
@@ -330,7 +330,7 @@ export const industries: Industry[] = [
     decisions: ['The cross-functional trade-off currently decided on the weakest shared evidence is the first candidate.', 'Assumptions that can be modelled have to be separated from those requiring leadership judgement or external validation.', 'The team needs a way to see value that has moved to another site, supplier, period or environmental account.'],
     controlTitle: 'Keep claims and assumptions inspectable',
     controls: [
-      { title: 'Scenario, not prediction', copy: 'Outputs state their assumptions and sensitivities, helping leaders compare choices without presenting uncertainty as fact.' },
+      { title: 'Scenarios, with their assumptions', copy: 'Outputs state their assumptions and sensitivities, helping leaders compare choices without presenting uncertainty as fact.' },
       { title: 'Consistent calculation boundaries', copy: 'Cost, energy and footprint measures use governed definitions so apparent improvement is not created by changing scope.' },
     ],
     roadmapTitle: 'Build around a recurring planning decision',
@@ -409,7 +409,7 @@ export const industries: Industry[] = [
     controlTitle: 'Make accountability legible',
     controls: [
       { title: 'Deterministic gates surround generation', copy: 'Eligibility, mandatory disclosure, sanctions and approval thresholds remain governed rules with named ownership.' },
-      { title: 'Outcome monitoring starts in the pilot', copy: 'Quality, correction, override and customer-outcome measures are captured from the first release, not added after scale.' },
+      { title: 'Outcome monitoring starts in the pilot', copy: 'Quality, correction, override and customer-outcome measures are captured from the first release. Adding them after scale means the baseline is gone.' },
     ],
     roadmapTitle: 'Release around a low-discretion burden',
     roadmap: [
@@ -426,7 +426,7 @@ export const industries: Industry[] = [
     name: 'Healthcare',
     family: 'Health and life sciences',
     eyebrow: 'Capacity around care',
-    headline: 'Reduce the work around the patient, not the care around the person.',
+    headline: 'Reduce the administration around the patient.',
     lead: 'Independent providers, clinics and healthcare service businesses can use AI to improve access, documentation and operational coordination with clinical safety and privacy designed in.',
     thesis: 'The responsible first move supports administrative and clinical preparation, giving professionals more complete evidence without transferring care decisions to the model.',
     contextTitle: 'Operational friction reaches the care experience',
@@ -441,7 +441,7 @@ export const industries: Industry[] = [
       { title: 'Follow-up reliability', copy: 'Track agreed actions, results and patient communication so incomplete loops become visible early.', measure: 'Measure: overdue pathway actions' },
     ],
     signalTitle: 'A pathway signal should strengthen continuity',
-    signalCopy: 'Need, evidence, capacity and follow-up describe different parts of care. The service should highlight gaps between them, not collapse them into one opaque risk score.',
+    signalCopy: 'Need, evidence, capacity and follow-up describe different parts of care. The service should highlight the gaps between them. Collapsing them into one opaque risk score hides the decision.',
     signalLabels: ['Need', 'Evidence', 'Capacity', 'Follow-up'],
     decisionsTitle: 'Clinical and operational ground to settle',
     decisions: ['The proposed use should reduce a known burden without creating a new clinical dependency.', 'The evidence that triggers escalation, abstention or direct professional review must be defined in advance.', 'Patients and staff need to know when AI contributed to an output or a communication.'],
@@ -480,7 +480,7 @@ export const industries: Industry[] = [
       { title: 'Engineering change reach', copy: 'Identify affected products, documents, stock and customers when a component or instruction changes.', measure: 'Measure: impacted records resolved before release' },
     ],
     signalTitle: 'The installed base is a living knowledge graph',
-    signalCopy: 'Product, configuration, condition and intervention must remain linked so teams work from the relevant machine, not a generic manual.',
+    signalCopy: 'Product, configuration, condition and intervention must remain linked so teams work from the machine in front of them and not from a generic manual.',
     signalLabels: ['Product', 'Configuration', 'Condition', 'Intervention'],
     decisionsTitle: 'Where specialist knowledge should scale',
     decisions: ['The customer response that repeatedly sends an expert to the same families of evidence is the one to address.', 'Product and document revisions have to resolve reliably for the installed configuration.', 'Commercial and technical commitments always require named approval.'],
@@ -506,7 +506,7 @@ export const industries: Industry[] = [
     eyebrow: 'Asset decisions across long horizons',
     headline: 'Make maintenance and investment choices easier to defend.',
     lead: 'Infrastructure operators, engineering SMEs and asset service firms can use AI to combine condition, work and consequence evidence across long-lived portfolios.',
-    thesis: 'The practical goal is a transparent line from asset signal to intervention priority, not a universal score that obscures engineering and public-value trade-offs.',
+    thesis: 'The practical goal is a transparent line from asset signal to intervention priority. A universal score obscures the engineering and public-value trade-offs that decide the case.',
     contextTitle: 'Long-lived assets create fragmented histories',
     context: [
       'Inspections, defects, maintenance, renewals and operational restrictions accumulate across formats and supplier systems. Teams may understand individual assets well while lacking a consistent portfolio view of why one intervention should precede another.',
@@ -526,7 +526,7 @@ export const industries: Industry[] = [
     controlTitle: 'Support professional judgement over time',
     controls: [
       { title: 'Time and provenance matter', copy: 'The service distinguishes inspection date, effective date and superseded evidence so old confidence is not mistaken for current condition.' },
-      { title: 'Public-value choices stay explicit', copy: 'Safety, service, access, environment and affordability are shown as separate decision criteria, not silently compressed.' },
+      { title: 'Public-value choices stay explicit', copy: 'Safety, service, access, environment and affordability are shown as separate decision criteria and never silently compressed into one.' },
     ],
     roadmapTitle: 'Pilot within one asset class',
     roadmap: [
@@ -557,7 +557,7 @@ export const industries: Industry[] = [
       { title: 'Quality-event preparation', copy: 'Assemble batch, equipment, procedure and comparable-event context before investigation.', measure: 'Measure: investigation time spent gathering records' },
       { title: 'Regulatory intelligence', copy: 'Track commitments, authority correspondence and affected controlled documents for accountable review.', measure: 'Measure: changes identified before submission work' },
     ],
-    signalTitle: 'Evidence needs status, not just similarity',
+    signalTitle: 'Evidence needs a validation status',
     signalCopy: 'Scientific relevance, validation state, product applicability and decision consequence shape whether a source can support action.',
     signalLabels: ['Relevance', 'Validation', 'Applicability', 'Consequence'],
     decisionsTitle: 'Scientific governance decisions',
@@ -705,7 +705,7 @@ export const industries: Industry[] = [
     contextTitle: 'Complexity hides inside familiar products',
     context: [
       'Substrate, coating, print, converting condition and customer use interact. A complaint or efficiency loss may resemble a prior case while differing in the one parameter that changes the conclusion.',
-      'AI can retrieve comparable evidence and structure the investigation if product, machine and specification context stays attached. It should help experts ask the next question, not generate a convenient root cause.',
+      'AI can retrieve comparable evidence and structure the investigation if product, machine and specification context stays attached. It should help experts ask the next question. Generating a convenient root cause is the failure mode to design against.',
     ],
     opportunitiesTitle: 'Build intelligence across specification and process',
     opportunities: [
@@ -738,7 +738,7 @@ export const industries: Industry[] = [
     name: 'Private Capital',
     family: 'Capital and professional services',
     eyebrow: 'Diligence to value creation',
-    headline: 'Make AI a portfolio operating thesis, not a collection of pilots.',
+    headline: 'Make AI a portfolio operating thesis.',
     lead: 'Lower mid-market investors can use AI to improve diligence speed, portfolio visibility and company-level value creation while respecting the operating maturity of each business.',
     thesis: 'The strongest investor role is to provide a repeatable value lens and practical enablement, while each management team retains ownership of how AI changes its operation.',
     contextTitle: 'Portfolio potential is uneven by design',
@@ -791,7 +791,7 @@ export const industries: Industry[] = [
       { title: 'Policy-guided staff assistant', copy: 'Retrieve current local guidance and show cited passages, effective dates and escalation routes.', measure: 'Measure: staff queries resolved from approved policy' },
       { title: 'Demand and capacity insight', copy: 'Connect service demand, case type and workflow state to reveal bottlenecks and access pressures.', measure: 'Measure: waiting time by service and user need' },
     ],
-    signalTitle: 'Service demand needs context, not just volume',
+    signalTitle: 'Service demand needs context',
     signalCopy: 'Need, completeness, consequence and capacity shape the operating response. No single score should determine entitlement or priority.',
     signalLabels: ['Need', 'Completeness', 'Consequence', 'Capacity'],
     decisionsTitle: 'Public accountability decisions',
@@ -801,7 +801,7 @@ export const industries: Industry[] = [
       { title: 'Assisted digital remains available', copy: 'The service retains accessible non-digital and human routes, with no penalty for people who cannot use the AI-enabled channel.' },
       { title: 'Decisions remain contestable', copy: 'Material outputs preserve evidence, policy version, officer action and a clear mechanism to correct data or challenge the result.' },
     ],
-    roadmapTitle: 'Start with a service burden, not an eligibility decision',
+    roadmapTitle: 'Start with a service burden',
     roadmap: [
       { title: 'Map the resident journey', copy: 'Include frontline staff, service users and accessibility needs when defining the problem and current baseline.' },
       { title: 'Test distributional effects', copy: 'Evaluate errors, completion and outcomes across relevant groups and difficult service scenarios.' },
@@ -857,11 +857,11 @@ export const industries: Industry[] = [
     eyebrow: 'Local action from live demand',
     headline: 'Help merchants and operators act before the trading moment passes.',
     lead: 'Independent chains and specialist retailers can use AI to improve range, availability, service and store execution with tools sized to lean commercial teams.',
-    thesis: 'Retail AI should turn product, customer and operational signals into a small number of owned actions, not produce more reports for already stretched teams.',
+    thesis: 'Retail AI should turn product, customer and operational signals into a small number of assigned actions. More reports for already stretched teams is the outcome to avoid.',
     contextTitle: 'The truth changes by item, channel and hour',
     context: [
       'Sales, stock, returns, reviews, labour and supplier data move at different speeds. A central average can hide a local availability issue, an emerging product problem or a promotion that drives volume without contribution.',
-      'AI can explain the exception at the level where action occurs, then route it to the merchant, store or supply owner. Recommendations should respect the customer promise and commercial strategy, not optimise a metric in isolation.',
+      'AI can explain the exception at the level where action occurs, then route it to the merchant, store or supply owner. Recommendations should respect the customer promise and the commercial strategy before any single metric.',
     ],
     opportunitiesTitle: 'Put intelligence into the trading cadence',
     opportunities: [
@@ -877,7 +877,7 @@ export const industries: Industry[] = [
     controlTitle: 'Protect the customer promise',
     controls: [
       { title: 'Policy is not improvised', copy: 'Returns, refunds, promotions and product claims are generated only within approved rules and escalation thresholds.' },
-      { title: 'Local teams can challenge', copy: 'Store and merchant feedback is captured as operating evidence, not treated as resistance to a central model.' },
+      { title: 'Local teams can challenge', copy: 'Store and merchant feedback is captured as operating evidence. Treating it as resistance to a central model wastes the best signal available.' },
     ],
     roadmapTitle: 'Start with one decision at one cadence',
     roadmap: [
@@ -933,7 +933,7 @@ export const industries: Industry[] = [
     name: 'Social Sector',
     family: 'Public and social impact',
     eyebrow: 'More mission capacity, less administrative drag',
-    headline: 'Use AI to strengthen relationships and evidence, not distance them.',
+    headline: 'Use AI to strengthen relationships and evidence.',
     lead: 'Charities, foundations and social enterprises can use AI to improve service coordination, fundraising operations and impact learning while protecting dignity, consent and trust.',
     thesis: 'The right use of AI creates capacity around the human relationship and makes impact evidence easier to act on. It does not reduce a person or community to a convenient score.',
     contextTitle: 'Mission organisations carry two evidence burdens',
