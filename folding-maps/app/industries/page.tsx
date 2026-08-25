@@ -16,7 +16,7 @@ export default function IndustriesPage() {
     <>
       <section className="page-hero container">
         <span className="kicker">Industries</span>
-        <h1>Sector knowledge is mostly knowing what cannot change.</h1>
+        <h1>What we look at before proposing anything in your sector.</h1>
         <p className="lede">
           The technology varies little between industries. What varies is the constraint
           around it: the regulation, the shift pattern, the margin, the person who has to
@@ -36,7 +36,7 @@ export default function IndustriesPage() {
         <div className="container inner">
           <div>
             <span className="kicker">Enquiries</span>
-            <h2>Your sector is not the interesting part.</h2>
+            <h2>Tell us where your operation differs.</h2>
             <p>
               The constraint is. Tell us which decision is slow, which record cannot be
               trusted, or which obligation makes automation awkward, and we will tell you

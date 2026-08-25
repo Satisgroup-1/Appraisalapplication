@@ -69,7 +69,7 @@ export default function ServicesPage() {
             </div>
             <p className="lede">
               If one of these is close to yours, the linked service is the usual first
-              engagement. It is rarely the only one.
+              project. It is rarely the only one.
             </p>
           </div>
 

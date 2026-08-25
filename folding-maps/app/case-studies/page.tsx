@@ -8,7 +8,7 @@ import { createPageMetadata } from '@/lib/seo';
 export const metadata = createPageMetadata({
   title: 'Work',
   description:
-    'Engagement accounts: the operating problem, the reasoning behind the design, the controls, and the measures each piece of work is judged against.',
+    'Five projects described in full: what the client asked for, what we found in the work, what we built, the controls around it and how it is being measured.',
   path: '/case-studies',
 });
 
@@ -25,12 +25,12 @@ export default function Cases() {
     <>
       <section className="page-hero container">
         <span className="kicker">Work</span>
-        <h1>Engagement accounts, written as decision papers.</h1>
+        <h1>Five projects, described in full.</h1>
         <p className="lede">
-          Each one sets out the situation as we found it, the design and the alternatives
-          rejected, the control model, and the measures the work is judged against. Clients
-          are unnamed where they asked to be. They are longer than a case study usually is,
-          because the reasoning is the part worth reading.
+          Each one sets out what the client asked for, what we found when we looked at the
+          work, what we built, what we decided against and how it is being measured. Clients
+          are unnamed where they asked to be. These run longer than a case study usually
+          does, because the reasoning is the part worth reading.
         </p>
       </section>
 
@@ -59,7 +59,7 @@ export default function Cases() {
                 <h3>{study.title}</h3>
                 <p>{study.summary}</p>
                 <span className="text-link">
-                  Read the engagement <ArrowRight size={15} aria-hidden="true" />
+                  Read the project <ArrowRight size={15} aria-hidden="true" />
                 </span>
               </div>
             </Link>
@@ -71,11 +71,11 @@ export default function Cases() {
         <div className="container inner">
           <div>
             <span className="kicker">Enquiries</span>
-            <h2>The shape of the problem travels between sectors.</h2>
+            <h2>The same problems turn up in different industries.</h2>
             <p>
-              If one of these accounts reads like your operation, the first conversation
-              can start from there. The sector matters less than the shape of the
-              coordination that is failing.
+              If one of these reads like your operation, the first conversation can start
+              from there. What matters is which piece of coordination is failing, and that is
+              often the same in a hotel and a haulage yard.
             </p>
           </div>
           <Link className="button" href="/contact">

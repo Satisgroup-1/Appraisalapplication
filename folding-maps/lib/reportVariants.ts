@@ -121,7 +121,7 @@ export function getCaseVariants(study: CaseStudy, research: ResearchFinding[]): 
     simple: {
       standfirst: study.summary,
       thesis: study.status === 'In progress' ? advanced.thesis : study.brief,
-      opening: { label: study.status === 'In progress' ? 'Representative engagement item' : 'Item of work from the engagement', title: opening.title, paragraphs: opening.paragraphs, centralQuestion: advanced.centralQuestion },
+      opening: { label: 'The situation', title: opening.title, paragraphs: opening.paragraphs, centralQuestion: advanced.centralQuestion },
       sections: simpleSections,
       actionAgenda: study.nextSteps.slice(0, 3),
       estimatedReadingTime: '6 to 8 minutes',

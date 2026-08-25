@@ -107,12 +107,12 @@ export default async function CaseDetail({ params }: { params: Promise<{ slug: s
 
       <article className="report">
         <Link className="back" href="/case-studies">
-          <ArrowLeft size={15} aria-hidden="true" /> All work
+          <ArrowLeft size={15} aria-hidden="true" /> All projects
         </Link>
 
         <div className="report-meta">
           <span>{study.sector}</span>
-          <span>Engagement account</span>
+          <span>Project</span>
         </div>
 
         <h1>{study.title}</h1>

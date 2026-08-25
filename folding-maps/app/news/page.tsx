@@ -20,11 +20,11 @@ export default function News() {
     <>
       <section className="page-hero container">
         <span className="kicker">Insights</span>
-        <h1>Arguments, with the evidence attached.</h1>
+        <h1>Long pieces on AI in UK businesses.</h1>
         <p className="lede">
-          Each piece takes a position, sets out the case against it, and links every figure
-          to its source. Where the evidence is thin we say so, and do not round it up into
-          a recommendation.
+          Each one takes a position, sets out the case against it, and links every figure to
+          where it came from. Where the evidence is thin we say so instead of rounding it up
+          into a recommendation.
         </p>
       </section>
 
@@ -69,7 +69,7 @@ export default function News() {
         <div className="container inner">
           <div>
             <span className="kicker">Enquiries</span>
-            <h2>Disagreement is the more useful reply.</h2>
+            <h2>Tell us where we have got it wrong.</h2>
             <p>
               These are arguments, and they are better for being tested against a real
               operation. If your own data contradicts one, we would sooner

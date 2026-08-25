@@ -10,7 +10,7 @@ const groups = ['All', 'Advise', 'Build', 'Embed'] as const;
 type Group = (typeof groups)[number];
 
 const groupNotes: Record<Group, string> = {
-  All: 'Ten services. Most engagements draw on two or three of them.',
+  All: 'Ten services. Most projects draw on two or three of them.',
   Advise: 'Work that ends in a decision and the evidence behind it. No build is committed to at this stage.',
   Build: 'Work that ends in something running in your business, with its tests, documentation and owner.',
   Embed: 'Work that ends with the system inside how your team already works, and your people able to run and extend it without us.',

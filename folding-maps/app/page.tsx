@@ -62,39 +62,6 @@ const positions = [
   },
 ];
 
-/* Four stages. Each says what actually happens and what ends it, because a
-   process diagram without an exit condition is decoration. */
-const method = [
-  {
-    number: '01',
-    title: 'Diagnose',
-    detail:
-      'We follow the work as it is actually done: the hand-offs, the exceptions, the spreadsheet nobody mentions in the process map. The output is a written account of where effort goes, and how much of it is judgement as opposed to administration.',
-    ends: 'Ends with a baseline both sides accept.',
-  },
-  {
-    number: '02',
-    title: 'Scope',
-    detail:
-      'We define the smallest system that would settle the question, with the controls and data access it needs. Where a requirement rests on an assumption about the business, we put the assumption in writing and do not build on it silently.',
-    ends: 'Ends with a fixed scope and a stated success test.',
-  },
-  {
-    number: '03',
-    title: 'Build',
-    detail:
-      'Delivery is staged so the first release is useful on its own. We instrument it from the first day, because a system nobody is measuring cannot be defended later, and we keep humans on the decisions that carry commercial or regulatory weight.',
-    ends: 'Ends when the success test passes, or when it demonstrably will not.',
-  },
-  {
-    number: '04',
-    title: 'Hand over',
-    detail:
-      'Your team takes ownership: the documentation, the tests, the operating model and the account of what we chose not to do. We stay available, but the arrangement is designed so that you do not need us.',
-    ends: 'Ends with your team running it without us.',
-  },
-];
-
 const featuredCases = cases.slice(0, 3);
 const featuredArticles = articles.slice(0, 3);
 const featuredServices = services.slice(0, 6);
@@ -107,7 +74,7 @@ export default function Home() {
       <section className={`${styles.hero} section-dark`} aria-labelledby="home-title">
         <div className="container">
           <span className={styles.heroKicker}>AI advisory and engineering</span>
-          <h1 id="home-title">Independent AI advice, and the engineering to act on it.</h1>
+          <h1 id="home-title">We advise UK companies on AI, then build what we recommend.</h1>
           <p className={styles.heroLede}>
             We work with UK companies that have decided AI matters to them and now need a
             clear account of where it pays, what it costs to run, and who owns it once we
@@ -115,7 +82,7 @@ export default function Home() {
           </p>
           <div className={styles.heroActions}>
             <Link className="button" href="/contact">
-              Discuss an engagement <ArrowRight size={17} aria-hidden="true" />
+              Discuss a project <ArrowRight size={17} aria-hidden="true" />
             </Link>
             <Link className="button light" href="/services">
               What we do
@@ -147,12 +114,12 @@ export default function Home() {
         <div className="page-head">
           <div>
             <span className="kicker">Our position</span>
-            <h2 id="position-title">Three things we think are true, and act on.</h2>
+            <h2 id="position-title">Three things we tell clients early.</h2>
           </div>
           <p className="lede">
-            Every firm in this market says it is practical and outcome-led. That is not a
-            position, it is a reflex. These are the arguments we would defend in front of
-            your board, including the parts that cost us work.
+            Every firm in this market calls itself practical and outcome-led, which tells a
+            buyer nothing. These three are what we would say in front of your board,
+            including the parts that cost us work.
           </p>
         </div>
 
@@ -174,12 +141,12 @@ export default function Home() {
           <div className="page-head">
             <div>
               <span className="kicker">What we do</span>
-              <h2 id="services-title">Advisory and engineering, under one accountability.</h2>
+              <h2 id="services-title">We do the advice and the building.</h2>
             </div>
             <p className="lede">
-              The split between the firm that recommends and the firm that builds is where
-              most AI programmes lose their thread. We do both, so the advice has to survive
-              being implemented.
+              Most AI programmes are advised on by one firm and built by another. That split
+              is where they come apart. We do both, so our advice has to survive being
+              built.
             </p>
           </div>
 
@@ -204,42 +171,15 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="section section-dark" aria-labelledby="method-title">
-        <div className="container">
-          <div className="page-head">
-            <div>
-              <span className="kicker">How we work</span>
-              <h2 id="method-title">Four stages, each with a condition that ends it.</h2>
-            </div>
-            <p className="lede">
-              A stage that cannot fail is not a stage. Each of ours has an exit test agreed
-              in advance, which is what makes it possible to stop the work early when the
-              evidence says we should.
-            </p>
-          </div>
-
-          <ol className={styles.method}>
-            {method.map((stage) => (
-              <li key={stage.number}>
-                <span className={styles.methodNum}>{stage.number}</span>
-                <h3>{stage.title}</h3>
-                <p>{stage.detail}</p>
-                <span className={styles.methodEnds}>{stage.ends}</span>
-              </li>
-            ))}
-          </ol>
-        </div>
-      </section>
-
       <section className="section container" aria-labelledby="work-title">
         <div className="page-head">
           <div>
-            <span className="kicker">Selected work</span>
-            <h2 id="work-title">Engagements, and what they turned on.</h2>
+            <span className="kicker">Projects</span>
+            <h2 id="work-title">Three projects we have worked on.</h2>
           </div>
           <p className="lede">
-            Each account states the situation we found, the reasoning behind the design, and
-            the measures the work is being judged against.
+            Each one sets out what the client asked for, what we found when we looked at the
+            work, what we built and how it is being measured.
           </p>
         </div>
 
@@ -250,7 +190,7 @@ export default function Home() {
               <h3>{item.title}</h3>
               <p>{item.summary}</p>
               <span className="text-link">
-                Read the engagement <ArrowRight size={15} aria-hidden="true" />
+                Read the project <ArrowRight size={15} aria-hidden="true" />
               </span>
             </Link>
           ))}
@@ -262,11 +202,11 @@ export default function Home() {
           <div className="page-head">
             <div>
               <span className="kicker">Insights</span>
-              <h2 id="insight-title">What we are arguing about in public.</h2>
+              <h2 id="insight-title">What we have published.</h2>
             </div>
             <p className="lede">
-              Published thinking is how a firm this size proves it can reason about a
-              problem before it is paid to. Each piece carries its sources.
+              Long pieces on AI in UK businesses. Each one takes a position, sets out the
+              case against it, and links every figure to where it came from.
             </p>
           </div>
 

@@ -23,7 +23,7 @@ export const caseEditorial: Record<string, CaseEditorial> = {
   'yacht-operations': {
     statusStatement: 'This engagement is in progress. Discovery and architecture work are complete; the first operating release and its outcomes have not yet been evaluated.',
     thesis: 'The first release must separate customer, vessel, enquiry and project identities, record every material event, derive a reviewable project state and put the next action in one named colleague’s queue. Its acceptance test is whether colleagues can reconstruct one customer commitment from the audit history while duplicate identities, migration exceptions and client-facing approvals remain under human control.',
-    sceneLabel: 'Representative item of work from an engagement in progress',
+    sceneLabel: 'The situation',
     openingTitle: 'One customer asks for an update, and the operating system has to reconstruct the answer',
     openingParagraphs: [
       'A customer enquiry has moved from an initial email into a confirmed project. When the customer later asks for an update, the commercial promise sits in one message, delivery detail in a document and the latest change in a colleague’s memory. The team can answer, but only after rebuilding the history of one item of work.',
@@ -93,7 +93,7 @@ export const caseEditorial: Record<string, CaseEditorial> = {
   'cold-chain': {
     statusStatement: 'The operator has asked not to be named. Every service level, weight and expected benefit on this page is a design target agreed for the work, and none should be read as an audited outcome.',
     thesis: 'A useful cold-chain monitoring service must turn a temperature reading into a traceable exception case before it attempts to prioritise human attention.',
-    sceneLabel: 'Operating vignette from the engagement',
+    sceneLabel: 'The situation',
     openingTitle: 'At 02:13, an eight-minute excursion begins with a number and ends with an operating decision',
     openingParagraphs: [
       'A sensor reports a temperature excursion. The overnight operator can see the value, but not yet whether a door was open, a unit was defrosting, the sensor was healthy or product was exposed. The decision clock has started before the evidence has assembled itself.',
@@ -163,7 +163,7 @@ export const caseEditorial: Record<string, CaseEditorial> = {
   'property-pipeline': {
     statusStatement: 'Naming the business would identify its counterparties, so it is withheld. The allocations, targets and expected benefits on this page are design judgements agreed for the work, and none has yet been measured in production.',
     thesis: 'A property pipeline becomes decision-useful only when one transaction can prove the stage it has reached through current evidence, a next action with a name against it, and any unresolved dependency in plain view.',
-    sceneLabel: 'Operating vignette from the engagement',
+    sceneLabel: 'The situation',
     openingTitle: 'A busy transaction looks healthy until one missing approval changes the week',
     openingParagraphs: [
       'Calls have been made, emails exchanged and documents revised, so a transaction appears to be progressing. During the Friday review, a colleague asks for the approval supporting its current stage. The evidence cannot be found, the timetable moves and the team begins reconstructing what it believed had been settled.',
@@ -233,7 +233,7 @@ export const caseEditorial: Record<string, CaseEditorial> = {
   'professional-services-intake': {
     statusStatement: 'Professional privilege keeps the firm anonymous in this account. The triage, quality and elapsed-time figures are design targets agreed for the work, and they remain unmeasured.',
     thesis: 'The intake service should automate the preparation of a professional decision while keeping mandatory controls deterministic and acceptance attributable to a qualified person.',
-    sceneLabel: 'Operating vignette from the engagement',
+    sceneLabel: 'The situation',
     openingTitle: 'A valuable referral arrives before it is safe to accept',
     openingParagraphs: [
       'A trusted referrer introduces a prospective client and signals urgency. The email contains enough information to create commercial interest but not enough to complete conflict, eligibility or service-routing checks. A senior professional begins searching correspondence while an assistant asks for missing facts.',
@@ -303,7 +303,7 @@ export const caseEditorial: Record<string, CaseEditorial> = {
   'field-service-planning': {
     statusStatement: 'Anonymity here is at the operator’s request. The weights on this page are calibrated against their own operating data, and every improvement figure is a target awaiting audit.',
     thesis: 'A field-service planner creates value only after it separates non-negotiable feasibility from scored preferences and lets dispatchers see the disruption transferred by each option.',
-    sceneLabel: 'Operating vignette from the engagement',
+    sceneLabel: 'The situation',
     openingTitle: 'At 07:10, one urgent job changes a plan that took an hour to assemble',
     openingParagraphs: [
       'The dispatcher has balanced engineer skills, locations, parts, promised appointments and working-hour limits. An urgent job arrives. Inserting it may protect one customer while delaying another, increasing travel or breaking a certification rule.',

@@ -96,7 +96,7 @@ export default async function ServiceDetailPage({ params }: PageProps) {
             <div className="page-head">
               <div>
                 <span className="kicker">How the work runs</span>
-                <h2 id="stages-title">The stages, and what each one produces.</h2>
+                <h2 id="stages-title">What happens at each stage.</h2>
               </div>
               <p className="lede">
                 Each stage ends in something you can read and challenge. Nothing moves to
@@ -120,7 +120,7 @@ export default async function ServiceDetailPage({ params }: PageProps) {
           <div className="page-head">
             <div>
               <span className="kicker">Applied</span>
-              <h2 id="cases-title">Where this is applied.</h2>
+              <h2 id="cases-title">Where this is used.</h2>
             </div>
             <p className="lede">
               Each pattern begins with an operating constraint. The technology follows from
@@ -206,7 +206,7 @@ export default async function ServiceDetailPage({ params }: PageProps) {
         <div className="container inner">
           <div>
             <span className="kicker">Enquiries</span>
-            <h2>Constraints like this one are where we start.</h2>
+            <h2>Tell us about a constraint like one of these.</h2>
             <p>
               Send the situation as it stands. The first response will tell you what we would
               need to know to scope it properly.

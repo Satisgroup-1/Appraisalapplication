@@ -38,7 +38,7 @@ export default function About() {
     <>
       <section className="page-hero container">
         <span className="kicker">About</span>
-        <h1>A small firm, deliberately.</h1>
+        <h1>A two-person firm with a specialist network.</h1>
         <p className="lede">
           Quiet Gears advises UK companies on where AI is worth using and builds the systems
           that follow. Two lead consultants, a network of specialists when a brief needs
@@ -50,7 +50,7 @@ export default function About() {
         <div className="page-head">
           <div>
             <span className="kicker">Why we exist</span>
-            <h2 id="why-title">The gap is between seeing a problem and having time to fix it.</h2>
+            <h2 id="why-title">Most companies already know what their problem is.</h2>
           </div>
           <p className="lede">
             Most companies we meet have already diagnosed their own problem. What they lack
@@ -155,7 +155,7 @@ export default function About() {
         <div className="container inner">
           <div>
             <span className="kicker">Enquiries</span>
-            <h2>The problems worth calling us about have outlasted two attempts to fix them.</h2>
+            <h2>Most clients call us after two attempts have failed.</h2>
             <p>
               Tell us what has already been tried and why it did not hold. That history is
               usually the most informative thing in a first conversation.
