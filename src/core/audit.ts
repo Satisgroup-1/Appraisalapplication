@@ -15,6 +15,7 @@
 import type {
   AppraisalResult,
   DevCostGroup,
+  MonthRow,
   PricingSpec,
   ScheduleRow,
   WaterfallResult,
@@ -48,7 +49,14 @@ const closeAbs = (a: number, b: number, tol = 0.02) =>
   Math.abs(a - b) <= tol || Math.abs(a - b) <= Math.max(Math.abs(a), Math.abs(b)) * 1e-9;
 const closeRel = (a: number, b: number, rel = 0.005) =>
   Math.abs(a - b) <= Math.max(1, Math.abs(a), Math.abs(b)) * rel;
-const gbp = (v: number) => `£${v.toLocaleString('en-GB', { maximumFractionDigits: 2 })}`;
+// Total by construction: the auditor's job is to REPORT on a broken spec, and
+// a formatter that throws takes the whole report down with it — including the
+// checks that explain what is wrong. A raw spec with an unrecognised SDLT
+// regime did exactly that: computeSdlt has no branch for one, so the engine's
+// B04 comes back `undefined` and `undefined.toLocaleString()` killed the run
+// before the inputs-enums tripwire below could be returned.
+const gbp = (v: number) =>
+  typeof v === 'number' ? `£${v.toLocaleString('en-GB', { maximumFractionDigits: 2 })}` : `£${String(v)}`;
 
 // ---------------------------------------------------------------------------
 // Input clean-up
@@ -74,6 +82,75 @@ function fix(
     return clamped;
   }
   return value;
+}
+
+// The closed sets the engine discriminates on. Every one of these is read in
+// dcf.ts as a comparison against a single literal, so a value outside the set
+// is not rejected — it takes the other branch. For the first three that branch
+// is silent and cheap-looking; for SDLT_REGIMES it is the automatic
+// calculation, which has no arm for an unknown regime and NaNs the appraisal
+// (see fixEnum). Kept here beside the sanitiser and the tripwire that both
+// police them, so the two can never drift apart.
+const BUILD_COST_MODES = ['fixed', 'roomRates'] as const;
+const VAT_FUNDERS = ['equity', 'vatLoan'] as const;
+const WATERFALL_MODES = ['simple', 'waterfall'] as const;
+const SDLT_REGIMES = ['nonResidential', 'residentialCompany', 'manual'] as const;
+
+/**
+ * Resolve a discriminant that must be one of a closed set, recording the
+ * resolution as a repair.
+ *
+ * For the three discriminants D4 brought under validation — `buildCostMode`,
+ * `vat.fundedBy`, `waterfall.mode` — the fallback is the branch the engine
+ * already takes for an unrecognised value, so the repair moves no figure: it
+ * is disclosure, not a re-price. Guessing the costlier intent instead
+ * ('roomRates', 'vatLoan') would invent a repricing or a whole facility on
+ * load, which is precisely the stored-project movement the `sdlt: {}` trap in
+ * AUDIT.md §6.1 finding 8 taught us not to do — and the intent behind a
+ * corrupt string is unknowable anyway. The user corrects the real value in the
+ * UI, once the repair strip has told them what their file actually said.
+ *
+ * `sdlt.regime` is the exception and must not be read as part of that claim.
+ * Its fallback is NOT the engine's branch: dcf.ts gates the automatic
+ * calculation on `regime !== 'manual'`, so an unrecognised regime takes the
+ * AUTOMATIC arm, `computeSdlt` has no default case, B04 comes back `undefined`
+ * and the whole appraisal goes NaN. Measured on the demo with
+ * `finance.sdlt = { regime: 'typo' }`: raw S1 net profit NaN, sanitised
+ * 2,079,630.1602789517. 'manual' is still the right resolution — it keeps the
+ * solicitor's typed B04 — but the reason is that the engine's own branch is
+ * unusable, not that it is being reproduced. That discriminant is the one
+ * whose corruption fails loudly rather than flatteringly, which is why it was
+ * already validated before D4 and why moving a figure there is a repair of NaN
+ * rather than a movement of anyone's stored number.
+ */
+function fixEnum<T extends string>(
+  repairs: AuditRepair[],
+  field: string,
+  value: unknown,
+  allowed: readonly T[],
+  fallback: T,
+  reason: string,
+): T {
+  if (typeof value === 'string' && (allowed as readonly string[]).includes(value)) return value as T;
+  repairs.push({ field, from: String(value), to: fallback, reason });
+  return fallback;
+}
+
+/**
+ * Every discriminant in a spec that the engine reads as a closed set, paired
+ * with the offending value where it is not one. Used by the `inputs-enums`
+ * tripwire; the sanitiser above repairs the same four fields.
+ */
+function unrecognisedEnums(spec: PricingSpec): string[] {
+  const bad: string[] = [];
+  const check = (field: string, value: unknown, allowed: readonly string[]) => {
+    if (typeof value !== 'string' || !allowed.includes(value)) bad.push(`${field} = ${String(value)}`);
+  };
+  check('build cost mode', spec.buildCostMode, BUILD_COST_MODES);
+  check('VAT funding source', spec.finance?.vat?.fundedBy, VAT_FUNDERS);
+  check('profit split mode', spec.finance?.waterfall?.mode, WATERFALL_MODES);
+  check('SDLT regime', spec.finance?.sdlt?.regime, SDLT_REGIMES);
+  return bad;
 }
 
 /**
@@ -113,16 +190,28 @@ export function sanitizeSpec(spec: PricingSpec): { spec: PricingSpec; repairs: A
   f.refinance.voidPct = fix(repairs, 'void allowance', f.refinance.voidPct, d.refinance.voidPct, 0, 1, 'must be 0-100%');
   f.refinance.mgmtPct = fix(repairs, 'management & opex', f.refinance.mgmtPct, d.refinance.mgmtPct, 0, 1, 'must be 0-100%');
 
-  if (!f.sdlt || !['nonResidential', 'residentialCompany', 'manual'].includes(f.sdlt.regime)) {
-    repairs.push({
-      field: 'SDLT regime',
-      from: String(f.sdlt?.regime),
-      to: 'manual',
-      reason: 'unknown SDLT regime; keeping the typed B04 figure',
-    });
-    f.sdlt = { regime: 'manual' };
-  }
+  // Unchanged in wording and fallback from when this was written out longhand:
+  // only a bad (or missing) regime replaces the block, and it replaces it with
+  // manual, so a file with a hand-typed B04 keeps its solicitor's figure. Note
+  // this is the one fixEnum call whose fallback is not the engine's own branch
+  // — an unrecognised regime takes the automatic arm and NaNs the appraisal
+  // (see fixEnum's note); here the repair rescues a figure rather than merely
+  // disclosing one.
+  const sdltRegime = fixEnum(repairs, 'SDLT regime', f.sdlt?.regime, SDLT_REGIMES, 'manual', 'unknown SDLT regime; keeping the typed B04 figure');
+  if (sdltRegime !== f.sdlt?.regime) f.sdlt = { regime: sdltRegime };
 
+  // Which pocket pays the input VAT. An unknown value already fell through to
+  // equity in the engine (`fundedBy === 'vatLoan'` is the only test), so
+  // resolving it there keeps every figure where it was — but a spec claiming a
+  // funding mode nobody priced now says so out loud.
+  f.vat.fundedBy = fixEnum(
+    repairs,
+    'VAT funding source',
+    f.vat?.fundedBy,
+    VAT_FUNDERS,
+    'equity',
+    'unknown VAT funding source; input VAT is carried by equity, with no VAT loan fee or interest',
+  );
   f.vat.ratePct = fix(repairs, 'VAT rate', f.vat.ratePct, d.vat.ratePct, 0, 1, 'must be 0-100%');
   f.vat.reclaimLagMonths = Math.round(fix(repairs, 'VAT reclaim lag', f.vat.reclaimLagMonths, d.vat.reclaimLagMonths, 0, 24, 'must be 0-24 months'));
   f.vat.vatLoan.ratePa = fix(repairs, 'VAT loan rate', f.vat.vatLoan.ratePa, d.vat.vatLoan.ratePa, 0, 0.5, 'must be 0-50% pa');
@@ -178,6 +267,20 @@ export function sanitizeSpec(spec: PricingSpec): { spec: PricingSpec; repairs: A
     'must be -15%..+30% pa',
   );
 
+  // An unrecognised split mode already produced the SIMPLE arithmetic — the
+  // engine runs the pref-and-residual branch only on `mode === 'waterfall' &&
+  // netProfit > 0`, and the first limb was false — so no profit moves here.
+  // What does move is the truthfulness of the answer: the result carried the
+  // corrupt string back out, so WaterfallTable rendered nothing and the
+  // auditor's simple-split reconciliation had no branch to run.
+  f.waterfall.mode = fixEnum(
+    repairs,
+    'profit split mode',
+    f.waterfall?.mode,
+    WATERFALL_MODES,
+    'simple',
+    'unknown profit split mode; profit is split simply (profit × investor share), with no preferred return',
+  );
   f.waterfall.prefRatePa = fix(repairs, 'preferred return', f.waterfall.prefRatePa, d.waterfall.prefRatePa, 0, 0.5, 'must be 0-50% pa');
   f.waterfall.residualInvestorPct = fix(repairs, 'investor share above pref', f.waterfall.residualInvestorPct, d.waterfall.residualInvestorPct, 0, 1, 'must be 0-100%');
 
@@ -187,6 +290,49 @@ export function sanitizeSpec(spec: PricingSpec): { spec: PricingSpec; repairs: A
       line.value = 0;
     }
   }
+  // A code identifies exactly one cost line. The engine charges every line it is
+  // handed, so a repeated code is billed twice — and the by-code costs-lines
+  // audit then resolves both spec entries to the SAME engine line and compares
+  // it against itself, so the doubled cost passes unnoticed. Keep the FIRST
+  // occurrence as authored (for the demo's D01 that is the true main-contract
+  // line; later copies are surplus) and report each dropped copy in this same
+  // repair channel, never halving silently by dropping the wrong one and never
+  // doubling silently by keeping both. A legitimately authored project cannot
+  // reach here with duplicates (the UI cannot add a line), so no well-formed
+  // project moves — only a hand-edited or preset-merged spec the auditor would
+  // itself call wrong.
+  const seenCodes = new Set<string>();
+  const dedupedCosts: PricingSpec['devCosts'] = [];
+  for (const line of s.devCosts) {
+    if (seenCodes.has(line.code)) {
+      repairs.push({
+        field: `cost line ${line.code}`,
+        from: 'duplicated',
+        to: 'duplicate copy dropped',
+        reason: `code ${line.code} appears more than once; the first occurrence is kept and charged, this extra copy is dropped`,
+      });
+      continue;
+    }
+    seenCodes.add(line.code);
+    dedupedCosts.push(line);
+  }
+  s.devCosts = dedupedCosts;
+  // How the main contract is priced. 'fixed' is normalizePricing's own fallback
+  // for a file that never had the field (pricing.ts: "old files priced from
+  // fixed D01") and is what the engine already does with anything it does not
+  // recognise, so the D01 figure does not move. It is nonetheless the costliest
+  // of these repairs to leave unsaid — on the demo the fixed line is £221,662
+  // BELOW the room-rate build-up, £251,748 of invented profit — so the note
+  // must say which side of that the appraisal landed on. The overstatement is
+  // disclosed, not corrected: only the user knows whether they meant room rates.
+  s.buildCostMode = fixEnum(
+    repairs,
+    'build cost mode',
+    s.buildCostMode,
+    BUILD_COST_MODES,
+    'fixed',
+    'unknown build cost mode; the main contract is priced from the fixed D01 line, NOT from the room rates',
+  );
   for (const key of Object.keys(s.roomRates) as (keyof PricingSpec['roomRates'])[]) {
     s.roomRates[key] = fix(repairs, `room rate ${key}`, s.roomRates[key], DEFAULT_PRICING.roomRates[key], 0, 5000, 'must be a non-negative £/sqft');
   }
@@ -244,6 +390,26 @@ export function auditAppraisal(r: AppraisalResult, spec: PricingSpec, schedule: 
   const f = spec.finance;
   const pc = r.programme.pcMonth;
   const horizonOk = pc + f.retention.releaseMonthsAfterPc <= MONTHS && pc <= MONTHS;
+
+  // --- inputs: the spec means exactly one thing ---
+  // Tripwire in the D11 mould, and defence in depth rather than a live catch:
+  // sanitizeSpec resolves an unrecognised discriminant with a reported repair,
+  // and since D12 every screen prices through appraiseProject, which sanitises
+  // before it audits — so no spec reaching this function today can fail here.
+  // It is still worth the check because of WHY the failure would be invisible
+  // otherwise: every check below re-derives the model from the same spec the
+  // engine was given, so a corrupt discriminant makes the auditor and the
+  // engine agree on the wrong branch, and every identity holds while the
+  // answer is not the one the file asked for. A future caller that audits an
+  // unsanitised spec would get a clean bill of health on a scheme priced by a
+  // branch nobody chose. This refuses to certify such a spec at all.
+  const badEnums = unrecognisedEnums(spec);
+  ok(
+    'inputs-enums',
+    'Every spec discriminant is a value the engine recognises',
+    badEnums.length === 0,
+    badEnums.join('; '),
+  );
 
   // --- schedule: every cell, every total ---
   let cellsOk = true;
@@ -337,6 +503,22 @@ export function auditAppraisal(r: AppraisalResult, spec: PricingSpec, schedule: 
     }
   }
   ok('costs-lines', 'Every cost line recomputes from its driver (incl. sales fees on levered GDV)', linesOk, lineDetail);
+  // Independent tripwire guarding the by-code resolution above: costs-lines
+  // finds each spec entry's engine line by code, so two entries sharing a code
+  // both resolve to the same line and the check compares it against itself —
+  // green while the engine has charged the cost twice. This check fails on any
+  // spec still carrying a duplicate code, so that blindness can never recur
+  // unnoticed. sanitizeSpec removes the duplicate upstream with a reported
+  // repair, so a sanitised (i.e. every well-formed) spec passes here.
+  const codeCounts = new Map<string, number>();
+  for (const specLine of spec.devCosts) codeCounts.set(specLine.code, (codeCounts.get(specLine.code) ?? 0) + 1);
+  const duplicatedCodes = [...codeCounts.entries()].filter(([, n]) => n > 1).map(([code]) => code);
+  ok(
+    'costs-duplicate-codes',
+    'Every cost line has a unique code (a repeated code is charged twice)',
+    duplicatedCodes.length === 0,
+    `duplicated code${duplicatedCodes.length > 1 ? 's' : ''}: ${duplicatedCodes.join(', ')}`,
+  );
   // Build inflation, re-derived independently: the factor from the rate and the
   // programme, and the line from today's cost x that factor. A wrong factor
   // would otherwise be invisible, since every %-of-build line agrees with it.
@@ -526,16 +708,58 @@ export function auditAppraisal(r: AppraisalResult, spec: PricingSpec, schedule: 
   );
 
   // --- distributions: complete and internally consistent in every scenario ---
-  const wfCheck = (name: string, wf: WaterfallResult, netProfit: number) => {
+  const wfCheck = (name: string, wf: WaterfallResult, netProfit: number, cf: MonthRow[]) => {
     ok(`wf-${name}-sum`, `${name.toUpperCase()} investor + developer = net profit`, closeAbs(wf.investorProfit + wf.developerProfit, netProfit), `${gbp(wf.investorProfit + wf.developerProfit)} vs ${gbp(netProfit)}`);
     ok(`wf-${name}-pref`, `${name.toUpperCase()} pref paid ≤ accrued and ≤ profit`, wf.prefPaid <= wf.prefAccrued + 0.005 && wf.prefPaid <= Math.max(0, netProfit) + 0.005, '');
-    if (wf.mode === 'simple') {
+    // Gated on what the engine DID, not on what the mode is called. The
+    // engine's condition for the waterfall arithmetic is
+    // `mode === 'waterfall' && netProfit > 0` (dcf.ts: `if (wf.mode !==
+    // 'waterfall' || netProfit <= 0)` takes the simple branch), so the exact
+    // negation of it is the condition under which profit was split pro rata —
+    // including a LOSS on a waterfall deal, which is shared by share because
+    // there is no preferred return payable out of a negative number.
+    // Mirroring it literally is what keeps this check's coverage complementary
+    // to the engine's, so no state can fall between the two branches. The two
+    // that used to: an unrecognised mode (`=== 'simple'` was false) and a
+    // loss-making waterfall (`!== 'waterfall'` was false) — each of which
+    // dropped wf-s1/s2/s4-simple and quietly returned three checks fewer than
+    // the identical deal papered as a simple split (62 against 65 on the demo).
+    if (wf.mode !== 'waterfall' || netProfit <= 0) {
       ok(`wf-${name}-simple`, `${name.toUpperCase()} simple split = profit × investor share`, closeAbs(wf.investorProfit, netProfit * f.equity.investorShare), '');
     }
+    // A5: the two capital bases are reported side by side, so each must add up
+    // to a real quantity and each ROI must divide by its OWN base. The defect
+    // this catches is a stack that reconciles to neither the equity committed
+    // nor the equity ever drawn — which is what a mode-dependent denominator
+    // beside a fixed one produced.
+    let peakDrawn = 0;
+    for (let m = 1; m <= Math.min(wf.exitMonth, cf.length); m++) peakDrawn = Math.max(peakDrawn, cf[m - 1].equityCum);
+    const roiLimb = (roi: number | null, base: number) =>
+      roi === null ? base === 0 : Math.abs(roi * base - wf.investorProfit) <= 0.01;
+    const committedOk = closeAbs(wf.investorCommitted + wf.developerCommitted, f.equity.total, 0.01);
+    const drawnOk = closeAbs(wf.investorDrawnPeak + wf.developerDrawnPeak, peakDrawn, 0.02);
+    const withinOk = wf.investorDrawnPeak <= wf.investorCommitted + 0.01;
+    const committedRoiOk = roiLimb(wf.investorRoiOnCommitted, wf.investorCommitted);
+    const drawnRoiOk = roiLimb(wf.investorRoiOnDrawn, wf.investorDrawnPeak);
+    const detail = !committedOk
+      ? `committed ${gbp(wf.investorCommitted + wf.developerCommitted)} vs equity ${gbp(f.equity.total)}`
+      : !drawnOk
+        ? `drawn ${gbp(wf.investorDrawnPeak + wf.developerDrawnPeak)} vs peak equity drawn ${gbp(peakDrawn)}`
+        : !withinOk
+          ? `investor drawn ${gbp(wf.investorDrawnPeak)} exceeds committed ${gbp(wf.investorCommitted)}`
+          : !committedRoiOk
+            ? `ROI on committed × ${gbp(wf.investorCommitted)} vs investor profit ${gbp(wf.investorProfit)}`
+            : `ROI on drawn × ${gbp(wf.investorDrawnPeak)} vs investor profit ${gbp(wf.investorProfit)}`;
+    ok(
+      `wf-${name}-capital`,
+      `${name.toUpperCase()} capital reconciles on both bases and each ROI is profit ÷ its own base`,
+      committedOk && drawnOk && withinOk && committedRoiOk && drawnRoiOk,
+      detail,
+    );
   };
-  wfCheck('s1', s.s1.waterfall, s.s1.netProfit);
-  wfCheck('s2', s.s2.waterfall, s.s2.netProfit);
-  wfCheck('s4', s.s4.waterfall, s.s4.netProfit);
+  wfCheck('s1', s.s1.waterfall, s.s1.netProfit, r.cashflow);
+  wfCheck('s2', s.s2.waterfall, s.s2.netProfit, r.cashflow);
+  wfCheck('s4', s.s4.waterfall, s.s4.netProfit, r.cashflow);
 
   // --- plausibility (E3) ---
   // Everything above re-derives the model and compares it against itself, so a

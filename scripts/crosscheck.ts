@@ -17,6 +17,7 @@ import ExcelJS from 'exceljs';
 import fs from 'node:fs';
 import path from 'node:path';
 import { exportWorkbook } from '../electron/xlsxExport';
+import { buildExportInputs } from '../src/core/exportPayload';
 import { runAppraisal } from '../src/core/dcf';
 import { clonePricing, DEFAULT_PRICING } from '../src/core/pricing';
 import type { PricingSpec, ScheduleRow } from '../src/core/types';
@@ -102,16 +103,12 @@ async function doExport() {
     process.argv[4] ?? 'resources/appraisal_template.xlsx',
     path.join(OUT, 'export.xlsx'),
     SCHEDULE,
-    {
-      address: 'Cross-check scheme',
-      ...s.finance,
-      // Labels included so the export resolves the SDLT line by the same
-      // code-or-label rule the engine uses (the typed B04 is dormant here:
-      // the spec inherits the automatic non-residential regime, so both the
-      // engine and the export price it from the bands).
-      devCostLines: s.devCosts.map((l) => ({ code: l.code, kind: l.kind, value: l.value, label: l.label })),
-      buildCostOverride: null,
-    },
+    // The app's own input mapping, not a hand-rolled copy: an earlier version
+    // built devCostLines here without each line's engine-computed `amount`,
+    // so the per-month-held (F) lines fell through the exporter's amount
+    // branch and the workbook kept the template's stock lumps — a £674
+    // divergence the compare step then blamed on the engine.
+    buildExportInputs({ address: 'Cross-check scheme', spec: s, result: r }),
   );
   console.log('exported', path.join(OUT, 'export.xlsx'));
 }

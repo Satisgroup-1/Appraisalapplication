@@ -72,8 +72,18 @@ jobs:
         with:
           merge-multiple: true
           path: release
+      # target_commitish pins the tag to the commit this run actually built.
+      # Without it, a dispatch-cut release creates its tag through the API,
+      # where the target defaults to the repository's DEFAULT BRANCH — so
+      # v0.2.4's tag landed on a stale feature branch while the installers
+      # attached to it were built from main. The binaries were right and the
+      # tag was wrong, which is the worst version of that bug: nothing looks
+      # broken until someone checks out the tag and gets a different tree.
+      # github.sha is the built commit under both triggers — the tag's commit
+      # on a tag push, the dispatched ref's tip on a manual run.
       - uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ inputs.release_tag || github.ref_name }}
+          target_commitish: ${{ github.sha }}
           files: release/*
           generate_release_notes: true

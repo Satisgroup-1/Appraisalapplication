@@ -162,7 +162,18 @@ function makeOption(
 ): ConversionOption {
   const compliance = floors.map((f) => validateFloor(f, rules));
   const schedule = deriveSchedule(floors, retained, spec);
+  const totals = totalsOf(schedule);
   const warnings: string[] = [];
+  // An option that plans no residential dwelling is the status quo, not a
+  // conversion. validateFloor returns allPass over an EMPTY units array, so
+  // compliance.every(...) would be vacuously true and the card would show a
+  // green "NDSS compliant" badge on a £0-GDV option with nothing built. Guard
+  // it: there is nothing to certify as compliant when no dwelling exists.
+  if (totals.residentialUnits === 0) {
+    warnings.push(
+      'No residential dwelling could be planned on this envelope: the floor(s) are too small or too shallow to fit a compliant unit. This is not a viable conversion.',
+    );
+  }
   if (schedule.length > MAX_UNITS) {
     warnings.push(`${schedule.length} units exceeds the ${MAX_UNITS}-unit appraisal workbook limit.`);
   }
@@ -190,11 +201,15 @@ function makeOption(
     floors,
     retained,
     compliance,
-    allCompliant: compliance.every((c) => c.allPass),
+    // Compliant only when there is a dwelling to assess AND every validated
+    // floor passes. Without the residentialUnits guard, a zero-dwelling option
+    // passes vacuously (empty units array), misreporting an empty envelope as
+    // fully NDSS-compliant.
+    allCompliant: totals.residentialUnits > 0 && compliance.every((c) => c.allPass),
     warnings,
     roomAreas: roomAreasOverride ?? roomAreasOf(floors, retained),
     schedule,
-    totals: totalsOf(schedule),
+    totals,
   };
 }
 

@@ -92,7 +92,7 @@ bridge, so a real facility exists while E29 reads nil. **Residual:** that draw i
 £0 arrangement fee. It now warns rather than being silent, but sizing the facility from the
 cashflow instead of from E29 is the actual fix and is a change to how the fee is charged.
 
-### A5 — MEDIUM · Investor ROI changes 6 points when you switch profit mode, with no change in economics
+### A5 — MEDIUM · ~~Investor ROI changes 6 points when you switch profit mode, with no change in economics~~ · **FIXED 2026-08-24**
 `src/core/dcf.ts:569` uses **drawn peak** capital in waterfall mode and **committed** capital in
 simple mode. Demo with £5m committed (more than the scheme can absorb), pref 0%, residual 50/50
 — economically identical to the simple 50/50 split:
@@ -106,6 +106,18 @@ Same profit, same deal, 5.9 points apart. (Where equity is fully drawn — the d
 the two agree, which is why the existing tests don't catch it.)
 
 Fix: one denominator for both modes. See question 4.
+
+**Done** — both denominators, always, in both modes. `WaterfallResult` gained
+`investorCommitted` / `investorDrawnPeak` / `developerCommitted` / `developerDrawnPeak` and
+`investorRoiOnCommitted` / `investorRoiOnDrawn` (plus the per-annum pair), each `null` where its
+base is zero; the probe above now reads **18.75% committed and 24.67% drawn in both modes**, and
+the distribution stack reconciles (1,900,218.69 + 1,900,218.69 = 3,800,437.38 = `equityUsed`).
+No money moved: profits, pref and the legacy fields are byte-identical, no `tests/dcf.test.ts`
+pin shifted, and the audit went 62 → 65 checks / 0 fails (`wf-s1/s2/s4-capital`). Recorded in
+AUDIT.md §6.8. **Residual:** the legacy `investorCapital` / `investorRoi` / `investorRoiPa` are
+still mode-dependent in the engine's return value — documented as such and no longer what the UI
+reads, but a consumer that reaches for `investorRoi` still gets a mode-dependent denominator.
+Retiring them is a separate, wider change.
 
 ### A6 — MEDIUM · ~~`velocityPerMonth = 0` reports a sell-out that never happens~~ · **FIXED 2026-08-24**
 `src/core/dcf.ts:643` returns `monthsToSellOut = 0` for zero velocity, so S2 shows:
@@ -166,6 +178,62 @@ rather than a passing zero.
 **Done** — `ltgdvAtPeak`, `profitOnCost`, `profitOnGdv`, `interestCover` and `cashOnCash` are
 `number | null`; `ltgdvOk` is `boolean | null`. The UI renders `n/a` and "not assessed". A real
 breach stays `false`, pinned by a test. Recorded in AUDIT.md §6.6 finding 18.
+
+### A12 — MEDIUM · The A4 floor under-prices a facility that is genuinely drawn
+
+A4's fix floors the **whole** estimate — `Math.max(0, devFacilityRaw)` at
+`src/core/dcf.ts:364` — which removes the negative arrangement fee but replaces it
+with a **zero** fee on real borrowing. Measured on the landed code (demo schedule,
+`equity.total` £6,000,000, default bridge):
+
+| | |
+|---|---|
+| facility estimate | **£0** |
+| arrangement fee | **£0** |
+| peak actually drawn | **£1,446,776** |
+| interest rolled to PC | £108,081 |
+| fee owed at the 1.5% input rate | **£21,702** |
+
+The loan is drawn because `computeCashflow`'s `grossNeed` adds the bridge
+redemption at `conStartMonth` while `equityCum` is capped at
+`cumNeed − bridgeAdvance`, so surplus equity never steps up to repay the bridge —
+the dev facility does. A facility that refinances £1.34m of bridge debt is a real
+facility and carries a real fee.
+
+The fix is to floor the **equity term** rather than the estimate, so the
+redemption the facility must fund always survives:
+
+```ts
+const devFacilityEstimate = estRedemption + Math.max(0, dev.totalPreFinance - f.equity.total - bridgeAdvance);
+```
+
+Where the equity term is positive this is the pre-A4 expression with its final
+addition commuted, and IEEE-754 addition is commutative (only associativity
+fails), so **the demo stays bit-identical and no golden pin moves.** On the probe
+above it gives an estimate of £1,338,695.76 and a fee of £20,080.44.
+
+Two further points established while investigating, both verified numerically:
+
+- `surplusEquity`-style figures are **sizing** figures, not idle capital. On a
+  VAT-reclaim-lag case (equity £5.3m, no bridge, 18-month lag) the surplus is
+  £164,414 while `equity.total − equityUsed` is **£0** — every committed pound is
+  drawn, absorbed as working capital. Even on a plainly over-equitised deal they
+  differ: £2,151,414 surplus against £2,199,563 never drawn. Any warning that
+  calls the surplus "idle" is wrong.
+- Because `runAppraisal` runs **two** cashflows, there is a band of committed
+  equity — `(letPreFinance − advance, salePreFinance − advance)`, on the demo
+  £3,739,362 to £3,848,586 — in which the **let** basis floors and the sale basis
+  does not. S3's cost base and unrealised profit move there (up to ~£1,648) while
+  any sale-basis surplus reads zero. A warning keyed only to the sale basis is
+  silent across that whole band.
+
+Evidence came from a manually driven cycle whose plan and audit were verified
+independently but which was abandoned rather than pushed, because origin had
+advanced 21 commits across 30 files in the meantime and a hand merge of
+overlapping engine work carried more risk than the fix was worth. Local commit
+`01b440c` in that session held a complete implementation with 28 tests, three
+warnings and three audit checks; it is not on any branch, so treat the expression
+and the figures above as the specification rather than looking for the code.
 
 ### A10 — MEDIUM · Retained commercial rent is refinanced on residential terms
 S3's `grossAnnualRent` is the whole schedule's rent, including the retained commercial unit
@@ -332,7 +400,25 @@ Fix: validate `code`/`group`/`kind` in `sanitizeSpec` (repairing unknown groups 
 with a reported repair), and replace the bare catch with a visible error state carrying the
 message.
 
-### D4 — MEDIUM · Enum inputs are never validated
+### ~~D4 — MEDIUM · Enum inputs are never validated~~ **DONE 2026-08-24.**
+`fixEnum` in `sanitizeSpec` now resolves `buildCostMode` → `fixed`, `waterfall.mode` →
+`simple`, `vat.fundedBy` → `equity` and `sdlt.regime` → `manual`, each with a reported
+`AuditRepair`; the auditor's simple-split gate became `mode !== 'waterfall' || netProfit <= 0`
+— the literal negation of the engine's own `mode === 'waterfall' && netProfit > 0` — which
+restores the three `wf-*-simple` checks that both an unknown mode AND a loss-making waterfall
+deal were silently skipping; and a new `inputs-enums` tripwire fails on any spec still carrying
+a bad discriminant. For the three newly validated discriminants the resolution is the branch
+the engine already took, so no figure moves; `sdlt.regime` is the exception — an unrecognised
+regime NaNs the appraisal (raw S1 `NaN` vs sanitised 2,079,630.16), so its `manual` fallback is
+justified by keeping the solicitor's typed B04, not by reproducing an unusable branch;
+check count 65 → 66 on a clean spec, 62 → 66 on one with a bad mode, and 62 → 66 on a
+loss-making waterfall. Recorded in AUDIT.md §6.10.
+**Residual:** disclosure, not correction — a corrupt `buildCostMode` still prices from the
+fixed D01 line and still shows the £251,748 of profit the room rates would not have given; the
+user must pick the right mode in the UI. Cost-line discriminants remain unvalidated (D3).
+
+The finding as probed:
+
 `sanitizeSpec` validates the SDLT regime (added by the previous audit) but not
 `vat.fundedBy`, `waterfall.mode` or `buildCostMode`. Probe with `'typo'` in all three:
 
@@ -383,6 +469,101 @@ the remaining gap cheaply.
 `regenerate()` runs `generateOptions` synchronously and never sets `busy`, and `OptionsView`
 runs a full `runAppraisal` per option in a `useMemo`. Fine on a 4-storey demo; on a large
 building it is a frozen window with an "Autosaved" label. Set `busy` around generation.
+
+### D11 — HIGH · ~~A duplicated cost code is charged twice, and every audit check still passes~~ · **FIXED 2026-08-24**
+Result: `sanitizeSpec` now drops later copies of a repeated code with a reported repair naming
+the code (first occurrence kept, so the charge is neither silently doubled nor halved), and a
+new `costs-duplicate-codes` auditor tripwire fails on any spec still carrying a duplicate — so
+the by-code self-comparison in `costs-lines` can no longer hide a doubled cost. Clean baseline
+moves from 61 to 62 passing checks. Residual (backlog): `OptionsView`/`PricingView` still call
+`runAppraisal` on the raw un-sanitised spec (a variant of the IMPROVEMENTS.md:289 divergence)
+— **closed by D12 2026-08-24** — and the root-cause by-code resolution in `costs-lines`
+(audit.ts) is left in place, guarded now by the new tripwire.
+Found by the reviewer during the abandoned D3 cycle (2026-08-24) and independently
+reproduced. Nothing in `sanitizeSpec` or `auditAppraisal` compares cost-line **codes**, so a
+stored project carrying the same line twice — a hand-edited file, a merge of two `.pricing`
+presets, or a future "duplicate this line" UI affordance — has that cost charged twice with
+no repair, no warning and no failing check.
+
+The auditor cannot see it by construction: `costs-lines` resolves both spec entries to the
+same engine `outLine` **by code**, so it compares the line against itself, and each
+`costs-group-*` check sums the engine's own lines, so the doubled total agrees with itself.
+
+Measured on `DEMO_SCHEDULE` + `clonePricing(DEFAULT_PRICING)`, every case at **61 checks /
+0 fails and 0 repairs** (clean baseline S1 net profit **779,614.9968750654**,
+`devCosts.totalPreFinance` **5,116,085.86508**):
+
+| Duplicated line | S1 net profit | Δ profit | `totalPreFinance` |
+|---|---|---|---|
+| D01 main contract | **-1,671,760.1760894181** | **-2,451,375.17** | 7,421,184.865080001 |
+| D08 | 656,843.4625555435 | -122,771.53 | 5,231,340.81508 |
+| G03 | 683,419.7851110287 | -96,195.21 | 5,209,809.29516 |
+| C01 | 734,196.5353005892 | -45,418.46 | 5,158,585.86508 |
+| D02 | 737,095.2380344532 | -42,519.76 | 5,156,085.86508 |
+| H01 | 771,610.2545725498 | -8,004.74 | 5,123,585.86508 |
+| B02 | 776,902.3827024568 | -2,712.61 | 5,118,585.86508 |
+
+The duplicated D01 swing of **£2,451,375** is larger than the £2,438,315 case D3 was written
+for, and unlike D3 it is **silent**: D3 at least crashes, this reports a confidently wrong
+number against a green audit. A scheme shown as £779,615 profitable is really £1.67m
+loss-making, and nothing on the screen says so.
+
+Fix: reject duplicate codes in `sanitizeSpec` (drop the later occurrence with a reported
+repair naming the code, so the charge is not silently doubled *or* silently halved), and add
+a `costs-duplicate-codes` check to `auditAppraisal` so the auditor stops resolving a line
+against itself. Note that `costs-lines` comparing spec entries to engine lines **by code** is
+the root cause and is worth revisiting more generally.
+
+### D12 — HIGH · ~~The Options and Pricing pages price the scheme from the RAW spec while the Appraisal page prices the repaired one~~ · **FIXED 2026-08-24**
+Result: new pure module `src/core/appraise.ts` — `appraiseProject(input, {audit?})` runs
+`sanitizeSpec` → `repairSchedule` → `runAppraisal` → `auditAppraisal` (audit opt-in), never
+throws, and returns the result **together with the repaired spec and schedule it was computed
+from**, the repairs and an error string. All three views now price through it, so the "S1
+profit" on the option card, the appraisal, the audit and the exported workbook are one figure.
+"Nothing to price" (`error: null`) stays distinguishable from "pricing failed", and on failure
+the repairs the completed stages had already collected are reported rather than discarded with
+the exception. AUDIT.md §6.9. All 8 demo options bit-identical, audit still 65/0, no golden pin
+moved, 265 → 293 tests. The finance-research brief is now read **entirely** from the repaired
+spec `appraiseProject` returns: a second cut sent the repaired GDV and facility with the raw
+`purchasePrice`/`bridgeLtv`, which on a spec carrying `bridge.ltv = 7` (700 typed into a
+`PctField` with no `max`) asked the researcher for bridge terms at 700% LTV against a facility
+sized at the repaired 100% — half a spec is worse than either whole.
+One further on-screen move, with **no repair involved**: an option whose
+`schedule` is empty — `generateOptions` emits these, warned "No residential dwelling could be
+planned on this envelope" — no longer shows an S1 profit stat at all. On a 0.3-scaled
+`DEMO_BUILDING` the card printed **-2790709.023373137** at HEAD, which is the sunk acquisition
+and finance cost of building nothing rather than a conversion's profit, beside the card's own
+"Not viable - no dwellings" badge; an empty schedule is nothing-to-price, so no figure is shown.
+The same option is why `PricingView` guards on the result and not only on the error (at HEAD it
+briefed the research agent `{gdv: 0, facility: 1356702.246962354}`). Residuals: `sanitizeSpec` still throws on a non-array `devCosts` and
+loses the repairs it found before the throw (D4's companion); unknown `group`/`kind` are still
+unvalidated, so such a spec is unpriceable rather than repaired (**D3 stays open**, now easier
+because the error is visible on screen); and `PctField` still has no `min`/`max`, so the
+fat-finger input remains enterable — repaired and disclosed, not prevented; and selecting a
+zero-dwelling option still reads "No option selected yet." on the Appraisal page (correct
+branch, wrong sentence — copy only).
+
+Logged three times before it was picked up: D1's "same issue for the raw spec", D11's landing
+note, and the D11 reviewer's "two call sites bypass the sanitiser" (LOOP-LOG.md:258).
+`OptionsView.tsx:27` printed `runAppraisal(o.schedule, project.pricing, o.roomAreas)` as the
+card's S1 profit inside a bare `catch {}`; `PricingView.tsx:130` briefed the finance-research
+agent from the same raw figure; only `AppraisalView.tsx:48-51` sanitised, and only it disclosed
+the repairs. `PctField` has no `min`/`max`, so `450` in the bridge-rate box (stored as 4.5) and
+`90` in the agent-fee box (0.9) need no file editing at all. On
+`generateOptions(DEMO_BUILDING, DEFAULT_RULES, ...)` with that spec:
+
+| Option | Options card (raw) | Appraisal page (repaired) | Divergence |
+|---|---|---|---|
+| `full_max_units` | **-7,365,660.643752255** | **+431,604.0969711812** | £7.80m, sign flip |
+| `full_balanced` | -7,365,660.643752255 | +431,604.0969711812 | £7.80m, sign flip |
+| `full_family` | -7,346,488.693813074 | +451,889.7887576418 | £7.80m, sign flip |
+| `DEMO_SCHEDULE` | -7,173,576.862996035 | -558,799.2093047546 | £6.61m |
+
+Every conversion reads as catastrophically loss-making on the page the scheme is chosen on,
+while the appraisal page prices `full_max_units` at **+£431,604** with an audit strip reading
+65 checks / 0 fails, 2 input repairs applied. Second reproduction, D11's duplicated `D01`:
+card **-1,671,760.1760894181** against appraisal **+779,614.9968750654**, £2,451,375 apart and
+again across the profit/loss line.
 
 ---
 
@@ -449,7 +630,10 @@ building it is a frozen window with an "Autosaved" label. Set `busy` around gene
    and the auditor grew the plausibility checks that catch this whole class. Recorded in
    AUDIT.md §6.6. **Residuals:** the facility estimate can still diverge from the actual draw
    (warned, not fixed — A4), and an unfunded month is reported but not funded (A8).
-6. **C2, C3, D3, D4, D8** — robustness; small diffs, removes silent failure.
+6. **C2, C3, D3, D8** — robustness; small diffs, removes silent failure. ~~**D4**~~ **Done** —
+   every spec discriminant is resolved to the engine's own branch with a reported repair, and
+   the auditor no longer loses three checks to an unrecognised `waterfall.mode` or to a
+   loss-making waterfall deal. Recorded in AUDIT.md §6.10.
 7. **A5, A7, A10, D5-D7** — model conventions and persistence.
 8. **B1-B7, E1, E2, E4** — scope decisions and process, once the questions below are answered.
 
@@ -496,3 +680,38 @@ Question 3 above is decided in principle but needs one number (5). The rest are 
 10. **Tax (B2).** Left undecided: should the model carry corporation tax on SPV profit and show
     post-tax investor returns, or is pre-tax the house convention? And is the 5% reduced-rate
     VAT on qualifying conversion works worth modelling as a cashflow item?
+11. **Stretch / mezzanine funding terms (A8's full fix).** The engine now warns when
+    pre-construction spend exceeds bridge + equity, but it cannot finance the gap — the money
+    is flagged as having no source and is charged no interest. If a scheme's bridge and equity
+    do not cover pre-construction spend, what facility fills it and on what terms: rate pa,
+    arrangement fee, exit fee, and does it rank behind the senior development loan?
+12. **Basis of the development-loan arrangement fee (Q12).** Is the fee priced on the facility
+    committed at signing (the current E29 estimate) or on the facility actually drawn? On the
+    demo the fee is charged on £3,787,282 against a cashflow peak of £3,982,955 — a £195,674
+    gap understating the fee by ~£2,935 plus rolled interest. In the over-equitised probe it
+    errs the other way, levying ~£12,612 on £591,694 of facility that is never drawn.
+    Repricing would move golden pins, so it needs the client's own lending convention.
+    **Still open, and it now blocks two backlog items rather than one:** the A4 residual (the
+    two figures above) and the reviewer's "cliff, not a threshold" observation on the
+    `devFacilityNil` warning. Both resolve the same way once the basis is known.
+13. **Mixed-use refinance (A10).** On a scheme with a retained commercial unit, S3 currently
+    advances against the WHOLE asset at the residential `refinance.ltv` (65%) and prices it at
+    the residential rate (5.5%), including the demo's £14,400 pa of commercial rent. Which
+    convention do you want: (a) one blended facility as now, (b) the commercial unit excluded
+    from the refinance and held unencumbered, or (c) a separate commercial facility — and if
+    (c), at what LTV, rate and arrangement fee? Either (b) or (c) reduces the modelled advance,
+    so this moves stored S3 figures and the loop will not choose it for you.
+14. **Basis of "capital drawn" in the investor ROI.** The model reports ROI on **peak** capital
+    drawn. A time-weighted average drawn balance would give a higher figure again for a scheme
+    whose equity is called down late. Peak is the convention adopted because it is the exposure
+    the investor underwrites; confirm it is yours.
+15. **Malformed opted-to-tax flag (`vat.optedToTax`).** The flag is read as a bare truthiness
+    test, so a stored `"false"` (the string) opts the SPV IN: VAT is charged on the purchase and
+    the SDLT chargeable consideration rises with it (`sdlt.ts:74`). Measured on the demo, a
+    string `"false"` moves S1 net profit from £779,614.9968750654 to £758,379.4267258961 —
+    £21,235.57 — with **0 repairs** and a green **66 checks / 0 fails**. Repairing a non-boolean
+    to `true` preserves today's figures but contradicts the file's own word; repairing it to
+    `false` honours the word and hands back the £21,235.57. Which reading do you want? Deferred
+    out of the D4 cycles rather than guessed, so the flag is still unvalidated: the sanitiser
+    repairs neither reading and the `inputs-enums` tripwire deliberately excludes it, because a
+    check no repair can clear would leave the audit permanently red with no route out.

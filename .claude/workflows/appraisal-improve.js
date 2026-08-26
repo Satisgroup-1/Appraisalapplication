@@ -4,14 +4,35 @@ export const meta = {
   whenToUse:
     'The recurring Satis Appraisal improvement loop. Runs planner -> builder -> reviewer with up to 2 rework rounds; commits and pushes only on APPROVE.',
   phases: [
+    { title: 'Preflight', detail: 'refuse to start on stranded, stale or already-built work' },
     { title: 'Plan', detail: 'pick and specify one item from the backlog or the three goals' },
     { title: 'Build', detail: 'implement it with failing-first tests' },
     { title: 'Review', detail: 'audit on property/accounting/modelling/UX axes; hard veto' },
-    { title: 'Land', detail: 'commit and push, or revert and log the objection' },
+    { title: 'Land', detail: 'push first, then record what actually landed' },
   ],
 };
 
 const MAX_REWORKS = 2;
+
+const PREFLIGHT_SCHEMA = {
+  type: 'object',
+  properties: {
+    verdict: { type: 'string', enum: ['OK', 'WARN', 'BLOCK'] },
+    reason: { type: 'string' },
+    coveredItems: {
+      type: 'array',
+      items: { type: 'string' },
+      description:
+        'Backlog ids the branch has already closed that this checkout still shows as open. The planner must not pick any of them.',
+    },
+    remediedBy: {
+      type: 'string',
+      description: 'What was done to clear a BLOCK, verbatim (e.g. "git pull --ff-only"), or "" if nothing was.',
+    },
+  },
+  required: ['verdict', 'reason', 'coveredItems', 'remediedBy'],
+  additionalProperties: false,
+};
 
 const PLAN_SCHEMA = {
   type: 'object',
@@ -64,6 +85,48 @@ decisions and hard limits bind you. Branch: claude/audit-application-appraisal-m
 
 // ---------------------------------------------------------------------------
 
+// --- preflight: is it safe to start new work at all? -----------------------
+//
+// A cycle used to open by planning. That is how one came to plan, build and
+// pass review on A4 and A8 while the branch had already closed both: it
+// started from a checkout nine commits stale and found out only at landing
+// time, after the whole cycle was spent. Nothing is planned now until the
+// repo state has been checked.
+
+phase('Preflight');
+const pre = await agent(
+  `${CONTEXT}
+
+Run \`./scripts/loop-preflight.sh --json\` and report exactly what it found.
+
+If the verdict is BLOCK, clear it ONLY where the remedy is mechanical and
+loses nothing, then re-run the script and report the second result:
+
+- behind the branch, or the branch has closed items this checkout shows as
+  open -> \`git pull --ff-only\`. This is the common case and it is safe.
+- commits here that were never pushed -> push them
+  (\`git push -u origin claude/audit-application-appraisal-model-3ih1fl\`).
+  They do NOT survive this session; pushing them is the whole point.
+
+Never clear a BLOCK by discarding work. Do not \`git checkout -- .\`, do not
+\`git clean\`, do not force-push, do not reset over commits you did not make
+in this cycle. If the tree is dirty with someone else's work in progress, or
+anything else cannot be cleared safely, report BLOCK and stop — a cycle
+skipped costs an hour, and force-pushing over another cycle's work costs the
+work.
+
+Report coveredItems from the FINAL run of the script.`,
+  { label: 'preflight', phase: 'Preflight', agentType: 'appraisal-planner', schema: PREFLIGHT_SCHEMA },
+);
+
+if (!pre || pre.verdict === 'BLOCK') {
+  const why = pre?.reason ?? 'preflight returned nothing';
+  log(`Preflight BLOCKED this cycle: ${why}`);
+  return { landed: false, blockedByPreflight: true, reason: why, coveredItems: pre?.coveredItems ?? [] };
+}
+if (pre.remediedBy) log(`Preflight cleared a block with: ${pre.remediedBy}`);
+if (pre.coveredItems?.length) log(`Already built, must not be re-picked: ${pre.coveredItems.join(', ')}`);
+
 phase('Plan');
 const plan = await agent(
   `${CONTEXT}
@@ -71,6 +134,16 @@ const plan = await agent(
 Choose and specify ONE item for this cycle. Correctness backlog first
 (IMPROVEMENTS.md), then the three additive goals. Skip anything blocked on a
 client decision and record it under blockedQuestions instead of guessing.
+${
+  pre.coveredItems?.length
+    ? `
+ALREADY BUILT — do not pick any of these, whatever IMPROVEMENTS.md says about
+them. The branch has closed them and this checkout's backlog is simply behind:
+${pre.coveredItems.map((i) => `  - ${i}`).join('\n')}
+If one of them looks like the best available item, that is the staleness
+talking. Pick the next one that is genuinely open.`
+    : ''
+}
 
 ${args?.steer ? `Extra steer from the client for this cycle: ${args.steer}` : ''}`,
   { label: 'plan', phase: 'Plan', agentType: 'appraisal-planner', schema: PLAN_SCHEMA },
@@ -170,24 +243,49 @@ const landing = await agent(
 
 ${
   approved
-    ? `The reviewer APPROVED this change. Land it:
+    ? `The reviewer APPROVED this change. Land it.
+
+READ THIS FIRST. A cycle is not finished when it commits, it is finished when
+it PUSHES. This session's container is reclaimed when the session ends, and a
+commit that was never pushed dies with it. That has happened: a reviewed,
+green commit was stranded by a push failure, the container went away, the log
+still said LANDED, and the next cycle rebuilt the whole item from scratch. So
+the push comes BEFORE the log entry, and the log records what actually
+reached the remote — never what was merely intended.
 
 1. Re-run \`npx tsc --noEmit\` and \`npm test\`. If either fails, STOP and
    revert with \`git checkout -- . && git clean -fd\` — do not commit red.
-2. Append a one-line record to LOOP-LOG.md (create it with a
-   \`# Loop log\` heading if absent), in EXACTLY this pipe format so
-   \`scripts/loop-status.sh\` can parse it:
-   \`| <YYYY-MM-DD HH:MM> | LANDED | ${plan.id} | <title> | <rework rounds> | <one-line what changed> |\`
+
+2. Re-run \`./scripts/loop-preflight.sh --json\`. This cycle has been running
+   for a while and the branch may have moved under it. If coveredItems now
+   contains ${plan.id}, another cycle has already built this: do NOT land it.
+   Skip to the ABANDON path below, recording "superseded on the branch while
+   this cycle ran" as the reason, and keep any reviewer observations that are
+   still true of the branch as it now stands. If the checkout is merely
+   behind, \`git pull --ff-only\` and re-run the green bar before continuing.
+
 3. \`git add -A\` and commit. The message must explain, in prose, what was
    wrong and what the change does, with the numbers that make it concrete;
-   mention any moved golden pin and its provenance. End with the two trailers
+   mention any moved golden pin and its provenance. End with the trailer
    below, verbatim.
+
 4. \`git push -u origin claude/audit-application-appraisal-model-3ih1fl\`,
    retrying up to 4 times with exponential backoff on network failure only.
 
-Trailers:
-Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
-Claude-Session: https://claude.ai/code/session_0165x9TDjfiyzzoXdEYbNa5N
+5. ONLY NOW, and only if step 4 actually succeeded, append the record to
+   LOOP-LOG.md (create it with a \`# Loop log\` heading if absent) in EXACTLY
+   this pipe format so \`scripts/loop-status.sh\` can parse it:
+   \`| <YYYY-MM-DD HH:MM> | LANDED | ${plan.id} | <title> | <rework rounds> | <one-line what changed> |\`
+   Then commit and push that row too.
+
+   If the push in step 4 could NOT be made to succeed, write the row as
+   \`STRANDED\` instead of \`LANDED\`, say in the note that the work is
+   committed locally and will be lost, and state the commit sha. Then say so
+   plainly in your report. A cycle that cannot push has failed, and recording
+   it as landed is the one outcome that guarantees the work is repeated.
+
+Trailer:
+Co-Authored-By: Claude <noreply@anthropic.com>
 
 Do NOT create a pull request. Do NOT push any other branch.`
     : `The change was NOT approved${review ? '' : ' (no usable review)'}. Do not commit it.

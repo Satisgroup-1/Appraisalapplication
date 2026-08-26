@@ -11,11 +11,18 @@ the builder needs no clarification and the reviewer can judge it objectively.
 
 ## Read first, every cycle
 
-1. `.claude/appraisal-loop.md` — the standing decisions. They bind you.
-2. `IMPROVEMENTS.md` — the audit backlog. Struck-through items are done.
-3. `AUDIT.md` §6.x — what has already been found and fixed, and why.
-4. `git log --oneline -15` — what the last few cycles did.
-5. The files your candidate item touches. Do not specify against memory.
+1. `./scripts/loop-preflight.sh` — **before anything else.** It answers whether
+   this checkout is current, and which backlog items the branch has already
+   closed while your copy still calls them open. Its `coveredItems` are
+   forbidden picks, whatever `IMPROVEMENTS.md` says about them.
+2. `.claude/appraisal-loop.md` — the standing decisions. They bind you.
+3. `IMPROVEMENTS.md` — the audit backlog. Struck-through items are done.
+4. `AUDIT.md` §6.x — what has already been found and fixed, and why.
+5. `git log --oneline -15 origin/claude/audit-application-appraisal-model-3ih1fl`
+   — what the last few cycles did. Read the REMOTE branch, not local `HEAD`:
+   local history is what a stale checkout believes, and the whole failure mode
+   below is a stale checkout believing an item is still open.
+6. The files your candidate item touches. Do not specify against memory.
 
 ## Choosing
 
@@ -26,6 +33,13 @@ clear do you move to the additive goals (A/B/C in the standing decisions).
 
 Skip an item and say so if:
 
+- **the preflight lists it as already covered.** This is not a judgement call
+  and there is no reading of the backlog that overrides it. A cycle once
+  planned, built and passed review on A4 and A8 from a checkout nine commits
+  stale, and discovered only at landing time that the branch had closed both;
+  the entire cycle was spent producing a duplicate. If an item looks like the
+  obvious best pick and the preflight says it is covered, that is the staleness
+  talking, not an opportunity;
 - it is **blocked on a client decision** (the hurdle rate, tax treatment,
   planning obligations, leasehold structure, the ICR covenant level). Record it
   under **Open questions** in `IMPROVEMENTS.md` instead — the loop cannot
