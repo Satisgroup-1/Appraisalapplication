@@ -681,14 +681,22 @@ export function computeWaterfall(
   // actual equity deployment (a VAT reclaim hands capital back early and
   // stops pref accruing on it).
   let capBal = 0;
+  let devBal = 0;
   let pref = 0;
   let drawnPeak = 0;
+  let devDrawnPeak = 0;
   const horizon = Math.max(1, Math.round(exitMonth));
   for (let m = 1; m <= horizon; m++) {
     pref += (capBal + pref) * (wf.prefRatePa / 12); // no pref in the month of drawdown
-    const draw = (rows[m - 1]?.equityMonth ?? 0) * share;
+    const equityMonth = rows[m - 1]?.equityMonth ?? 0;
+    const draw = equityMonth * share;
     capBal += draw;
     drawnPeak = Math.max(drawnPeak, capBal);
+    // The developer's drawn balance rides the SAME month series with the
+    // complementary share, so the two peaks are taken on one traversal and
+    // cannot drift apart: investor drawn + developer drawn = peak equity drawn.
+    devBal += equityMonth - draw;
+    devDrawnPeak = Math.max(devDrawnPeak, devBal);
   }
 
   const investorCapital = wf.mode === 'waterfall' ? drawnPeak : committed;
@@ -708,6 +716,15 @@ export function computeWaterfall(
   const developerProfit = netProfit - investorProfit;
   const investorRoi = investorCapital === 0 ? 0 : investorProfit / investorCapital;
 
+  // A5: state the return on both denominators, in both modes, so the headline
+  // cannot move when only the presentation does. An exact-zero test, not a
+  // tolerance: a base of literally nothing is not applicable, and any base
+  // above zero divides honestly however small it is.
+  const roiOn = (base: number): number | null => (base === 0 ? null : investorProfit / base);
+  const paOf = (roi: number | null): number | null => (roi === null ? null : (roi * 12) / horizon);
+  const roiOnCommitted = roiOn(committed);
+  const roiOnDrawn = roiOn(drawnPeak);
+
   return {
     mode: wf.mode,
     exitMonth: horizon,
@@ -721,6 +738,16 @@ export function computeWaterfall(
     developerProfit,
     investorRoi,
     investorRoiPa: horizon === 0 ? 0 : (investorRoi * 12) / horizon,
+    investorCommitted: committed,
+    investorDrawnPeak: drawnPeak,
+    // Taken as the residual of the total rather than as total × (1 - share) so
+    // the committed halves sum back to the equity exactly, not to a rounding.
+    developerCommitted: f.equity.total - committed,
+    developerDrawnPeak: devDrawnPeak,
+    investorRoiOnCommitted: roiOnCommitted,
+    investorRoiOnDrawn: roiOnDrawn,
+    investorRoiPaOnCommitted: paOf(roiOnCommitted),
+    investorRoiPaOnDrawn: paOf(roiOnDrawn),
   };
 }
 

@@ -13,7 +13,8 @@ import type {
   SalesEstimates,
 } from '../core/types';
 import { normalizePricing } from '../core/pricing';
-import { runAppraisal, sdltLineCodeOf } from '../core/dcf';
+import { appraiseProject } from '../core/appraise';
+import { sdltLineCodeOf } from '../core/dcf';
 import { sdltForFinance } from '../core/sdlt';
 import { blendedRoomRate, isStale, scaleRoomRates } from '../core/estimates';
 import { fmtGBP, useStore } from '../state/store';
@@ -124,21 +125,50 @@ export default function PricingView() {
   async function runFinanceEstimate(): Promise<void> {
     // Shape the research to this deal where a generated option exists;
     // otherwise the agent is told the GDV is not yet established.
-    let gdv = 0;
-    let facility = 0;
+    //
+    // The whole brief must describe ONE spec. Where nothing is priced there is
+    // no repaired spec to read, so the two finance fields can only come from
+    // the raw one — that is the only place `fin` is the right source.
+    let deal = { purchasePrice: fin.purchasePrice, bridgeLtv: fin.bridge.ltv, devFacilityEstimate: 0, gdv: 0 };
     if (option) {
-      const r = runAppraisal(option.schedule, spec, option.roomAreas);
-      gdv = r.totals.gdv;
-      facility = r.finance.devFacilityEstimate;
+      // Priced through the one entry point, so the facility the researcher is
+      // asked to source rates for is the facility the appraisal actually needs
+      // — not one sized from an unrepaired 450% bridge rate. And if it cannot
+      // be priced at all, say so: briefing the agent with a GDV of 0 returns
+      // terms for a deal that does not exist.
+      const p = appraiseProject({ schedule: option.schedule, pricing: spec, roomAreas: option.roomAreas });
+      // Guarded on the RESULT, not only on the error: `error === null` means
+      // "nothing failed", not "a figure exists". A generated option can carry an
+      // empty schedule (conversions.ts warns "No residential dwelling could be
+      // planned on this envelope") and this screen falls back to options[0]
+      // when nothing is selected, so that option reaches here unchosen. Reading
+      // p.result.totals through a non-null assertion threw
+      // "Cannot read properties of null" and runEstimates printed THAT in the
+      // failed row — a stack-trace message where a sentence about the inputs
+      // belongs.
+      if (p.error || !p.result || !p.spec) {
+        throw new Error(
+          `The appraisal could not be priced, so the finance research has no facility size to work from: ${p.error ?? '<the selected option has no unit schedule to price>'}`,
+        );
+      }
+      // Every field of the brief now comes from the SAME spec the figures were
+      // priced from — `p.spec`, never the raw project spec. 'LTV on purchase'
+      // is a PctField with no max, so 700 typed there stores ltv = 7: the
+      // sanitiser clamps it to 1 and sizes the facility off a £1.95m advance,
+      // while the raw spec still says 7. Sending the repaired facility with the
+      // raw LTV asked the researcher for bridge terms at 700% LTV against a
+      // facility sized at 100% — a deal no lender quotes, and half-repaired is
+      // worse than either spec whole.
+      const f = p.spec.finance;
+      deal = {
+        purchasePrice: f.purchasePrice,
+        bridgeLtv: f.bridge.ltv,
+        devFacilityEstimate: p.result.finance.devFacilityEstimate,
+        gdv: p.result.totals.gdv,
+      };
     }
     const finance = (await window.satis.aiEstimateFinance({
-      deal: {
-        purchasePrice: fin.purchasePrice,
-        bridgeLtv: fin.bridge.ltv,
-        devFacilityEstimate: facility,
-        gdv,
-        assetType: 'commercial building converted to residential flats',
-      },
+      deal: { ...deal, assetType: 'commercial building converted to residential flats' },
     })) as FinanceEstimates;
     setEstimates({ finance });
   }

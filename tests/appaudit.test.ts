@@ -134,3 +134,71 @@ describe('input repair (never silent)', () => {
     expect(repairSchedule(DEMO_SCHEDULE).repairs).toHaveLength(0);
   });
 });
+
+describe('duplicate cost codes (D11)', () => {
+  // A cost line carried twice under one code is charged twice by the engine,
+  // while costs-lines resolves both spec entries to the same engine line and
+  // compares it against itself — a green audit against a doubled cost. The fix
+  // is upstream: sanitizeSpec drops the surplus copy with a reported repair,
+  // and an independent tripwire fails on any spec still carrying duplicates.
+  const dupSpec = (code: string, mutateSecond?: (l: PricingSpec['devCosts'][number]) => void): PricingSpec => {
+    const spec = clonePricing(DEFAULT_PRICING);
+    spec.buildCostMode = 'fixed';
+    const original = spec.devCosts.find((l) => l.code === code)!;
+    const copy = JSON.parse(JSON.stringify(original)) as PricingSpec['devCosts'][number];
+    mutateSecond?.(copy);
+    spec.devCosts.push(copy);
+    return spec;
+  };
+
+  it('sanitizeSpec drops a duplicated D01 with a repair naming the code', () => {
+    const { repairs } = sanitizeSpec(dupSpec('D01'));
+    expect(repairs.length).toBeGreaterThanOrEqual(1);
+    expect(repairs.some((rep) => `${rep.field} ${rep.reason}`.includes('D01'))).toBe(true);
+  });
+
+  it('the sanitised D01-duplicated spec prices to the clean figures', () => {
+    const { spec } = sanitizeSpec(dupSpec('D01'));
+    const r = runAppraisal(DEMO_SCHEDULE, spec);
+    expect(r.scenarios.s1.netProfit).toBeCloseTo(779614.9968750654, 2);
+    expect(r.devCosts.totalPreFinance).toBeCloseTo(5116085.86508, 2);
+  });
+
+  it('auditAppraisal fails costs-duplicate-codes on a spec still carrying a duplicate', () => {
+    const spec = dupSpec('D01');
+    const r = runAppraisal(DEMO_SCHEDULE, spec);
+    const check = auditAppraisal(r, spec, DEMO_SCHEDULE).checks.find((c) => c.id === 'costs-duplicate-codes');
+    expect(check, 'costs-duplicate-codes should exist').toBeTruthy();
+    expect(check!.pass).toBe(false);
+    expect(check!.detail).toContain('D01');
+  });
+
+  it('de-duplication keeps the FIRST occurrence (later copy discarded)', () => {
+    // Second copy carries a wildly different value; keeping the first means the
+    // priced line is unchanged from clean. B01 is a plain fixed line so its
+    // value flows straight through, which makes first-kept observable.
+    const { spec } = sanitizeSpec(dupSpec('B01', (l) => (l.value = 999999)));
+    expect(spec.devCosts.filter((l) => l.code === 'B01')).toHaveLength(1);
+    expect(spec.devCosts.find((l) => l.code === 'B01')!.value).toBe(7500);
+  });
+
+  // 62 -> 65 with A5: +3, one capital-basis reconciliation per profit scenario
+  // (wf-s1-capital, wf-s2-capital, wf-s4-capital). 65 -> 66 with D4: +1, the
+  // inputs-enums tripwire, which is run on every spec and passes on a clean
+  // one. No existing check changed verdict in either cycle and failCount stays
+  // 0 — the count is the only movement.
+  it('a clean spec: 0 repairs and costs-duplicate-codes passes (62 -> 65 -> 66)', () => {
+    const spec = clonePricing(DEFAULT_PRICING);
+    spec.buildCostMode = 'fixed';
+    expect(sanitizeSpec(spec).repairs).toHaveLength(0);
+    const r = runAppraisal(DEMO_SCHEDULE, spec);
+    const report = auditAppraisal(r, spec, DEMO_SCHEDULE);
+    const check = report.checks.find((c) => c.id === 'costs-duplicate-codes');
+    expect(check!.pass).toBe(true);
+    expect(report.failCount).toBe(0);
+    expect(report.passCount).toBe(66);
+    for (const id of ['wf-s1-capital', 'wf-s2-capital', 'wf-s4-capital']) {
+      expect(report.checks.some((c) => c.id === id), id).toBe(true);
+    }
+  });
+});
