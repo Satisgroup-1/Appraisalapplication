@@ -171,7 +171,7 @@ describe('criterion 3: a duplicated cost code', () => {
     expect(p.repairs).toHaveLength(1);
     expect(p.repairs[0].field).toBe('cost line D01');
     expect(p.repairs[0].from).toBe('duplicated');
-    expect(p.repairs[0].to).toBe('removed');
+    expect(p.repairs[0].to).toBe('duplicate copy dropped');
   });
 });
 

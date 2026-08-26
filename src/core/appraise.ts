@@ -38,7 +38,7 @@ export interface PricedAppraisal {
   /** Every repair applied to the inputs, for disclosure. Populated even when
    *  pricing failed — see the docblock on appraiseProject. */
   repairs: AuditRepair[];
-  /** Only when `opts.audit === true`; the 65-check re-derivation is far too
+  /** Only when `opts.audit === true`; the 66-check re-derivation is far too
    *  expensive to run once per card in an option grid. */
   audit: AuditReport | null;
   /** Null means "nothing to price yet", NOT "priced fine". A message means the

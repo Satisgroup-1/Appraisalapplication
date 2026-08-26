@@ -308,8 +308,8 @@ export function sanitizeSpec(spec: PricingSpec): { spec: PricingSpec; repairs: A
       repairs.push({
         field: `cost line ${line.code}`,
         from: 'duplicated',
-        to: 'removed',
-        reason: `code ${line.code} appears more than once; charged once on the first occurrence`,
+        to: 'duplicate copy dropped',
+        reason: `code ${line.code} appears more than once; the first occurrence is kept and charged, this extra copy is dropped`,
       });
       continue;
     }

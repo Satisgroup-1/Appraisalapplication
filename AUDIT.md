@@ -764,6 +764,27 @@ VAT-loan cost is not conjured back. And cost-line discriminants
 D3, still open, and it needs an incidence rule this change deliberately does
 not invent.
 
+### 6.11 Pre-release audit of the v0.3.0 merge (2026-08-26)
+
+Before cutting v0.3.0 (main v0.2.4 merged with the five improvement-loop
+cycles: C3, D11, A5, the sanitised-spec entry point, D4), the two audit agents
+re-ran the full battery on the merged tree and independently recomputed the
+headline figures from first principles — 43 checks on the demo scheme, all
+agreeing with the engine at ≤2e-9 absolute, plus conservation identities on
+six stressed configurations. No engine defect was found. Three findings, none
+in the model:
+
+| # | Severity | Defect | Fix |
+|---|---|---|---|
+| 1 | LOW (harness) | `scripts/crosscheck.ts` hand-rolled the export inputs without each line's engine-computed `amount`, so the per-month-held **(F)** lines fell through `xlsxExport`'s amount branch and the workbook kept the template's stock lumps (£13,550 vs the engine's £14,224 on the cross-check scheme). The compare step then reported a £674 pre-finance divergence — and £13.48 on the arrangement fee, exactly 2% of it — against an engine that was right. Pre-existing since the F-group went per-month-held; none of the loop's commits caused it. | The harness now builds its inputs with the app's own `buildExportInputs`, the same path the real export takes. All five shared figures agree with the LibreOffice-recalculated workbook to the penny. |
+| 2 | LOW (docs) | `appraise.ts` docblock still said "the 65-check re-derivation"; the auditor returns 66 on the demo since D4. | Comment corrected. |
+| 3 | LOW (disclosure wording) | The D11 dedup repair read `to: 'removed'` beside a reason saying the line is charged once — ambiguous about whether the kept line survived. | Repair now reads `to: 'duplicate copy dropped'` with the reason stating the first occurrence is kept and charged. |
+
+No golden pin moved, no financial default changed, no audit check weakened.
+Battery at the cut: `tsc --noEmit` clean, 300/300 tests, `crosscheck.sh` all
+figures `diff=0.0000`, auditor self-test 22/22 (every check proven to fail on
+its seeded defect).
+
 ## 7. Re-running the audit
 
 ```bash
