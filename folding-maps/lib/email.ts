@@ -28,16 +28,54 @@ export type EmailConfigResult =
   | { ok: true; config: EmailConfig }
   | { ok: false; reason: string };
 
+/**
+ * Mailbox providers do not let anyone verify their domain as a Resend sender,
+ * so a CONTACT_FROM_EMAIL on one of these is guaranteed to be rejected at send
+ * time. Catching it here turns a 502 nobody can diagnose into a named
+ * configuration error in the log.
+ */
+const UNVERIFIABLE_SENDER_DOMAINS = [
+  'gmail.com', 'googlemail.com', 'outlook.com', 'hotmail.com', 'hotmail.co.uk',
+  'live.com', 'live.co.uk', 'yahoo.com', 'yahoo.co.uk', 'icloud.com', 'me.com',
+  'aol.com', 'proton.me', 'protonmail.com', 'gmx.com', 'mail.com',
+];
+
+/** Accepts both `addr@domain` and `Display Name <addr@domain>`. */
+export function senderAddress(value: string) {
+  const angled = value.match(/<([^>]+)>/);
+  return (angled ? angled[1] : value).trim().toLowerCase();
+}
+
 /** Takes the environment as an argument so it can be exercised without mutating process.env. */
 export function getEmailConfig(
   env: Record<string, string | undefined> = process.env,
 ): EmailConfigResult {
   const apiKey = env.RESEND_API_KEY?.trim();
   if (!apiKey) return { ok: false, reason: 'RESEND_API_KEY is not set' };
+  if (!apiKey.startsWith('re_')) {
+    return { ok: false, reason: 'RESEND_API_KEY does not look like a Resend key: they begin with re_' };
+  }
 
   const configuredFrom = env.CONTACT_FROM_EMAIL?.trim();
   const to = env.CONTACT_TO_EMAIL?.trim() || DEFAULT_TO;
   const bcc = env.CONTACT_BCC_EMAIL?.trim() || undefined;
+
+  if (configuredFrom) {
+    const address = senderAddress(configuredFrom);
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(address)) {
+      return {
+        ok: false,
+        reason: `CONTACT_FROM_EMAIL is not an address: ${configuredFrom}. Use enquiries@yourdomain.co.uk or Name <enquiries@yourdomain.co.uk>`,
+      };
+    }
+    const domain = address.split('@')[1];
+    if (UNVERIFIABLE_SENDER_DOMAINS.includes(domain)) {
+      return {
+        ok: false,
+        reason: `CONTACT_FROM_EMAIL uses ${domain}, which cannot be verified as a Resend sending domain. Send from a domain you control and set CONTACT_TO_EMAIL to the ${domain} address if that is where enquiries should land`,
+      };
+    }
+  }
 
   // Resend's shared onboarding sender works for a first smoke test but can only
   // deliver to the account owner, so it is never used to acknowledge a visitor.

@@ -24,7 +24,9 @@ export async function POST(request: Request) {
     const { payload, missing } = validateContactPayload(body);
 
     // Honeypot. Answer exactly as a success does, so a bot learns nothing from
-    // the response, and stop before spending a send.
+    // the response, and stop before spending a send. The success body carries
+    // no other field for the same reason: whether an acknowledgement went is in
+    // the server log, where a bot cannot read it.
     if (payload.website) return NextResponse.json({ ok: true });
 
     if (missing.length) {
@@ -103,7 +105,8 @@ export async function POST(request: Request) {
       }
     }
 
-    return NextResponse.json({ ok: true, acknowledged: canAcknowledge });
+    console.info(`[contact] enquiry delivered${canAcknowledge ? ' and acknowledged' : '; acknowledgement skipped, unverified sender'}`);
+    return NextResponse.json({ ok: true });
   } catch (error) {
     console.error('[contact] request failed', error);
     return NextResponse.json(

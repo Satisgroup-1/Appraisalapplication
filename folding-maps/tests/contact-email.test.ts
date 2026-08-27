@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { buildAcknowledgementEmail, buildEnquiryEmail, getEmailConfig } from '@/lib/email';
+import { buildAcknowledgementEmail, buildEnquiryEmail, getEmailConfig, senderAddress } from '@/lib/email';
 import { checkRateLimit, resetRateLimit, clientKey, RATE_LIMIT } from '@/lib/rateLimit';
 import type { ContactPayload } from '@/lib/contactValidation';
 
@@ -21,6 +21,35 @@ describe('email configuration', () => {
   it('refuses to claim it can send without an API key', () => {
     const result = getEmailConfig({});
     expect(result.ok).toBe(false);
+  });
+
+  it('names the configuration mistake instead of failing at send time', () => {
+    // Each of these reaches Resend and is rejected there, producing a 502 that
+    // looks like an outage. Caught here, the reason lands in the server log.
+    const pasted = getEmailConfig({ RESEND_API_KEY: 'sk_live_not_a_resend_key' });
+    expect(pasted.ok).toBe(false);
+    if (!pasted.ok) expect(pasted.reason).toContain('re_');
+
+    // The likeliest mistake on this site, because the fallback address is a
+    // gmail one and it is easy to assume it can also send.
+    const freeMail = getEmailConfig({
+      RESEND_API_KEY: 're_test',
+      CONTACT_FROM_EMAIL: 'Quiet Gears <quietgearsai@gmail.com>',
+    });
+    expect(freeMail.ok).toBe(false);
+    if (!freeMail.ok) {
+      expect(freeMail.reason).toContain('gmail.com');
+      expect(freeMail.reason).toContain('CONTACT_TO_EMAIL');
+    }
+
+    const malformed = getEmailConfig({ RESEND_API_KEY: 're_test', CONTACT_FROM_EMAIL: 'Quiet Gears' });
+    expect(malformed.ok).toBe(false);
+    if (!malformed.ok) expect(malformed.reason).toContain('not an address');
+  });
+
+  it('reads a display-name sender the same as a bare address', () => {
+    expect(senderAddress('Quiet Gears <enquiries@quietgears.co.uk>')).toBe('enquiries@quietgears.co.uk');
+    expect(senderAddress('  enquiries@quietgears.co.uk  ')).toBe('enquiries@quietgears.co.uk');
   });
 
   it('falls back to the shared sender and disables acknowledgements', () => {
