@@ -131,7 +131,7 @@ function wrap(title: string, body: string) {
       <tr><td style="padding:28px;font-size:15px;line-height:1.65;">${body}</td></tr>
       <tr>
         <td style="padding:18px 28px;border-top:1px solid rgba(10,27,42,0.14);font-size:12px;line-height:1.6;color:#56687c;">
-          Quiet Gears Ltd · 4 Foscote Mews, London · working UK-wide
+          Quiet Gears Ltd · London · working UK-wide
         </td>
       </tr>
     </table>
@@ -201,7 +201,7 @@ export function buildAcknowledgementEmail() {
     '',
     'Kind regards,',
     'Quiet Gears',
-    '4 Foscote Mews, London · working UK-wide',
+    'London · working UK-wide',
   ].join('\n');
 
   const html = wrap(

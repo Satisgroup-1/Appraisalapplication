@@ -93,15 +93,23 @@ attention and both would tell the client something they do not currently know.
 
 ## 3. A compliance gap you should close
 
-The site shows "© Quiet Gears Ltd" and a London office address, but no company
-registration number and no explicit registered-office statement.
+The site shows "© Quiet Gears Ltd" and names London as the location. It carries
+no company registration number, no statement of where the company is registered,
+and, since the street address was removed at your request, no address at all.
 
 A UK limited company must disclose, on its website, its registered company name,
 its registered number, the part of the UK in which it is registered, and its
 registered office address (Companies Act 2006, and the Companies (Trading
 Disclosures) Regulations). The footer and the legal pages are the usual place.
 
-Send the number and registered office and it takes five minutes to add. ☐
+Removing the street address was the right call if it is residential, and it is
+the reason most small companies use a **registered office service**: a
+commercial address, typically £30 to £60 a year, that satisfies the disclosure
+without publishing where anyone lives. The registered office is a matter of
+public record at Companies House either way, so withholding it on the site
+conceals nothing that is not already searchable.
+
+Send the number and the registered office and it takes five minutes to add. ☐
 
 ## 4. Details carried over unchanged
 
@@ -112,7 +120,10 @@ You asked to publish nothing new, so these are exactly as they were:
   Resend. One thing still to confirm: a verified sending domain does not create
   a mailbox, so send a test message to that address and check it arrives
   somewhere readable before the site relies on it. ☐
-- `4 Foscote Mews, London` as the office address. ☐
+- ~~`4 Foscote Mews, London` as the office address.~~ **Removed at your
+  request.** The site and both email templates now say only "London, working
+  UK-wide". See section 3: this leaves the trading disclosures with no address
+  of any kind, which is the one thing still outstanding there. ☐
 - Luc Balonwu and Rohan Campion as lead consultants, with no biographies. Named
   people with real backgrounds are the single strongest credibility lever
   available to a firm this size, and the page is ready for them. ☐

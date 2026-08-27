@@ -73,8 +73,8 @@ export default function Contact() {
                 </dd>
               </div>
               <div>
-                <dt>Office</dt>
-                <dd>4 Foscote Mews, London. Working UK-wide.</dd>
+                <dt>Location</dt>
+                <dd>London. Working UK-wide.</dd>
               </div>
               <div>
                 <dt>Confidentiality</dt>
