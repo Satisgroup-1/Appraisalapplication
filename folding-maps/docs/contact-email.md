@@ -111,7 +111,7 @@ Four variables, two of them optional. `.env.example` is the canonical list.
 |---|---|---|
 | `RESEND_API_KEY` | Yes | The key from 1.4. Begins `re_`. |
 | `CONTACT_FROM_EMAIL` | In production | `Quiet Gears <enquiries@quietgears.co.uk>`. Must be on the verified domain. |
-| `CONTACT_TO_EMAIL` | No | Where enquiries land. Defaults to `quietgearsai@gmail.com`. |
+| `CONTACT_TO_EMAIL` | No | Where enquiries land. Defaults to `QuietGearsAI@gmail.com`. |
 | `CONTACT_BCC_EMAIL` | No | A second copy, for a shared archive. |
 
 ### Locally

@@ -20,7 +20,7 @@ const homeJsonLd = [
     '@id': `${SITE_URL}/#organization`,
     name: SITE_NAME,
     url: SITE_URL,
-    email: 'quietgearsai@gmail.com',
+    email: 'QuietGearsAI@gmail.com',
     description: SITE_DESCRIPTION,
     image: absoluteUrl('/og.png'),
     address: { '@type': 'PostalAddress', addressLocality: 'London', addressCountry: 'GB' },

@@ -39,7 +39,7 @@ export function ContactForm() {
 
       if (!response.ok) {
         setErrorMessage(
-          result.error || 'The message did not send. Please email quietgearsai@gmail.com directly.',
+          result.error || 'The message did not send. Please email QuietGearsAI@gmail.com directly.',
         );
         setState('error');
         return;
@@ -48,7 +48,7 @@ export function ContactForm() {
       setState('done');
     } catch {
       setErrorMessage(
-        'We could not reach the server. Please try again, or email quietgearsai@gmail.com directly.',
+        'We could not reach the server. Please try again, or email QuietGearsAI@gmail.com directly.',
       );
       setState('error');
     }
@@ -63,7 +63,7 @@ export function ContactForm() {
           One of the two lead consultants will read it and reply within one working day,
           either to arrange an initial consultation or to explain why this is not something
           we should take on. A confirmation is on its way to your inbox. If it is urgent,
-          email quietgearsai@gmail.com and say so in the subject line.
+          email QuietGearsAI@gmail.com and say so in the subject line.
         </p>
       </div>
     );

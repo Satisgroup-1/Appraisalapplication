@@ -107,7 +107,7 @@ Send the number and registered office and it takes five minutes to add. ☐
 
 You asked to publish nothing new, so these are exactly as they were:
 
-- `quietgearsai@gmail.com` as the contact address. It is a credibility drag on
+- `QuietGearsAI@gmail.com` as the contact address. It is a credibility drag on
   an otherwise institutional site; a domain address on `quietgears.co.uk` would
   cost nothing and remove the only obviously amateur detail left. ☐
 - `4 Foscote Mews, London` as the office address. ☐

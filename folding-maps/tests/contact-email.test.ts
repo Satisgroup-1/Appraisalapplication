@@ -34,7 +34,7 @@ describe('email configuration', () => {
     // gmail one and it is easy to assume it can also send.
     const freeMail = getEmailConfig({
       RESEND_API_KEY: 're_test',
-      CONTACT_FROM_EMAIL: 'Quiet Gears <quietgearsai@gmail.com>',
+      CONTACT_FROM_EMAIL: 'Quiet Gears <QuietGearsAI@gmail.com>',
     });
     expect(freeMail.ok).toBe(false);
     if (!freeMail.ok) {
@@ -60,7 +60,7 @@ describe('email configuration', () => {
     // The shared sender can only deliver to the account owner, so acknowledging
     // a visitor from it would fail silently.
     expect(result.config.canAcknowledge).toBe(false);
-    expect(result.config.to).toBe('quietgearsai@gmail.com');
+    expect(result.config.to).toBe('QuietGearsAI@gmail.com');
   });
 
   it('uses the verified sender and its overrides when configured', () => {
