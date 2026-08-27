@@ -26,7 +26,7 @@ const routes = [
   {
     question: '“We know what we want built, and we need it to survive contact with the business.”',
     answer:
-      'The risk here is rarely the model. It is integration with systems that were not designed to be integrated with, and an operating model that does not yet exist. We build in stages so the first release is defensible on its own, and we instrument it so its value can be argued for later.',
+      'The risk here is rarely the model. It is integration with systems that were not designed to be integrated with, and an operating model that does not yet exist. Building happens in stages so the first release is defensible on its own, and it is instrumented so its value can be argued for later.',
     service: 'Custom AI systems',
     slug: 'ai-implementation',
   },
@@ -46,10 +46,10 @@ export default function ServicesPage() {
         <span className="kicker">Services</span>
         <h1>Ten services, three kinds of work.</h1>
         <p className="lede">
-          We advise, we build, and we embed what we build in how a team already works. The
-          three carry different risks, which is why we separate them: advice can be wrong on
-          paper, a build can be wrong in production, and an adoption programme can be wrong
-          for a year before anybody notices.
+          The work spans three kinds: advice, delivery, and embedding what gets delivered in
+          how a team already works. The three carry different risks, which is why they stay
+          separate: advice can be wrong on paper, a build can be wrong in production, and an
+          adoption programme can be wrong for a year before anybody notices.
         </p>
       </section>
 
@@ -91,10 +91,10 @@ export default function ServicesPage() {
         <div className="container inner">
           <div>
             <span className="kicker">Enquiries</span>
-            <h2>Start with the problem.</h2>
+            <h2>Assessment precedes proposal.</h2>
             <p>
-              Describe the problem and we will tell you which kind of work it is, including
-              when the answer is that it is not ours.
+              An enquiry describing the problem receives an assessment of which kind of work
+              it calls for, including the cases where the answer lies outside this firm.
             </p>
           </div>
           <Link className="button" href="/contact">

@@ -146,10 +146,10 @@ export default async function IndustryDetail({ params }: { params: Promise<{ slu
 
           <section id="services" className={styles.section}>
             <span className={styles.sectionNum}>06</span>
-            <h2>Where we would usually start in {industry.name.toLowerCase()}.</h2>
+            <h2>Where a first engagement usually starts in {industry.name.toLowerCase()}.</h2>
             <p className={styles.sectionLede}>
               A first engagement here normally draws on these. The reasoning matters more
-              than the label: if it does not match your situation, the label is wrong.
+              than the label: where it does not match the situation, the label is wrong.
             </p>
             <div className={styles.services}>
               {recommendedServices.map(({ service, rationale }) => (
@@ -181,11 +181,11 @@ export default async function IndustryDetail({ params }: { params: Promise<{ slu
         <div className="container inner">
           <div>
             <span className="kicker">Enquiries</span>
-            <h2>Sector notes generalise. Yours will differ.</h2>
+            <h2>Sector notes describe the general case.</h2>
             <p>
-              This page describes the sector in general terms, and your operation will
-              depart from it in at least one way that matters. Tell us which, and that is
-              where we start.
+              This page sets out the sector in general terms. An individual operation
+              departs from it in at least one way that matters, and that departure is
+              ordinarily where a first conversation begins.
             </p>
           </div>
           <Link

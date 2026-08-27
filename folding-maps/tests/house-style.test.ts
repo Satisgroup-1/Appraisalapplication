@@ -139,6 +139,34 @@ describe('house style', () => {
     expect(stumps).toEqual([]);
   });
 
+  it('addresses the reader as an institution would, not as a pitch', () => {
+    // Five of the eight contact bands opened on the same imperative ("Tell us
+    // where the work is getting stuck"), and the contact page led with it. The
+    // register these pages are written to is Infosys's "please complete the
+    // form below" and Accenture's "Contact Accenture via the contact
+    // information on this page": procedural, third person, and carrying no
+    // diagnosis of a reader the firm has not met.
+    const pages = ['app/page.tsx', 'app/about/page.tsx', 'app/services/page.tsx', 'app/services/[slug]/page.tsx',
+      'app/industries/page.tsx', 'app/industries/[slug]/page.tsx', 'app/case-studies/page.tsx',
+      'app/case-studies/[slug]/page.tsx', 'app/news/page.tsx', 'app/contact/page.tsx']
+      .map((path) => ({ path, copy: readFileSync(path, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '') }));
+
+    pages.forEach(({ path, copy }) => {
+      // No heading may instruct the reader.
+      const headings = [...copy.matchAll(/<h[12][^>]*>([^<]{4,})<\/h[12]>/g)].map((match) => match[1].trim());
+      const commands = headings.filter((heading) => /^(tell us|start with|send |describe |give us|talk to|let us|get in touch)/i.test(heading));
+      expect(`${path}: ${commands.join(' | ')}`).toBe(`${path}: `);
+    });
+
+    // Second person belongs in the legal notices and the form, where the
+    // reader is being addressed about their own data. It is a pitch anywhere
+    // a prospective client's situation is being characterised for them.
+    const pitching = pages
+      .map(({ path, copy }) => ({ path, count: (copy.match(/\byour\b/gi) ?? []).length }))
+      .filter((row) => row.count > 1);
+    expect(pitching).toEqual([]);
+  });
+
   it('holds the page copy to the same bans as the content data', () => {
     // The content files are data; these are the pages a visitor lands on
     // first, and they were drifting under a separate standard.

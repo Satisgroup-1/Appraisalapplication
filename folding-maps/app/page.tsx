@@ -47,17 +47,17 @@ const positions = [
     ],
   },
   {
-    claim: 'A system your team cannot run is not a result.',
+    claim: 'A system the client cannot run is not a result.',
     body: [
       'A pilot that depends on its builders is a liability dressed as progress. It works while attention is on it and decays quietly afterwards, usually at the point where the original team has moved on and nobody remembers which threshold was set by hand.',
-      'We design for the handover from the start: documented decisions, tests that fail loudly, and an operating model naming who maintains what. That costs time in the build and is the reason the work survives us.',
+      'The handover is designed for from the start: documented decisions, tests that fail loudly, and an operating model naming who maintains what. That costs time in the build and is the reason the work survives us.',
     ],
   },
   {
     claim: 'Automation has to be argued for.',
     body: [
       'The case for automating a task is an empirical claim, and it is usually made without evidence. Multiplying estimated minutes by a salary rate produces a number. It falls short of a business case because the minutes saved are rarely contiguous and the quality cost is rarely counted.',
-      'We baseline before we build, and we say so when the evidence does not support the work. Declining a project is cheaper for both sides than delivering one that cannot be defended at the next budget review.',
+      'The baseline comes before the build, and we say so when the evidence does not support the work. Declining a project is cheaper for both sides than delivering one that cannot be defended at the next budget review.',
     ],
   },
 ];
@@ -74,11 +74,11 @@ export default function Home() {
       <section className={`${styles.hero} section-dark`} aria-labelledby="home-title">
         <div className="container">
           <span className={styles.heroKicker}>AI advisory and engineering</span>
-          <h1 id="home-title">We advise UK companies on AI, then build what we recommend.</h1>
+          <h1 id="home-title">We advise UK companies on AI, then build what that advice recommends.</h1>
           <p className={styles.heroLede}>
-            We work with UK companies that have decided AI matters to them and now need a
-            clear account of where it pays, what it costs to run, and who owns it once we
-            leave.
+            For UK companies that have decided AI matters to them and now need a clear
+            account of where it pays, what it costs to run, and who owns it once the
+            engagement ends.
           </p>
           <div className={styles.heroActions}>
             <Link className="button" href="/contact">
@@ -114,11 +114,11 @@ export default function Home() {
         <div className="page-head">
           <div>
             <span className="kicker">Our position</span>
-            <h2 id="position-title">Three things we tell clients early.</h2>
+            <h2 id="position-title">Three things clients hear early.</h2>
           </div>
           <p className="lede">
             Every firm in this market calls itself practical and outcome-led, which tells a
-            buyer nothing. These three are what we would say in front of your board,
+            buyer nothing. These three are what would be said in front of a board,
             including the parts that cost us work.
           </p>
         </div>
@@ -141,11 +141,11 @@ export default function Home() {
           <div className="page-head">
             <div>
               <span className="kicker">Services</span>
-              <h2 id="services-title">We do the advice and the building.</h2>
+              <h2 id="services-title">The advice and the building, in one place.</h2>
             </div>
             <p className="lede">
               Most AI programmes are advised on by one firm and built by another. That split
-              is where they come apart. We do both, so our advice has to survive being
+              is where they come apart. Doing both means our advice has to survive being
               built.
             </p>
           </div>
@@ -175,11 +175,11 @@ export default function Home() {
         <div className="page-head">
           <div>
             <span className="kicker">Projects</span>
-            <h2 id="work-title">Three projects we have worked on.</h2>
+            <h2 id="work-title">Three projects from the work.</h2>
           </div>
           <p className="lede">
-            Each one sets out what the client asked for, what we found when we looked at the
-            work, what we built and how it is being measured.
+            Each one sets out what the client asked for, what discovery found, what got
+            built and how it is being measured.
           </p>
         </div>
 
@@ -237,10 +237,11 @@ export default function Home() {
         <div className="container">
           <div>
             <span className="kicker">Enquiries</span>
-            <h2 id="contact-title">Tell us where the work is getting stuck.</h2>
+            <h2 id="contact-title">The first conversation is diagnostic.</h2>
             <p>
-              The first conversation is diagnostic. If the problem does not need us, we will
-              say so and tell you what we would do instead.
+              It establishes what the problem is before any proposal follows. Where the
+              problem does not require this firm, the reply says so and names who it does
+              require.
             </p>
           </div>
           <Link className="button" href="/contact">

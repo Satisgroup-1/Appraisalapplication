@@ -181,9 +181,9 @@ export default async function CaseDetail({ params }: { params: Promise<{ slug: s
         <div className="container inner">
           <div>
             <span className="kicker">Enquiries</span>
-            <h2>Tell us where the work is getting stuck.</h2>
+            <h2>Comparable engagements.</h2>
             <p>
-              If this account resembles your operation, the useful first step is a
+              Where this account resembles another operation, the useful first step is a
               conversation about the differences.
             </p>
           </div>

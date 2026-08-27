@@ -20,7 +20,7 @@ export default function IndustriesPage() {
         <p className="lede">
           The technology varies little between industries. The constraint around it varies:
           the regulation, the shift pattern, the margin, the person who has to sign. These
-          notes set out the ground we cover in a sector before proposing anything.
+          notes set out the ground covered in a sector before proposing anything.
         </p>
       </section>
 
@@ -35,11 +35,11 @@ export default function IndustriesPage() {
         <div className="container inner">
           <div>
             <span className="kicker">Enquiries</span>
-            <h2>Tell us where your operation differs.</h2>
+            <h2>Constraints are specific to an operation.</h2>
             <p>
-              The constraint is usually specific. Name the decision that is slow, the record
-              that cannot be trusted, or the obligation that makes automation awkward, and
-              we will tell you whether we have seen it before.
+              A decision that is slow, a record that cannot be trusted, or an obligation
+              that makes automation awkward. An enquiry naming one of these receives a note
+              on whether the pattern has been encountered before.
             </p>
           </div>
           <Link className="button" href="/contact">

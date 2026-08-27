@@ -84,9 +84,9 @@ export default async function ServiceDetailPage({ params }: PageProps) {
               ))}
             </ul>
             <p className="small">
-              These are named so you can check them. The right components depend on your
-              data, your existing systems and what your team can maintain. Where the honest
-              answer is a tool you already own, we will say so.
+              These are named so that they can be checked. The right components depend on
+              the data, the systems already in place and what the client&rsquo;s team can
+              maintain. Where the honest answer is a tool already owned, the advice says so.
             </p>
           </div>
         </section>
@@ -99,7 +99,7 @@ export default async function ServiceDetailPage({ params }: PageProps) {
                 <h2 id="stages-title">Each stage, and what it produces.</h2>
               </div>
               <p className="lede">
-                Each stage ends in something you can read and challenge. Nothing moves to
+                Each stage ends in something a client can read and challenge. Nothing moves to
                 the next stage on the strength of a conversation alone.
               </p>
             </div>
@@ -163,7 +163,7 @@ export default async function ServiceDetailPage({ params }: PageProps) {
             </h2>
             <div className={styles.columns}>
               <div>
-                <span className="kicker">What we provide</span>
+                <span className="kicker">Provided</span>
                 <h3>Everything needed to run it in production.</h3>
                 <ul className={styles.checkList}>
                   {service.provisions.map((item) => (
@@ -172,8 +172,8 @@ export default async function ServiceDetailPage({ params }: PageProps) {
                 </ul>
               </div>
               <div>
-                <span className="kicker">Controls we insist on</span>
-                <h3>The parts we will not drop to save time.</h3>
+                <span className="kicker">Non-negotiable</span>
+                <h3>The parts that do not get dropped to save time.</h3>
                 <ul className={styles.checkList}>
                   {service.safeguards.map((item) => (
                     <li key={item}>{item}</li>
@@ -206,10 +206,10 @@ export default async function ServiceDetailPage({ params }: PageProps) {
         <div className="container inner">
           <div>
             <span className="kicker">Enquiries</span>
-            <h2>Tell us about a constraint like one of these.</h2>
+            <h2>Scoping this service.</h2>
             <p>
-              Send the situation as it stands. The first response will tell you what we would
-              need to know to scope it properly.
+              An enquiry describing the situation as it stands receives a reply setting out
+              what further information would be needed to scope the work.
             </p>
           </div>
           <Link className="button" href="/contact">

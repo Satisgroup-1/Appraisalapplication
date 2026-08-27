@@ -119,7 +119,7 @@ export function ContactForm() {
           <option>Not sure yet</option>
         </select>
         <small className="field-hint">
-          Asked so we can tell you if the work fits it. “Not sure yet” is a fine answer.
+          Asked to judge whether the work fits it. “Not sure yet” is a fine answer.
         </small>
       </label>
 

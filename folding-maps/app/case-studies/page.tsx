@@ -8,7 +8,7 @@ import { createPageMetadata } from '@/lib/seo';
 export const metadata = createPageMetadata({
   title: 'Work',
   description:
-    'Five projects described in full: what the client asked for, what we found in the work, what we built, the controls around it and how it is being measured.',
+    'Five projects described in full: what the client asked for, what discovery found, what got built, the controls around it and how it is being measured.',
   path: '/case-studies',
 });
 
@@ -27,10 +27,10 @@ export default function Cases() {
         <span className="kicker">Work</span>
         <h1>Five projects, described in full.</h1>
         <p className="lede">
-          Each one sets out what the client asked for, what we found when we looked at the
-          work, what we built, what we decided against and how it is being measured. Clients
-          are unnamed where they asked to be. Where a page describes something we are
-          measuring, it says so and gives no figure until the measurement exists.
+          Each one sets out what the client asked for, what discovery found, what got built,
+          what was decided against and how it is being measured. Clients are unnamed where
+          they asked to be. Where a page describes something still being measured, it says so
+          and gives no figure until the measurement exists.
         </p>
       </section>
 
@@ -71,11 +71,11 @@ export default function Cases() {
         <div className="container inner">
           <div>
             <span className="kicker">Enquiries</span>
-            <h2>The same problems turn up in different industries.</h2>
+            <h2>The same problems recur across industries.</h2>
             <p>
-              If one of these reads like your operation, the first conversation can start
-              from there. The useful question is which piece of coordination is failing, and that is
-              often the same in a hotel and a haulage yard.
+              Where one of these resembles another operation, a first conversation can begin
+              there. The recurring question is which piece of coordination is failing, and
+              that is often the same in a hotel and a haulage yard.
             </p>
           </div>
           <Link className="button" href="/contact">

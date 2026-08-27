@@ -87,7 +87,7 @@ export default async function Article({ params }: { params: Promise<{ slug: stri
       <div className="article-foot">
         <p>
           Written by Quiet Gears. If your own operating data contradicts the argument
-          above, we would rather hear it than defend the piece.
+          above, that is worth more than a defence of the piece.
         </p>
         <Link className="button light" href="/contact">
           Send a challenge <ArrowRight size={16} aria-hidden="true"/>

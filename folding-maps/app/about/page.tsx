@@ -16,19 +16,19 @@ const leadConsultants = ['Rohan Campion', 'Luc Balonwu'];
    prospective client more about how a firm works than a list of capabilities. */
 const refusals = [
   {
-    title: 'We do not resell software.',
-    body: 'We take no commission or referral fee on any tool we recommend, which is the only way advice about tooling can be worth reading. Where the right answer is a product you already pay for, that is the answer you get.',
+    title: 'No software is resold on commission.',
+    body: 'No commission or referral fee is taken on any tool recommended, which is the only way advice about tooling stays worth reading. Where the right answer is a product the client already pays for, that is the answer given.',
   },
   {
-    title: 'We do not staff projects we cannot senior-lead.',
-    body: 'A small firm scales by putting junior people on work sold by senior ones. We would rather decline than do that, which caps how much we take on and is the main reason our timelines are honest.',
+    title: 'No project is staffed without a senior lead.',
+    body: 'A small firm scales by putting junior people on work sold by senior ones. That trade is declined, which caps how much comes in and is the main reason our timelines are honest.',
   },
   {
-    title: 'We do not build what we cannot hand over.',
-    body: 'If a system would leave your team dependent on us to operate it, it is the wrong system. That constraint rules out some interesting architectures and rules in the ones you can still run in three years.',
+    title: 'Nothing is built that cannot be handed over.',
+    body: 'A system that would leave the client’s team dependent on this firm to operate it is the wrong system. That constraint rules out some interesting architectures and rules in the ones that are still operable in three years.',
   },
   {
-    title: 'We do not promise a number we cannot baseline.',
+    title: 'No number is promised without a baseline.',
     body: 'Efficiency claims made before measurement are guesses with a decimal point. If the current position cannot be measured, the first piece of work is measuring it, and we will say so before quoting any saving.',
   },
 ];
@@ -49,12 +49,12 @@ export default function About() {
       <section className="section container" aria-labelledby="why-title">
         <div className="page-head">
           <div>
-            <span className="kicker">Why we exist</span>
+            <span className="kicker">Purpose</span>
             <h2 id="why-title">Most companies already know what their problem is.</h2>
           </div>
           <p className="lede">
-            Most companies we meet have already diagnosed their own problem. They lack the time
-            and the technical judgement to act on it without breaking something else.
+            Most companies have already diagnosed their own problem before the first call. They
+            lack the time and the technical judgement to act on it without breaking something else.
           </p>
         </div>
 
@@ -73,11 +73,12 @@ export default function About() {
             be maintainable in two years) is not the judgement their day job builds.
           </p>
           <p>
-            That is the gap we work in. Our job is to understand the operating detail well
-            enough to decide what deserves to change, then take responsibility for
+            That is the gap this work fills. The job is to understand the operating detail
+            well enough to decide what deserves to change, then take responsibility for
             one focused release. Sometimes AI belongs in the answer.
             Often the honest answer is simpler software, better data, or a process change
-            that costs nothing at all. We would sooner say so and be trusted next time.
+            that costs nothing at all. Saying so plainly is worth more, over time, than
+            protecting the fee.
           </p>
         </div>
       </section>
@@ -86,12 +87,12 @@ export default function About() {
         <div className="container">
           <div className="page-head">
             <div>
-              <span className="kicker">How we work</span>
-              <h2 id="refusals-title">Four things we will not do.</h2>
+              <span className="kicker">Working principles</span>
+              <h2 id="refusals-title">Four things ruled out.</h2>
             </div>
             <p className="lede">
-              Every firm's capability list reads the same. A constraint tells you something
-              a list cannot: what happens when the commercially convenient answer and the
+              Every firm's capability list reads the same. A constraint records something a
+              list cannot: what happens when the commercially convenient answer and the
               correct one diverge.
             </p>
           </div>
@@ -112,7 +113,7 @@ export default function About() {
         <div className="page-head">
           <div>
             <span className="kicker">People</span>
-            <h2 id="people-title">The people you meet are the people who do the work.</h2>
+            <h2 id="people-title">The people at the first meeting do the work.</h2>
           </div>
           <p className="lede">
             Quiet Gears is led by two consultants, supported by a small network of
@@ -136,7 +137,7 @@ export default function About() {
             <span className="fact-label">Specialist network</span>
             <p>
               We bring in specialists in data engineering, security review or sector regulation
-              where a brief requires one, and we say who they are before they start.
+              where a brief requires one, and say who they are before they start.
               Introductions from experienced practitioners who want direct client
               responsibility are welcome.
             </p>
@@ -154,10 +155,10 @@ export default function About() {
         <div className="container inner">
           <div>
             <span className="kicker">Enquiries</span>
-            <h2>Most clients call us after two attempts have failed.</h2>
+            <h2>Enquiries and introductions.</h2>
             <p>
-              Tell us what has already been tried and why it did not hold. That history is
-              usually the most informative thing in a first conversation.
+              An account of what has already been attempted, and why it did not hold, is
+              ordinarily the most informative part of a first conversation.
             </p>
           </div>
           <Link className="button" href="/contact">

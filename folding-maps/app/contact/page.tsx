@@ -5,7 +5,7 @@ import { createPageMetadata } from '@/lib/seo';
 export const metadata = createPageMetadata({
   title: 'Contact',
   description:
-    'Start an enquiry with Quiet Gears. The first conversation is diagnostic: what the problem is, whether we are the right people for it, and what we would do first.',
+    'Start an enquiry with Quiet Gears. The first conversation is diagnostic: what the problem is, whether this is the right team for it, and what would happen first.',
   path: '/contact',
 });
 
@@ -16,13 +16,13 @@ const process = [
     step: '01',
     title: 'A reply within one working day',
     detail:
-      'One of the two lead consultants reads your enquiry and writes back. The reply either sets out the questions we would need answered to scope the work, or explains why this is not something we should take on and who might be better placed.',
+      'One of the two lead consultants reads your enquiry and writes back. The reply either sets out the questions still needed to scope the work, or explains why this is not something to take on, and who might be better placed.',
   },
   {
     step: '02',
     title: 'An initial consultation',
     detail:
-      'A scheduled call. We ask how the work runs today, where it slows down, what has already been tried and what that cost. We then set out the constraint as we understand it, what we would look at first, and roughly what that would take.',
+      'A scheduled call, covering how the work runs today, where it slows down, what has already been tried and what that cost. The constraint gets set out as understood, along with what would be looked at first and roughly what that would take.',
   },
 ];
 
@@ -31,11 +31,12 @@ export default function Contact() {
     <>
       <section className="page-hero container">
         <span className="kicker">Contact</span>
-        <h1>Tell us what is not working.</h1>
+        <h1>Enquiries and first conversations.</h1>
         <p className="lede">
-          The most useful enquiries describe the constraint itself: what slows down, who it
-          affects, and what has already been tried. You do not need a brief. An enquiry gets
-          a reply within one working day, followed by an initial consultation.
+          Enquiries are read by one of the two lead consultants and answered within one
+          working day, ordinarily followed by an initial consultation. A formal brief is not
+          required. An enquiry that sets out the constraint itself, what slows down and what
+          has already been attempted, allows a more specific reply.
         </p>
       </section>
 
@@ -43,7 +44,7 @@ export default function Contact() {
         <div className={styles.aside}>
           <section aria-labelledby="process-title">
             <h2 id="process-title" className={styles.asideHeading}>
-              After you send this
+              Following an enquiry
             </h2>
             <ol className={styles.process}>
               {process.map((item) => (
@@ -78,8 +79,8 @@ export default function Contact() {
               <div>
                 <dt>Confidentiality</dt>
                 <dd>
-                  Enquiries are treated as confidential. We will sign your NDA before a
-                  first conversation if you would rather start there.
+                  Enquiries are treated as confidential. A non-disclosure agreement can be
+                  signed before a first conversation where that is preferred.
                 </dd>
               </div>
             </dl>
@@ -88,10 +89,10 @@ export default function Contact() {
 
         <div className={styles.formPanel}>
           <span className="kicker">Enquiry</span>
-          <h2>Give us enough to make the reply useful.</h2>
+          <h2>Detail improves the reply.</h2>
           <p className={styles.formIntro}>
-            The budget range is asked for so we can tell you honestly whether the work fits
-            it. An answer of “not sure yet” is a perfectly good answer.
+            Each field narrows what the reply can address. The constraint field carries the
+            most weight: the situation as it stands, in whatever detail is to hand.
           </p>
           <ContactForm />
         </div>

@@ -69,11 +69,11 @@ export default function News() {
         <div className="container inner">
           <div>
             <span className="kicker">Enquiries</span>
-            <h2>Tell us where we have got it wrong.</h2>
+            <h2>Correspondence on these arguments.</h2>
             <p>
-              These are arguments, and they are better for being tested against a real
-              operation. If your own data contradicts one, we would sooner
-              hear it than defend the piece.
+              These are arguments, and they are improved by being tested against a real
+              operation. Operating data that contradicts one is more useful here than a
+              defence of the piece.
             </p>
           </div>
           <Link className="button" href="/contact">

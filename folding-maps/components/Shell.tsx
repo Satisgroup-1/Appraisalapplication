@@ -25,7 +25,7 @@ const footerColumns = [
     ],
   },
   {
-    heading: 'What we do',
+    heading: 'Capabilities',
     links: [
       ['Services', '/services'],
       ['Industries', '/industries'],
