@@ -5,8 +5,8 @@ through [Resend](https://resend.com):
 
 1. **The enquiry**, to `CONTACT_TO_EMAIL`, with `Reply-To` set to the visitor's
    address so a reply goes straight back to them.
-2. **An acknowledgement**, to the visitor, stating what the contact page
-   promises: a reply within one working day, then an initial consultation.
+2. **An acknowledgement**, to the visitor, confirming receipt and repeating the
+   contact page's one timing commitment: a reply within one working day.
 
 The acknowledgement only sends when `CONTACT_FROM_EMAIL` is set to an address on
 a verified domain. Resend's shared `onboarding@resend.dev` address can only
@@ -233,6 +233,9 @@ limit, add a rule at the edge (Vercel WAF, Cloudflare) instead.
 ## Changing the wording
 
 The acknowledgement text lives in `lib/email.ts`, in one place, because it
-repeats the promise made on `/contact`. If the reply time or the consultation
-step changes on the page, change it there in the same commit: a test asserts the
-two agree.
+repeats the reply time promised on `/contact`. If that changes on the page,
+change it here in the same commit: a test compares the two.
+
+The body is pinned verbatim by a second test. It is copy the firm wrote, and an
+editing pass over `lib/` should not quietly reword an email going to a
+prospective client. Change the wording and the pin together, deliberately.

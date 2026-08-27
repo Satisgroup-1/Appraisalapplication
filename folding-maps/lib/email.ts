@@ -187,27 +187,28 @@ export function buildEnquiryEmail(payload: ContactPayload, receivedAt: string) {
 }
 
 /**
- * The acknowledgement states the two things the contact page promises: a reply
- * within one working day, and an initial consultation. If those change on the
- * page they have to change here too, which is why the wording lives in one file.
+ * The acknowledgement repeats the one commitment the contact page makes about
+ * timing: a reply within one working day. That phrase has to stay identical in
+ * both places, which is why the wording lives in one file and a test compares
+ * them. The page also sets out an initial consultation as the step after the
+ * reply; the acknowledgement no longer restates it, by editorial decision.
  */
 export function buildAcknowledgementEmail() {
   const text = [
-    'Thank you for your enquiry.',
+    'Thank you for contacting Quiet Gears.',
     '',
-    'One of our two lead consultants will read it and reply within one working day. That reply either sets up an initial consultation or explains why this is not something we should take on, and who might be better placed.',
+    'Your enquiry has been received. We will review the information provided and aim to respond within one working day.',
     '',
-    'The initial consultation is a scheduled call. We ask how the work runs today, where it slows down and what has already been tried, then set out the constraint as we understand it and what we would look at first.',
-    '',
+    'Kind regards,',
     'Quiet Gears',
     '4 Foscote Mews, London · working UK-wide',
   ].join('\n');
 
   const html = wrap(
     'We received your enquiry',
-    `<h1 style="margin:0 0 20px;font-size:19px;font-weight:600;letter-spacing:-0.02em;">Thank you for your enquiry.</h1>
-     <p style="margin:0 0 16px;">One of our two lead consultants will read it and reply <strong>within one working day</strong>. That reply either sets up an initial consultation or explains why this is not something we should take on, and who might be better placed.</p>
-     <p style="margin:0 0 16px;">The initial consultation is a scheduled call. We ask how the work runs today, where it slows down and what has already been tried, then set out the constraint as we understand it and what we would look at first.</p>
+    `<h1 style="margin:0 0 20px;font-size:19px;font-weight:600;letter-spacing:-0.02em;">Thank you for contacting Quiet Gears.</h1>
+     <p style="margin:0 0 16px;">Your enquiry has been received. We will review the information provided and aim to respond <strong>within one working day</strong>.</p>
+     <p style="margin:0 0 16px;">Kind regards,<br />Quiet Gears</p>
      <p style="margin:24px 0 0;padding-top:16px;border-top:1px solid rgba(10,27,42,0.14);font-size:13px;color:#56687c;">
        This is an acknowledgement. Your details are used only to answer this enquiry and are not added to a mailing list.
      </p>`,

@@ -118,16 +118,29 @@ describe('enquiry email', () => {
 describe('acknowledgement email', () => {
   const email = buildAcknowledgementEmail();
 
-  it('promises exactly what the contact page promises', () => {
-    // The page and the email are written in two files and must not drift.
+  it('states the same reply time as the contact page', () => {
+    // The page and the email are written in two files and must not drift on
+    // the one commitment both make. The page also sets out an initial
+    // consultation as the step after the reply; the acknowledgement no longer
+    // restates it, so only the timing is compared.
     const page = readFileSync('app/contact/page.tsx', 'utf8');
     expect(page).toContain('A reply within one working day');
-    expect(page).toContain('An initial consultation');
 
     for (const part of [email.text, email.html]) {
       expect(part).toContain('within one working day');
-      expect(part).toContain('initial consultation');
     }
+  });
+
+  it('sends the wording the firm asked for, unaltered', () => {
+    // Pinned verbatim: this is copy the firm wrote, and an editing pass over
+    // lib/ should not quietly reword an email going to a prospective client.
+    expect(email.text).toContain('Thank you for contacting Quiet Gears.');
+    expect(email.text).toContain(
+      'Your enquiry has been received. We will review the information provided and aim to respond within one working day.',
+    );
+    expect(email.text).toContain('Kind regards,');
+    expect(email.html).toContain('Thank you for contacting Quiet Gears.');
+    expect(email.html).toContain('Kind regards,<br />Quiet Gears');
   });
 
   it('repeats the consent promise the form makes', () => {
