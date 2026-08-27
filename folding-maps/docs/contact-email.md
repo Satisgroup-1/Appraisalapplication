@@ -77,14 +77,19 @@ occasionally hours.
 To check independently before blaming Resend:
 
 ```bash
-dig +short MX  send.quietgears.co.uk
-dig +short TXT send.quietgears.co.uk
-dig +short TXT resend._domainkey.quietgears.co.uk
-dig +short TXT _dmarc.quietgears.co.uk
+npm run check:dns yourdomain.co.uk
 ```
 
-Each should return the value you entered. An empty answer means the record has
-not propagated or is on the wrong host.
+It queries all four records against a public nameserver, so it sees what Resend
+sees rather than anything cached locally, and it probes the placement mistakes
+Resend's own checker reports only as "not found": a doubled name, an SES record
+stranded on the root, and MX records pointing at more than one region.
+
+For reference, running it against `resend.com` (which is itself set up this way)
+returns an SPF of `v=spf1 include:amazonses.com ~all` and an MX of
+`10 feedback-smtp.us-east-1.amazonses.com`. That is the shape to expect; the
+region and the DKIM key will differ for your domain, so still copy the values
+from your own dashboard.
 
 The domain reads **Verified** when it is done. Until then, sending fails.
 
