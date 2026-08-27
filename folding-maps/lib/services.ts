@@ -56,7 +56,7 @@ const serviceCatalogue: Service[] = [
   },
   {
     slug: 'ai-implementation', number: '02', group: 'Build', title: 'Custom AI Systems', shortTitle: 'Custom AI systems',
-    promise: 'Bespoke AI systems engineered around real work, data and controls.',
+    promise: 'AI systems engineered around real work, data and controls.',
     summary: 'We design, build, integrate and launch purpose-built AI systems, from a bounded first release through to operational handover.',
     explanation: 'A custom implementation connects models to the surrounding software system. It includes data preparation, retrieval, orchestration, authentication, evaluation, observability, exception handling and user experience. Prompts and an off-the-shelf workspace cover very little of it.',
     technologies: ['LLM orchestration', 'Secure APIs', 'Retrieval systems', 'Evaluation harnesses'],
@@ -211,7 +211,7 @@ const serviceCatalogue: Service[] = [
     slug: 'chatgpt-training-for-teams', number: '11', group: 'Embed', title: 'AI Training for Teams', shortTitle: 'AI training',
     promise: 'Role-specific training that changes how real work is performed safely.',
     summary: 'We train leaders, general users, champions and technical teams using approved tools and representative organisational tasks.',
-    explanation: 'Effective training combines conceptual understanding, task decomposition, context design, verification and policy. Participants practise on realistic work, compare weak and strong methods, and leave with repeatable workflows rather than prompt tricks.',
+    explanation: 'Effective training combines conceptual understanding, task decomposition, context design, verification and policy. Participants practise on realistic work, compare weak and strong methods, and leave with repeatable workflows and no reliance on prompt tricks.',
     technologies: ['Claude', 'ChatGPT', 'Perplexity', 'Role playbooks'],
     stages: [
       { label: 'Diagnose', detail: 'Identify roles, tasks, confidence, policy and learning needs.' },
@@ -223,7 +223,7 @@ const serviceCatalogue: Service[] = [
       { title: 'Role-based team training', problem: 'Generic awareness sessions do not translate into better daily work.', example: 'Finance, operations and commercial teams each practise distinct tasks using shared governance and review principles.', path: ['Role tasks', 'Guided practice', 'Quality check', 'Team playbook'] },
       { title: 'Board and leadership briefing', problem: 'Leaders need enough technical and governance understanding to make accountable decisions.', example: 'A decision-focused session covers capability, failure modes, oversight and the questions to ask before approval.', path: ['Decision context', 'Capability model', 'Risk scenarios', 'Leadership checklist'] },
     ],
-    provisions: ['Training-needs and workflow assessment', 'Bespoke workshops and exercises', 'Leadership, champion and technical pathways', 'Playbooks and follow-up clinics'],
+    provisions: ['Training-needs and workflow assessment', 'Workshops and exercises drawn from real work', 'Leadership, champion and technical pathways', 'Playbooks and follow-up clinics'],
     safeguards: ['Approved or synthetic training data', 'Verification taught in every workflow', 'Policy explained through scenarios', 'Capability assessed through completed tasks'],
   },
 ];

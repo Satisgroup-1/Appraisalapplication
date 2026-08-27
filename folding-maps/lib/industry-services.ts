@@ -36,7 +36,7 @@ export const industryServiceRecommendations: Record<string, IndustryServiceRecom
   ],
   'electric-power-and-natural-gas': [
     { slug: 'enterprise-ai', rationale: 'Create common architecture and controls across asset, network, service and corporate functions.' },
-    { slug: 'secure-ai-systems', rationale: 'Support restricted operational and engineering knowledge with robust identity and evidence controls.' },
+    { slug: 'secure-ai-systems', rationale: 'Support restricted operational and engineering knowledge with identity and evidence controls.' },
     { slug: 'workflow-automation', rationale: 'Improve work preparation, exception management and regulatory evidence across complex processes.' },
   ],
   'energy-and-materials': [
@@ -112,7 +112,7 @@ export const industryServiceRecommendations: Record<string, IndustryServiceRecom
   retail: [
     { slug: 'ai-chatbot', rationale: 'Provide consistent customer and colleague support linked to approved product and policy data.' },
     { slug: 'workflow-automation', rationale: 'Improve merchandising, supplier, fulfilment and service exception workflows.' },
-    { slug: 'ai-implementation', rationale: 'Deliver a measurable use case within one customer or operational journey.' },
+    { slug: 'ai-implementation', rationale: 'Deliver a measurable use case within one store process or one service channel.' },
   ],
   semiconductors: [
     { slug: 'secure-ai-systems', rationale: 'Protect intellectual property while improving access to engineering and manufacturing knowledge.' },

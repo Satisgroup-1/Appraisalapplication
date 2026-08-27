@@ -135,7 +135,7 @@ export default async function CaseDetail({ params }: { params: Promise<{ slug: s
         </div>
 
         <p className="caveat">
-          <strong>How to read the figures on this page</strong>
+          <strong>Reading the figures on this page</strong>
           {editorial.statusStatement}
         </p>
 

@@ -83,7 +83,7 @@ export function ContactForm() {
             <option value="" disabled>
               Select one
             </option>
-            <option>Where AI is worth using</option>
+            <option>Deciding where to start</option>
             <option>Workflow automation</option>
             <option>A system to be built</option>
             <option>An existing system that is not working</option>

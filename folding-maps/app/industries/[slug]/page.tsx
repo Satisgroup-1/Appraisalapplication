@@ -26,7 +26,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 const sections = [
   { id: 'context', label: 'Operating reality' },
-  { id: 'opportunities', label: 'Where the value is' },
+  { id: 'opportunities', label: 'Openings' },
   { id: 'decisions', label: 'Decisions to take' },
   { id: 'controls', label: 'Controls' },
   { id: 'roadmap', label: 'Sequence' },

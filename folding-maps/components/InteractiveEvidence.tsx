@@ -71,9 +71,9 @@ export function InteractiveEvidence({
 
       {view.interpretation && (
         <div className="evidence-interpretation">
-          <p><strong>What this establishes.</strong> {view.interpretation.establishes}</p>
-          <p><strong>What it does not establish.</strong> {view.interpretation.doesNotEstablish}</p>
-          <p><strong>What management should do.</strong> {view.interpretation.management}</p>
+          <p><strong>Established.</strong> {view.interpretation.establishes}</p>
+          <p><strong>Not established.</strong> {view.interpretation.doesNotEstablish}</p>
+          <p><strong>Management action.</strong> {view.interpretation.management}</p>
         </div>
       )}
 

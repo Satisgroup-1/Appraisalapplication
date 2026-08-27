@@ -43,7 +43,7 @@ export default function Contact() {
         <div className={styles.aside}>
           <section aria-labelledby="process-title">
             <h2 id="process-title" className={styles.asideHeading}>
-              What happens next
+              After you send this
             </h2>
             <ol className={styles.process}>
               {process.map((item) => (

@@ -54,7 +54,7 @@ export default async function ServiceDetailPage({ params }: PageProps) {
               Discuss this service <ArrowRight size={17} aria-hidden="true" />
             </Link>
             <a className="button light" href="#stages">
-              How the work runs
+              The stages
             </a>
           </div>
         </header>
@@ -62,12 +62,12 @@ export default async function ServiceDetailPage({ params }: PageProps) {
         <section className="section container" aria-labelledby="what-title">
           <div className="page-head">
             <div>
-              <span className="kicker">What this is</span>
+              <span className="kicker">The service</span>
               {/* The summary is a sentence, not a headline: setting it at display
                   size produced six lines of oversized type. The heading stays for
                   the document outline; the sentence reads as a standfirst. */}
               <h2 id="what-title" className="sr-only">
-                What this is
+                The service
               </h2>
               <p className="lede">{service.summary}</p>
             </div>
@@ -95,8 +95,8 @@ export default async function ServiceDetailPage({ params }: PageProps) {
           <div className="container">
             <div className="page-head">
               <div>
-                <span className="kicker">How the work runs</span>
-                <h2 id="stages-title">What happens at each stage.</h2>
+                <span className="kicker">Method</span>
+                <h2 id="stages-title">Each stage, and what it produces.</h2>
               </div>
               <p className="lede">
                 Each stage ends in something you can read and challenge. Nothing moves to
@@ -120,7 +120,7 @@ export default async function ServiceDetailPage({ params }: PageProps) {
           <div className="page-head">
             <div>
               <span className="kicker">Applied</span>
-              <h2 id="cases-title">Where this is used.</h2>
+              <h2 id="cases-title">Sectors this runs in.</h2>
             </div>
             <p className="lede">
               Each pattern begins with an operating constraint. The technology follows from

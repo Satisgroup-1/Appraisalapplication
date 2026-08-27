@@ -74,7 +74,7 @@ export default function Cases() {
             <h2>The same problems turn up in different industries.</h2>
             <p>
               If one of these reads like your operation, the first conversation can start
-              from there. What matters is which piece of coordination is failing, and that is
+              from there. The useful question is which piece of coordination is failing, and that is
               often the same in a hotel and a haulage yard.
             </p>
           </div>

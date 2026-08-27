@@ -53,9 +53,8 @@ export default function About() {
             <h2 id="why-title">Most companies already know what their problem is.</h2>
           </div>
           <p className="lede">
-            Most companies we meet have already diagnosed their own problem. What they lack
-            is the time and the technical judgement to act on it without breaking something
-            else.
+            Most companies we meet have already diagnosed their own problem. They lack the time
+            and the technical judgement to act on it without breaking something else.
           </p>
         </div>
 
@@ -64,7 +63,7 @@ export default function About() {
             Important work in a mid-sized company usually runs through a patchwork:
             spreadsheets that only one person fully understands, an inbox that functions as
             a queue, and a scheduling decision that lives in somebody&rsquo;s head. It works,
-            often for years, and it degrades quietly as volume grows. The failure is rarely
+            often for years, and it degrades as volume grows. The failure is rarely
             dramatic. It shows up as a Tuesday that takes until Thursday.
           </p>
           <p>
@@ -75,7 +74,7 @@ export default function About() {
           </p>
           <p>
             That is the gap we work in. Our job is to understand the operating detail well
-            enough to decide what genuinely deserves to change, then take responsibility for
+            enough to decide what deserves to change, then take responsibility for
             one focused release. Sometimes AI belongs in the answer.
             Often the honest answer is simpler software, better data, or a process change
             that costs nothing at all. We would sooner say so and be trusted next time.
@@ -137,7 +136,7 @@ export default function About() {
             <span className="fact-label">Specialist network</span>
             <p>
               We bring in specialists in data engineering, security review or sector regulation
-              where a brief genuinely needs one, and we say who they are before they start.
+              where a brief requires one, and we say who they are before they start.
               Introductions from experienced practitioners who want direct client
               responsibility are welcome.
             </p>

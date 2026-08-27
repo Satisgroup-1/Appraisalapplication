@@ -23,8 +23,8 @@ export default function News() {
         <h1>Long pieces on AI in UK businesses.</h1>
         <p className="lede">
           Each one takes a position, sets out the case against it, and links every figure to
-          where it came from. Where the evidence is thin we say so instead of rounding it up
-          into a recommendation.
+          where it came from. Where the evidence is thin we say so and stop short of a
+          recommendation.
         </p>
       </section>
 

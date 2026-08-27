@@ -109,7 +109,7 @@ const FIELD_ROW = (label: string, value: string) => `
 
 export function buildEnquiryEmail(payload: ContactPayload, receivedAt: string) {
   const referral = payload.referred
-    ? `${payload.referralSource} — ${payload.referralName}`
+    ? `${payload.referralSource}: ${payload.referralName}`
     : 'Not referred';
 
   const fields: [string, string][] = [
@@ -145,7 +145,7 @@ export function buildEnquiryEmail(payload: ContactPayload, receivedAt: string) {
      </p>`,
   );
 
-  return { subject: `Enquiry: ${payload.interest} — ${payload.email}`, text, html };
+  return { subject: `Enquiry: ${payload.interest} (${payload.email})`, text, html };
 }
 
 /**
@@ -175,5 +175,5 @@ export function buildAcknowledgementEmail() {
      </p>`,
   );
 
-  return { subject: 'We received your enquiry — Quiet Gears', text, html };
+  return { subject: 'Quiet Gears: we received your enquiry', text, html };
 }

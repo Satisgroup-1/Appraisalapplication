@@ -19,7 +19,7 @@ const routes = [
   {
     question: '“We think AI could help, but we cannot tell where.”',
     answer:
-      'The problem here is diagnostic before it is technical. The work starts by measuring where effort actually goes, which usually contradicts the process map and occasionally contradicts the executive team. It ends with a ranked list of candidates and an honest note on the ones not worth doing.',
+      'The problem here is diagnostic before it is technical. The work starts by measuring where effort goes, which usually contradicts the process map and occasionally contradicts the executive team. It ends with a ranked list of candidates and an honest note on the ones not worth doing.',
     service: 'Strategy and readiness',
     slug: 'ai-strategy',
   },
@@ -64,7 +64,7 @@ export default function ServicesPage() {
         <div className="container">
           <div className="page-head">
             <div>
-              <span className="kicker">Where people start</span>
+              <span className="kicker">Starting points</span>
               <h2 id="routes-title">Most enquiries arrive as one of three sentences.</h2>
             </div>
             <p className="lede">

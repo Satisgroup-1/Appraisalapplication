@@ -42,7 +42,7 @@ const positions = [
   {
     claim: 'The model is rarely the constraint.',
     body: [
-      'Frontier models are now good enough for most of the work an SME would put to them. What decides whether a system holds up is the process around it: whether the data it reads is current, whether the hand-offs between people are defined, and whether somebody owns the exception when the answer is wrong.',
+      'Frontier models are now good enough for most of the work an SME would put to them. A system holds up or fails on the process around it: whether the data it reads is current, whether the hand-offs between people are defined, and whether somebody owns the exception when the answer is wrong.',
       'So the first weeks of an engagement go on the workflow. Model selection comes later and matters less than most people expect. It is the least interesting part of the work and the most reliable source of value in it.',
     ],
   },
@@ -85,7 +85,7 @@ export default function Home() {
               Discuss a project <ArrowRight size={17} aria-hidden="true" />
             </Link>
             <Link className="button light" href="/services">
-              What we do
+              Our services
             </Link>
           </div>
         </div>
@@ -140,7 +140,7 @@ export default function Home() {
         <div className="container">
           <div className="page-head">
             <div>
-              <span className="kicker">What we do</span>
+              <span className="kicker">Services</span>
               <h2 id="services-title">We do the advice and the building.</h2>
             </div>
             <p className="lede">
@@ -202,7 +202,7 @@ export default function Home() {
           <div className="page-head">
             <div>
               <span className="kicker">Insights</span>
-              <h2 id="insight-title">What we have published.</h2>
+              <h2 id="insight-title">Recent writing.</h2>
             </div>
             <p className="lede">
               Long pieces on AI in UK businesses. Each one takes a position, sets out the
