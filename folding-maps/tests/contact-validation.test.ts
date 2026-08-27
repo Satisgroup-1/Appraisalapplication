@@ -27,7 +27,7 @@ describe('contact payload validation', () => {
 
   it('returns precise field guidance instead of a generic error', () => {
     const result = validateContactPayload({ ...complete, message: 'Short', consent: false });
-    expect(result.missing).toEqual(['a description of the constraint (at least ten characters)', 'consent to reply']);
+    expect(result.missing).toEqual(['your enquiry (at least ten characters)', 'consent to reply']);
   });
 
   it('requires referral details only when referral is selected', () => {

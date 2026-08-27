@@ -995,8 +995,13 @@ th { font-weight: 600; font-size: var(--step--1); letter-spacing: 0.04em; text-t
 
 /* Invalid only once the field has been left, so the form does not scold the
    visitor while they are still typing in it. */
-.contact-form input:not(:placeholder-shown):invalid,
-.contact-form textarea:not(:placeholder-shown):invalid { border-color: #b42318; }
+/* :user-invalid, not :invalid, so a required field is only marked after the
+   visitor has actually interacted with it. This previously leaned on
+   :not(:placeholder-shown) to get the same effect, which silently tied the
+   validation styling to whether a field happened to have a placeholder:
+   removing one made an untouched empty field render as an error. */
+.contact-form input:user-invalid,
+.contact-form textarea:user-invalid { border-color: #b42318; }
 
 .field-hint {
   display: block;

@@ -162,7 +162,7 @@ export function buildEnquiryEmail(payload: ContactPayload, receivedAt: string) {
   const text = [
     ...fields.map(([label, value]) => `${label}: ${value}`),
     '',
-    'The constraint',
+    'Enquiry',
     payload.message,
     '',
     `Reply directly to this email to reach ${payload.email}.`,
@@ -174,7 +174,7 @@ export function buildEnquiryEmail(payload: ContactPayload, receivedAt: string) {
      <table role="presentation" cellpadding="0" cellspacing="0" width="100%">${fields
        .map(([label, value]) => FIELD_ROW(label, value))
        .join('')}</table>
-     <p style="margin:24px 0 8px;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#56687c;">The constraint</p>
+     <p style="margin:24px 0 8px;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#56687c;">Enquiry</p>
      ${paragraphs(payload.message)
        .map((block) => `<p style="margin:0 0 14px;">${block}</p>`)
        .join('')}

@@ -119,20 +119,18 @@ export function ContactForm() {
           <option>Not sure yet</option>
         </select>
         <small className="field-hint">
-          Asked to judge whether the work fits it. “Not sure yet” is a fine answer.
+          Budget decides the shape of the work, from a short piece of advice through to a
+          system built and handed over. It helps us suggest something that fits.
+          “Not sure yet” is a fine answer.
         </small>
       </label>
 
       <label className="field">
-        <span className="field-label">The constraint</span>
-        <textarea
-          required
-          minLength={10}
-          name="message"
-          rows={7}
-          placeholder="What slows down, who it affects, what has already been tried."
-        />
-        <small className="field-hint">At least ten characters. Detail helps more than polish.</small>
+        <span className="field-label">Your enquiry</span>
+        <textarea required minLength={10} name="message" rows={7} />
+        <small className="field-hint">
+          A few lines about what you would like help with.
+        </small>
       </label>
 
       <fieldset className="referral-field">

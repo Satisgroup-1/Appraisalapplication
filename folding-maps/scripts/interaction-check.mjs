@@ -93,6 +93,24 @@ const check = (name, ok, extra = '') => results.push(`${ok ? 'PASS' : 'FAIL'}  $
   await p.waitForTimeout(200);
   const invalid = await p.evaluate(() => document.querySelectorAll('form :invalid').length);
   check('form blocks an empty submit', invalid > 0, `${invalid} invalid fields`);
+
+  // 6b. A required field must not look like an error before anybody has typed.
+  // The validation styling once keyed off :not(:placeholder-shown), so deleting
+  // a placeholder silently turned an untouched field red. Nothing but a browser
+  // catches that: the markup and the stylesheet are each fine on their own.
+  await p.goto(B + '/contact', { waitUntil: 'networkidle' });
+  await p.waitForTimeout(500);
+  const messageBorder = () => p.locator('textarea[name=message]')
+    .evaluate((node) => getComputedStyle(node).borderColor);
+  const restBorder = await messageBorder();
+  const box = p.locator('textarea[name=message]');
+  await box.click();
+  await box.type('short');
+  await p.locator('input[name=email]').click();
+  await p.waitForTimeout(700);
+  const afterBorder = await messageBorder();
+  check('untouched required field is not marked as an error', restBorder !== afterBorder, restBorder);
+  check('an edited invalid field is marked', afterBorder === 'rgb(180, 35, 24)', afterBorder);
   // The honeypot must stay in the DOM and in the tab order's blind spot, but off
   // the visible canvas. Playwright counts off-screen elements as visible, so the
   // check is on its position, not on isVisible().

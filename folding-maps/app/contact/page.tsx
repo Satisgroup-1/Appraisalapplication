@@ -22,7 +22,7 @@ const process = [
     step: '02',
     title: 'An initial consultation',
     detail:
-      'A scheduled call, covering how the work runs today, where it slows down, what has already been tried and what that cost. The constraint gets set out as understood, along with what would be looked at first and roughly what that would take.',
+      'A scheduled call to talk through the work in more detail. It ends with an outline of what we would look at first and roughly what that would take.',
   },
 ];
 
@@ -35,8 +35,7 @@ export default function Contact() {
         <p className="lede">
           Enquiries are read by one of the two lead consultants and answered within one
           working day, ordinarily followed by an initial consultation. A formal brief is not
-          required. An enquiry that sets out the constraint itself, what slows down and what
-          has already been attempted, allows a more specific reply.
+          required.
         </p>
       </section>
 
@@ -89,10 +88,9 @@ export default function Contact() {
 
         <div className={styles.formPanel}>
           <span className="kicker">Enquiry</span>
-          <h2>Detail improves the reply.</h2>
+          <h2>Enquiry form.</h2>
           <p className={styles.formIntro}>
-            Each field narrows what the reply can address. The constraint field carries the
-            most weight: the situation as it stands, in whatever detail is to hand.
+            Every field is required, apart from the referral.
           </p>
           <ContactForm />
         </div>
