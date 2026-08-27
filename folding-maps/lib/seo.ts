@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 export const SITE_NAME = 'Quiet Gears';
-export const SITE_URL = 'https://quietgears.co.uk';
+export const SITE_URL = 'https://quietgears.xyz';
 export const SITE_DESCRIPTION =
   'Senior AI advisory, production engineering and adoption support for ambitious UK SMEs.';
 

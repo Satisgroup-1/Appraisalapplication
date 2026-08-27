@@ -30,8 +30,8 @@ describe('email configuration', () => {
     expect(pasted.ok).toBe(false);
     if (!pasted.ok) expect(pasted.reason).toContain('re_');
 
-    // The likeliest mistake on this site, because the fallback address is a
-    // gmail one and it is easy to assume it can also send.
+    // Kept as a Gmail address deliberately: this asserts that a sender on a
+    // mailbox provider is refused, so it has to stay one.
     const freeMail = getEmailConfig({
       RESEND_API_KEY: 're_test',
       CONTACT_FROM_EMAIL: 'Quiet Gears <QuietGearsAI@gmail.com>',
@@ -48,8 +48,8 @@ describe('email configuration', () => {
   });
 
   it('reads a display-name sender the same as a bare address', () => {
-    expect(senderAddress('Quiet Gears <enquiries@quietgears.co.uk>')).toBe('enquiries@quietgears.co.uk');
-    expect(senderAddress('  enquiries@quietgears.co.uk  ')).toBe('enquiries@quietgears.co.uk');
+    expect(senderAddress('Quiet Gears <enquiries@quietgears.xyz>')).toBe('enquiries@quietgears.xyz');
+    expect(senderAddress('  enquiries@quietgears.xyz  ')).toBe('enquiries@quietgears.xyz');
   });
 
   it('falls back to the shared sender and disables acknowledgements', () => {
@@ -60,21 +60,21 @@ describe('email configuration', () => {
     // The shared sender can only deliver to the account owner, so acknowledging
     // a visitor from it would fail silently.
     expect(result.config.canAcknowledge).toBe(false);
-    expect(result.config.to).toBe('QuietGearsAI@gmail.com');
+    expect(result.config.to).toBe('enquiries@quietgears.xyz');
   });
 
   it('uses the verified sender and its overrides when configured', () => {
     const result = getEmailConfig({
       RESEND_API_KEY: 're_test',
-      CONTACT_FROM_EMAIL: 'Quiet Gears <enquiries@quietgears.co.uk>',
-      CONTACT_TO_EMAIL: 'team@quietgears.co.uk',
-      CONTACT_BCC_EMAIL: 'archive@quietgears.co.uk',
+      CONTACT_FROM_EMAIL: 'Quiet Gears <enquiries@quietgears.xyz>',
+      CONTACT_TO_EMAIL: 'team@quietgears.xyz',
+      CONTACT_BCC_EMAIL: 'archive@quietgears.xyz',
     });
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.config.canAcknowledge).toBe(true);
-    expect(result.config.to).toBe('team@quietgears.co.uk');
-    expect(result.config.bcc).toBe('archive@quietgears.co.uk');
+    expect(result.config.to).toBe('team@quietgears.xyz');
+    expect(result.config.bcc).toBe('archive@quietgears.xyz');
   });
 });
 

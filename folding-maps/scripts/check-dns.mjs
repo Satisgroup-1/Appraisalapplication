@@ -1,7 +1,7 @@
 /**
  * Checks the four DNS records Resend needs, before pressing Verify.
  *
- *   node scripts/check-dns.mjs quietgears.co.uk
+ *   node scripts/check-dns.mjs quietgears.xyz
  *
  * Resend's own checker reports a misplaced record as simply "not found", which
  * does not distinguish "not propagated yet" from "on the wrong host". This

@@ -144,7 +144,7 @@ export default function About() {
           </div>
           <a
             className="text-link"
-            href="mailto:QuietGearsAI@gmail.com?subject=Working%20with%20Quiet%20Gears"
+            href="mailto:enquiries@quietgears.xyz?subject=Working%20with%20Quiet%20Gears"
           >
             Introduce yourself <ArrowRight size={16} aria-hidden="true" />
           </a>

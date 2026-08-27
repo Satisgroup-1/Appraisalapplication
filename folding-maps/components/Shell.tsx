@@ -153,7 +153,7 @@ export function Footer() {
             <h2>Enquiries</h2>
             <ul>
               <li>
-                <a href="mailto:QuietGearsAI@gmail.com">QuietGearsAI@gmail.com</a>
+                <a href="mailto:enquiries@quietgears.xyz">enquiries@quietgears.xyz</a>
               </li>
               <li className={styles.plain}>London, working UK-wide</li>
             </ul>

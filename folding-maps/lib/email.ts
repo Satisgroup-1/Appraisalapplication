@@ -11,7 +11,7 @@ import type { ContactPayload } from '@/lib/contactValidation';
  * enquiry form ends up quietly dropping business for a month.
  */
 
-export const FALLBACK_ADDRESS = 'QuietGearsAI@gmail.com';
+export const FALLBACK_ADDRESS = 'enquiries@quietgears.xyz';
 const DEFAULT_TO = FALLBACK_ADDRESS;
 
 export type EmailConfig = {

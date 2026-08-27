@@ -27,7 +27,7 @@ Enquiries can still be *delivered* to a Gmail address. That is
 ### 1.1 Add the domain
 
 1. Sign in at [resend.com](https://resend.com) and open **Domains → Add Domain**.
-2. Enter the root domain, `quietgears.co.uk`, not a subdomain.
+2. Enter the root domain, `quietgears.xyz`, not a subdomain.
 3. Choose the **region**. Pick the one closest to the recipients; for a UK firm
    that is normally **Ireland (eu-west-1)**. Note which one you chose: the MX
    value in the next step contains it, and every MX record on the domain has to
@@ -45,7 +45,7 @@ yours to write.
 | 1 | `MX` | `send` | `feedback-smtp.eu-west-1.amazonses.com.` | `10` |
 | 2 | `TXT` | `send` | the SPF string Resend shows, beginning `v=spf1` | — |
 | 3 | `TXT` | `resend._domainkey` | the long DKIM key Resend shows, beginning `p=` | — |
-| 4 | `TXT` | `_dmarc` | `v=DMARC1; p=none; rua=mailto:dmarc@quietgears.co.uk` | — |
+| 4 | `TXT` | `_dmarc` | `v=DMARC1; p=none; rua=mailto:dmarc@quietgears.xyz` | — |
 
 Copy records 1 to 3 from the Resend dashboard rather than from this table. The
 DKIM key is unique to the domain, and the SPF value and MX region have both
@@ -57,10 +57,10 @@ Five things that cause most failures:
 
 - **Host field conventions differ.** Most registrars want the subdomain only
   (`send`, `resend._domainkey`, `_dmarc`). A few want the full name
-  (`send.quietgears.co.uk`). If your registrar shows existing records as full
+  (`send.quietgears.xyz`). If your registrar shows existing records as full
   names, use full names.
 - **Do not let the registrar append the domain twice.** After saving, check the
-  record does not read `send.quietgears.co.uk.quietgears.co.uk`.
+  record does not read `send.quietgears.xyz.quietgears.xyz`.
 - **Keep the trailing dot** on the MX value if the registrar accepts one. It
   stops the domain being appended to it.
 - **The DKIM value is one string** and is long. Paste it whole. Some registrars
@@ -110,8 +110,8 @@ Four variables, two of them optional. `.env.example` is the canonical list.
 | Variable | Required | Value |
 |---|---|---|
 | `RESEND_API_KEY` | Yes | The key from 1.4. Begins `re_`. |
-| `CONTACT_FROM_EMAIL` | In production | `Quiet Gears <enquiries@quietgears.co.uk>`. Must be on the verified domain. |
-| `CONTACT_TO_EMAIL` | No | Where enquiries land. Defaults to `QuietGearsAI@gmail.com`. |
+| `CONTACT_FROM_EMAIL` | In production | `Quiet Gears <enquiries@quietgears.xyz>`. Must be on the verified domain. |
+| `CONTACT_TO_EMAIL` | No | Where enquiries land. Defaults to `enquiries@quietgears.xyz`. |
 | `CONTACT_BCC_EMAIL` | No | A second copy, for a shared archive. |
 
 ### Locally

@@ -107,9 +107,11 @@ Send the number and registered office and it takes five minutes to add. ☐
 
 You asked to publish nothing new, so these are exactly as they were:
 
-- `QuietGearsAI@gmail.com` as the contact address. It is a credibility drag on
-  an otherwise institutional site; a domain address on `quietgears.co.uk` would
-  cost nothing and remove the only obviously amateur detail left. ☐
+- ~~A Gmail address as the published contact.~~ **Resolved.** The site now
+  publishes `enquiries@quietgears.xyz`, on the domain verified for sending in
+  Resend. One thing still to confirm: a verified sending domain does not create
+  a mailbox, so send a test message to that address and check it arrives
+  somewhere readable before the site relies on it. ☐
 - `4 Foscote Mews, London` as the office address. ☐
 - Luc Balonwu and Rohan Campion as lead consultants, with no biographies. Named
   people with real backgrounds are the single strongest credibility lever
