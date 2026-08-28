@@ -37,8 +37,8 @@ export default function About() {
   return (
     <>
       <section className="page-hero container">
-        <span className="kicker">About</span>
-        <h1>A two-person firm with a specialist network.</h1>
+        <span className="kicker">The firm</span>
+        <h1>About</h1>
         <p className="lede">
           Quiet Gears advises UK companies on where AI is worth using and builds the systems
           that follow. Two lead consultants, a network of specialists when a brief needs

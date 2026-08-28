@@ -15,8 +15,8 @@ export default function IndustriesPage() {
   return (
     <>
       <section className="page-hero container">
-        <span className="kicker">Industries</span>
-        <h1>Twenty-six sectors, and the constraint that decides each one.</h1>
+        <span className="kicker">{industries.length} sectors</span>
+        <h1>Industries</h1>
         <p className="lede">
           The technology varies little between industries. The constraint around it varies:
           the regulation, the shift pattern, the margin, the person who has to sign. These

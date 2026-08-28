@@ -19,8 +19,8 @@ export default function News() {
   return (
     <>
       <section className="page-hero container">
-        <span className="kicker">Insights</span>
-        <h1>Long pieces on AI in UK businesses.</h1>
+        <span className="kicker">{articles.length} articles</span>
+        <h1>Insights</h1>
         <p className="lede">
           Each one takes a position, sets out the case against it, and links every figure to
           where it came from. Where the evidence is thin we say so and stop short of a

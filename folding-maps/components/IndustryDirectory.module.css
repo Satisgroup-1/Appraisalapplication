@@ -33,7 +33,7 @@
   color: var(--muted);
   transition: box-shadow var(--speed) var(--ease);
 }
-.search:focus-within { box-shadow: 0 0 0 3px rgba(27, 77, 228, 0.16); }
+.search:focus-within { box-shadow: 0 0 0 3px rgba(74, 93, 35, 0.18); }
 
 .search input {
   flex: 1;

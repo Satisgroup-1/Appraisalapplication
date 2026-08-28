@@ -30,8 +30,8 @@ export default function Contact() {
   return (
     <>
       <section className="page-hero container">
-        <span className="kicker">Contact</span>
-        <h1>Enquiries and first conversations.</h1>
+        <span className="kicker">Enquiries</span>
+        <h1>Contact</h1>
         <p className="lede">
           Enquiries are read by one of the two lead consultants and answered within one
           working day, ordinarily followed by an initial consultation. A formal brief is not

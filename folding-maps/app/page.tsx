@@ -8,7 +8,7 @@ import { services } from '@/lib/services';
 import { absoluteUrl, createPageMetadata, SITE_DESCRIPTION, SITE_NAME, SITE_URL } from '@/lib/seo';
 
 export const metadata: Metadata = createPageMetadata({
-  title: 'AI advisory and engineering for UK companies',
+  title: 'AI Consulting & Engineering',
   description: SITE_DESCRIPTION,
   path: '/',
 });
@@ -73,8 +73,8 @@ export default function Home() {
 
       <section className={`${styles.hero} section-dark`} aria-labelledby="home-title">
         <div className="container">
-          <span className={styles.heroKicker}>AI advisory and engineering</span>
-          <h1 id="home-title">We advise UK companies on AI, then build what that advice recommends.</h1>
+          <span className={styles.heroKicker}>London · working UK-wide</span>
+          <h1 id="home-title">AI Consulting &amp; Engineering</h1>
           <p className={styles.heroLede}>
             For UK companies that have decided AI matters to them and now need a clear
             account of where it pays, what it costs to run, and who owns it once the

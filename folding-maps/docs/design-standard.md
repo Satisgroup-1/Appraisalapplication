@@ -38,22 +38,46 @@ no decorative illustration. The visual language says the work is the point.
 
 ### Colour
 
-- A single deep institutional base (near-black navy), near-white paper, and a
-  graphite mid-tone for secondary text.
-- One accent. It marks interactive elements and nothing else — never a
-  decorative fill, never a highlight for emphasis in prose.
-- No gradients, no texture, no paper grain, no background ornament.
+- An unbleached ground (`#f4f2ea`), a warm near-black ink (`#16160f`), and one
+  olive accent (`#4a5d23`). Nothing else.
+- The accent marks interactive elements and nothing else: never a decorative
+  fill, never a highlight for emphasis in prose.
+- No gradients, no texture, no paper grain, no background ornament, and no
+  shadows. Nothing on the page pretends to float above it.
 - Contrast: body text at least 7:1 on its background, interface text at least
-  4.5:1. Test rather than assume.
+  4.5:1. Test rather than assume. The current palette measures 16.2:1 for ink
+  on paper, 6.0:1 for the mid-tone, 6.5:1 for the accent.
 
 ### Typography
 
-- One sans family throughout, at two weights. No serif italics, no display
-  face, no letterform ornament.
+- One superfamily, two cuts. IBM Plex Sans carries everything a visitor reads.
+  IBM Plex Mono is reserved for structural labels, counts, metadata and index
+  numerals: the parts of the page that name its own machinery.
+- The mono is a structural device, not a stylistic one. It never sets a
+  sentence, and prose never uses it for emphasis.
 - The display size tops out where a headline still reads as a sentence, not as
   a poster. Nothing on this site needs 124px.
+- Display tracking is tight (-0.04em at h1). Headlines are dense and flush
+  left.
 - Measure: 62–75 characters for prose. Longer is unreadable; shorter is choppy.
 - Tabular figures for anything numeric so columns align.
+
+### Form
+
+- Nothing is rounded. `--radius` is `0px`, and it stays a token so the intent
+  is one edit rather than forty. A rounded corner would be the only soft thing
+  on the page.
+- Structure is carried by rules and space. Where a rule divides two columns,
+  both columns are padded off it.
+
+### Page titles
+
+- A page title names the page: Services, Work, Insights, About, Contact. It
+  does not comment, summarise or argue.
+- Where the old editorialised title carried a fact worth keeping, the fact
+  moves to the kicker as a count: `10 services`, `26 sectors`, `5 projects`.
+- Article and project titles are the exception. Those are the titles of
+  documents and carry a proposition.
 
 ### Layout
 

@@ -24,8 +24,8 @@ export default function Cases() {
   return (
     <>
       <section className="page-hero container">
-        <span className="kicker">Work</span>
-        <h1>Five projects, described in full.</h1>
+        <span className="kicker">{cases.length} projects</span>
+        <h1>Work</h1>
         <p className="lede">
           Each one sets out what the client asked for, what discovery found, what got built,
           what was decided against and how it is being measured. Clients are unnamed where

@@ -43,8 +43,8 @@ export default function ServicesPage() {
   return (
     <>
       <section className="page-hero container">
-        <span className="kicker">Services</span>
-        <h1>Ten services, three kinds of work.</h1>
+        <span className="kicker">{services.length} services</span>
+        <h1>Services</h1>
         <p className="lede">
           The work spans three kinds: advice, delivery, and embedding what gets delivered in
           how a team already works. The three carry different risks, which is why they stay
