@@ -5,7 +5,8 @@
     "start": "next start",
     "test": "vitest run",
     "check:interaction": "node scripts/interaction-check.mjs",
-    "check:dns": "node scripts/check-dns.mjs"
+    "check:dns": "node scripts/check-dns.mjs",
+    "check:slop": "python3 scripts/slop-scan.py"
   },
   "dependencies": {
     "clsx": "^2.1.1",

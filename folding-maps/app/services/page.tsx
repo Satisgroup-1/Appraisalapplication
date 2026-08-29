@@ -22,7 +22,7 @@ const routes = [
   {
     question: '“We think AI could help, but we cannot tell where.”',
     answer:
-      'A diagnostic problem before a technical one. The work measures where effort actually goes, which usually contradicts the process map.',
+      'A diagnostic problem before a technical one. The work measures where effort goes, which usually contradicts the process map.',
     service: 'Strategy and readiness',
     slug: 'ai-strategy',
   },

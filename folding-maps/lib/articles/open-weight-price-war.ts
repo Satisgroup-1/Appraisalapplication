@@ -60,7 +60,7 @@ export const article: NewsEditorial = {
       paragraphs: [
         { text: 'Procurement, engineering and the manager answerable for the workflow should agree a single denominator before any of them looks at a price list. Tasks accepted into operations, at the required standard of quality and consequence. Every candidate is then quoted in one currency, and arguments about model families become arguments about numbers.' },
         { text: 'With the denominator in place the sourcing rules are short. Reserve expensive capability for the tasks where it changes whether work is accepted. Use a smaller or open-weight model wherever the harness shows it clears the same bar. Deploy locally where a constraint requires it and the firm can staff the consequences. Repeat the comparison on a schedule, because the price and the capability of every candidate will have moved before the contract ends.' },
-        { text: 'This price war is real, and it is being fought over the smallest line in the bill. Buyers who read it as a discount will keep finding the saving reappear somewhere else on the same page. Buyers who read it as headroom, and spend it on evaluation, on connecting the workflow properly and on staffing the exceptions, will get the dependable automation the lower price was supposed to make affordable.' },
+        { text: 'This price war is real, and it is being fought over the smallest line in the bill. Taken as a discount, the saving reappears somewhere else on the same page. Spent on evaluation, on connecting the workflow properly and on staffing the exceptions, it buys the dependable automation the lower price was supposed to make affordable.' },
       ],
     },
   ],

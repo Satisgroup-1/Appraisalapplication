@@ -167,6 +167,51 @@ describe('house style', () => {
     expect(pitching).toEqual([]);
   });
 
+  it('ends a report on its subject, not on a maxim', () => {
+    // The no-ai-slop pass removed four kickers: an aphorism standing in for
+    // the argument, in the last sentence, where it reads as a conclusion the
+    // piece never actually reached. "A firm that cannot meet the third
+    // condition has bought a faster route to being wrong." The shapes below
+    // are the three that were there; the same sentence earlier in a piece is
+    // a claim about a specific artefact and is left alone.
+    const closings = [
+      ...articles.map((item) => ({ slug: item.slug, sections: newsEditorial[item.slug].sections })),
+      ...cases.map((item) => ({ slug: item.slug, sections: caseEditorial[item.slug].sections })),
+    ].map(({ slug, sections }) => {
+      const paragraphs = sections[sections.length - 1].paragraphs;
+      const last = paragraphs[paragraphs.length - 1];
+      const sentences = last.text.split(/(?<=[.!?])\s+/);
+      return { slug, sentence: sentences[sentences.length - 1] };
+    });
+
+    expect(closings.length).toBeGreaterThan(10);
+    const maxims = closings.filter(({ sentence }) =>
+      /^(?:A|An|The)\s+\w+(?:\s+\w+)?\s+that\s+cannot\s+[^.]{3,70}?\s+(?:is|has|will|becomes|remains)\b/.test(sentence),
+    );
+    expect(maxims).toEqual([]);
+  });
+
+  it('does not close a point with a turn of phrase', () => {
+    // "producing that something is a capacity problem no meeting can solve by
+    // meeting harder", and the paired "Buyers who read it as a discount...
+    // Buyers who read it as headroom..." that framed a real distinction as a
+    // rhetorical symmetry.
+    expect(offenders(/\bno \w+ can \w+ (?:by|through) \w+ing\b/gi)).toEqual([]);
+    const paired = sentences.flatMap((paragraph) => {
+      const parts = paragraph.split(/(?<=[.!?])\s+/).filter((s) => s.length > 20);
+      return parts.flatMap((s, index) => {
+        const next = parts[index + 1];
+        if (!next) return [];
+        const [a1, a2] = s.split(' ');
+        const [b1, b2] = next.split(' ');
+        return a1?.toLowerCase() === b1?.toLowerCase() && a2?.toLowerCase() === b2?.toLowerCase() && a2?.toLowerCase() === 'who'
+          ? [`${s.slice(0, 60)} / ${next.slice(0, 60)}`]
+          : [];
+      });
+    });
+    expect(paired).toEqual([]);
+  });
+
   it('keeps the closing enquiry band to a heading and a button', () => {
     // The same paragraph, reworded eight times, sat between them on every page
     // and repeated what /contact says once. The band is signage: a statement

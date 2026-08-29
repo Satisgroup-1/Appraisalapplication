@@ -54,8 +54,7 @@ export default function About() {
         <div className={styles.prose}>
           <p>
             Important work in a mid-sized company usually runs through a patchwork:
-            spreadsheets that only one person fully understands, an inbox that functions as
-            a queue, and a scheduling decision that lives in somebody&rsquo;s head. It works,
+            spreadsheets that only one person fully understands, an inbox used as a queue, and a scheduling decision that lives in somebody&rsquo;s head. It works,
             often for years, and it degrades as volume grows. The failure is rarely
             dramatic. It shows up as a Tuesday that takes until Thursday.
           </p>

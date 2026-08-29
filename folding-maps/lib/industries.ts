@@ -626,7 +626,7 @@ export const industries: Industry[] = [
     thesis: 'A useful system helps frontline and technical teams explain loss and coordinate intervention. It does not chase a production target without the operating envelope.',
     contextTitle: 'Variability travels through the whole operation',
     context: [
-      'Material properties, equipment condition, weather, operator actions and downstream capacity interact. A loss identified in one area may have started earlier or may simply have moved to the next constraint.',
+      'Material properties, equipment condition, weather, operator actions and downstream capacity interact. A loss identified in one area may have started earlier or may have moved to the next constraint.',
       'AI can structure shift evidence, compare similar operating states and prepare investigations. The design needs to preserve the chronology and make safety conditions more prominent than optimisation signals.',
     ],
     opportunitiesTitle: 'Focus expertise on recoverable loss',
