@@ -1,58 +1,191 @@
 [
  {
-  "file": "ground/corridor.jpg",
-  "page": "home",
-  "title": "Industrial Wall",
-  "creator": "Altered Reality",
-  "licence": "cc0 1.0",
-  "source": "https://stocksnap.io/photo/industrial-wall-HPNXDL5YZQ"
+  "file": "ground/about-a.jpg",
+  "page": "about",
+  "frame": "a",
+  "title": "Fa\u00e7ade of the old stone building with an archway entrance. The walls a",
+  "creator": "Alvaro G\u00f3mez",
+  "licence": "cc0",
+  "source": "https://wordpress.org/photos/photo/67648af9cc/"
  },
  {
-  "file": "ground/columns.jpg",
-  "page": "services",
-  "title": "Concrete Wall",
-  "creator": "The Building Envelope",
-  "licence": "cc0 1.0",
-  "source": "https://stocksnap.io/photo/concrete-wall-NLJESZLWIU"
+  "file": "ground/about-b.jpg",
+  "page": "about",
+  "frame": "b",
+  "title": "Forest Woods",
+  "creator": "Michal Kulesza",
+  "licence": "cc0",
+  "source": "https://stocksnap.io/photo/forest-woods-F8IX8796HF"
  },
  {
-  "file": "ground/facade.jpg",
-  "page": "industries",
-  "title": "Black white shot jagged wall",
-  "creator": "Unknown",
-  "licence": "cc0 1.0",
-  "source": "https://www.rawpixel.com/image/3286825/free-photo-image-housing-windows-office-apartment-building"
- },
- {
-  "file": "ground/planes.jpg",
-  "page": "work",
-  "title": "Abstract Concrete",
-  "creator": "Wyncliffe",
-  "licence": "cc0 1.0",
-  "source": "https://stocksnap.io/photo/abstract-concrete-DXEDCZC25K"
- },
- {
-  "file": "ground/fins.jpg",
-  "page": "insights",
-  "title": "Stairs Steps",
-  "creator": "Jay Mantri",
-  "licence": "cc0 1.0",
-  "source": "https://stocksnap.io/photo/stairs-steps-QIO6M5EK05"
- },
- {
-  "file": "ground/steps.jpg",
+  "file": "ground/about-c.jpg",
   "page": "about",
   "title": "City Stairs",
   "creator": "The Building Envelope",
   "licence": "cc0 1.0",
-  "source": "https://stocksnap.io/photo/city-stairs-IRHZTSIPUO"
+  "source": "https://stocksnap.io/photo/city-stairs-IRHZTSIPUO",
+  "frame": "c"
  },
  {
-  "file": "ground/wall.jpg",
+  "file": "ground/contact-a.jpg",
+  "page": "contact",
+  "frame": "a",
+  "title": "Arashiyama Bamboo Grove",
+  "creator": "Unknown",
+  "licence": "cc0",
+  "source": "https://www.rawpixel.com/image/3285408/free-photo-image-bamboo-cc0-creative-commons"
+ },
+ {
+  "file": "ground/contact-b.jpg",
+  "page": "contact",
+  "frame": "b",
+  "title": "Dark Forest",
+  "creator": "Ian Livesey",
+  "licence": "cc0",
+  "source": "https://stocksnap.io/photo/dark-forest-NBJSXXATOC"
+ },
+ {
+  "file": "ground/contact-c.jpg",
   "page": "contact",
   "title": "Interesting modern textured art sculpture",
   "creator": "Unknown",
   "licence": "cc0 1.0",
-  "source": "https://www.rawpixel.com/image/3297870/free-photo-image-akron-art-museum-architecture"
+  "source": "https://www.rawpixel.com/image/3297870/free-photo-image-akron-art-museum-architecture",
+  "frame": "c"
+ },
+ {
+  "file": "ground/home-a.jpg",
+  "page": "home",
+  "frame": "a",
+  "title": "Free Arashiyama bamboo grove Kyoto",
+  "creator": "Unknown",
+  "licence": "cc0",
+  "source": "https://www.rawpixel.com/image/5925729/photo-image-public-domain-tree-green"
+ },
+ {
+  "file": "ground/home-b.jpg",
+  "page": "home",
+  "frame": "b",
+  "title": "Untitled",
+  "creator": "Unknown",
+  "licence": "cc0",
+  "source": "https://www.rawpixel.com/image/6046262/free-public-domain-cc0-photo"
+ },
+ {
+  "file": "ground/home-c.jpg",
+  "page": "home",
+  "title": "Industrial Wall",
+  "creator": "Altered Reality",
+  "licence": "cc0 1.0",
+  "source": "https://stocksnap.io/photo/industrial-wall-HPNXDL5YZQ",
+  "frame": "c"
+ },
+ {
+  "file": "ground/industries-a.jpg",
+  "page": "industries",
+  "frame": "a",
+  "title": "front wall elegant house covered",
+  "creator": "Unknown",
+  "licence": "cc0",
+  "source": "https://www.rawpixel.com/image/3290454/free-photo-image-green-facade-architecture-door"
+ },
+ {
+  "file": "ground/industries-b.jpg",
+  "page": "industries",
+  "frame": "b",
+  "title": "The walls guide the way (Explored) - Flickr - Oneterry AKA Terry Kearn",
+  "creator": "Terry Kearney from Liverpool, Merseyside",
+  "licence": "cc0",
+  "source": "https://commons.wikimedia.org/w/index.php?curid=180574473"
+ },
+ {
+  "file": "ground/industries-c.jpg",
+  "page": "industries",
+  "title": "Black white shot jagged wall",
+  "creator": "Unknown",
+  "licence": "cc0 1.0",
+  "source": "https://www.rawpixel.com/image/3286825/free-photo-image-housing-windows-office-apartment-building",
+  "frame": "c"
+ },
+ {
+  "file": "ground/insights-a.jpg",
+  "page": "insights",
+  "frame": "a",
+  "title": "Bamboo grove",
+  "creator": "HORIE Keisuke",
+  "licence": "cc0",
+  "source": "https://wordpress.org/photos/photo/480636ba84/"
+ },
+ {
+  "file": "ground/insights-b.jpg",
+  "page": "insights",
+  "frame": "b",
+  "title": "Trees Forest",
+  "creator": "Lukasz Szmigiel",
+  "licence": "cc0",
+  "source": "https://stocksnap.io/photo/trees-forest-ZJOY89B3SM"
+ },
+ {
+  "file": "ground/insights-c.jpg",
+  "page": "insights",
+  "title": "Stairs Steps",
+  "creator": "Jay Mantri",
+  "licence": "cc0 1.0",
+  "source": "https://stocksnap.io/photo/stairs-steps-QIO6M5EK05",
+  "frame": "c"
+ },
+ {
+  "file": "ground/services-a.jpg",
+  "page": "services",
+  "frame": "a",
+  "title": "File:Arashiyama Bamboo Grove (Unsplash).jpg",
+  "creator": "Erol Ahmed erol",
+  "licence": "cc0",
+  "source": "https://commons.wikimedia.org/w/index.php?curid=61907514"
+ },
+ {
+  "file": "ground/services-b.jpg",
+  "page": "services",
+  "frame": "b",
+  "title": "Untitled",
+  "creator": "Unknown",
+  "licence": "cc0",
+  "source": "https://www.rawpixel.com/image/5961261/free-public-domain-cc0-photo"
+ },
+ {
+  "file": "ground/services-c.jpg",
+  "page": "services",
+  "title": "Concrete Wall",
+  "creator": "The Building Envelope",
+  "licence": "cc0 1.0",
+  "source": "https://stocksnap.io/photo/concrete-wall-NLJESZLWIU",
+  "frame": "c"
+ },
+ {
+  "file": "ground/work-a.jpg",
+  "page": "work",
+  "frame": "a",
+  "title": "Bamboo Grove",
+  "creator": "Unknown",
+  "licence": "cc0",
+  "source": "https://www.rawpixel.com/image/6082940/bamboo-grove"
+ },
+ {
+  "file": "ground/work-b.jpg",
+  "page": "work",
+  "frame": "b",
+  "title": "Untitled",
+  "creator": "Unknown",
+  "licence": "cc0",
+  "source": "https://www.rawpixel.com/image/5953869/free-public-domain-cc0-photo"
+ },
+ {
+  "file": "ground/work-c.jpg",
+  "page": "work",
+  "title": "Abstract Concrete",
+  "creator": "Wyncliffe",
+  "licence": "cc0 1.0",
+  "source": "https://stocksnap.io/photo/abstract-concrete-DXEDCZC25K",
+  "frame": "c"
  }
 ]

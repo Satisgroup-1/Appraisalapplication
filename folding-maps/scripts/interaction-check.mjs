@@ -153,7 +153,8 @@ const check = (name, ok, extra = '') => results.push(`${ok ? 'PASS' : 'FAIL'}  $
         };
       });
     });
-    bands.push({ path, boxes });
+    const frames = await p.locator('[data-ground] > div:not([class*="plate"])').count();
+    bands.push({ path, boxes, frames });
   }
   const viewport = 1440;
   check(
@@ -162,10 +163,31 @@ const check = (name, ok, extra = '') => results.push(`${ok ? 'PASS' : 'FAIL'}  $
     bands.map((row) => `${row.path}:${row.boxes.length}`).join(' '),
   );
   check(
+    'each band stacks three frames',
+    bands.every((row) => row.frames === 3),
+    bands.map((row) => `${row.path}:${row.frames}`).join(' '),
+  );
+  check(
     'the band runs edge to edge and its image loads',
     bands.every((row) => row.boxes.every((box) => box.complete && Math.abs(box.width - viewport) < 2)),
     bands.map((row) => row.boxes.map((b) => Math.round(b.width)).join()).join(' '),
   );
+
+  // The pause control. Content that animates on its own needs a way to stop
+  // it, and a toggle that flips a class without stopping the animation is the
+  // failure this catches.
+  await p.goto(B + '/about', { waitUntil: 'networkidle' });
+  await p.locator('[data-ground]').scrollIntoViewIfNeeded();
+  const playState = () =>
+    p.evaluate(() => getComputedStyle(document.querySelector('[data-ground] > div')).animationPlayState);
+  const running = await playState();
+  await p.getByRole('button', { name: /Pause the background images/ }).click();
+  const stopped = await playState();
+  await p.getByRole('button', { name: /Resume the background images/ }).click();
+  const restarted = await playState();
+  check('the pause control stops and restarts the cycle',
+    running === 'running' && stopped === 'paused' && restarted === 'running',
+    `${running} -> ${stopped} -> ${restarted}`);
 
   // 9. Keyboard focus visibility
   await p.goto(B + '/', { waitUntil: 'networkidle' });

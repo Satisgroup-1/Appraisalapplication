@@ -4,16 +4,57 @@
 .band {
   position: relative;
   width: 100%;
-  height: clamp(200px, 26vw, 400px);
+  height: clamp(240px, 30vw, 480px);
   overflow: hidden;
   background: var(--surface-2);
   border-top: 1px solid var(--ink);
   border-bottom: 1px solid var(--ink);
 }
 
+/* Three frames stacked, one visible at a time. 27s round, so each holds for
+   about eight seconds and crossfades over one. Slow enough to read as the
+   light changing rather than as a slideshow demanding attention. */
+.frame {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  animation: cycle 27s linear infinite;
+}
+.frame:nth-child(1) { animation-delay: 0s; }
+.frame:nth-child(2) { animation-delay: 9s; }
+.frame:nth-child(3) { animation-delay: 18s; }
+
+@keyframes cycle {
+  0%   { opacity: 0; }
+  3%   { opacity: 1; }
+  30%  { opacity: 1; }
+  36%  { opacity: 0; }
+  100% { opacity: 0; }
+}
+
 .image {
   object-fit: cover;
   object-position: center;
+  /* The shift. One slow push across the frame while it is on screen, which
+     gives the band the drift of a long exposure and never moves fast enough
+     to pull the eye off the text above it. */
+  transform-origin: 50% 45%;
+  animation: drift 27s linear infinite;
+}
+.frame:nth-child(1) .image { animation-delay: 0s; }
+.frame:nth-child(2) .image { animation-delay: 9s; }
+.frame:nth-child(3) .image { animation-delay: 18s; }
+
+@keyframes drift {
+  0%   { transform: scale(1.04) translate3d(-0.8%, 0, 0); }
+  36%  { transform: scale(1.08) translate3d(0.8%, 0, 0); }
+  100% { transform: scale(1.08) translate3d(0.8%, 0, 0); }
+}
+
+/* Paused by the control in the plate. The frame on screen stays on screen. */
+.band[data-paused] .frame,
+.band[data-paused] .image {
+  animation-play-state: paused;
 }
 
 /* A signage plate, set flush into the corner. No radius, no shadow, no inset:
@@ -24,8 +65,10 @@
 }
 
 .label {
-  display: inline-block;
-  padding: var(--s-3) var(--s-5);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-3) var(--s-4) var(--s-3) var(--s-5);
   background: var(--paper);
   font-family: var(--mono);
   font-size: 0.6875rem;
@@ -35,6 +78,31 @@
   color: var(--ink);
 }
 
+.toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color var(--speed) var(--ease), border-color var(--speed) var(--ease);
+}
+.toggle:hover { color: var(--ink); border-color: var(--line-strong); }
+
 @media (max-width: 640px) {
-  .band { height: clamp(160px, 42vw, 240px); }
+  .band { height: clamp(200px, 46vw, 280px); }
+}
+
+/* A visitor who has asked for less motion gets the first frame and nothing
+   moving. The pause control stays, because the animation it controls is not
+   running and a control that reappears on resize is worse than a still one. */
+@media (prefers-reduced-motion: reduce) {
+  .frame, .image { animation: none; }
+  .frame { opacity: 0; }
+  .frame:nth-child(1) { opacity: 1; }
+  .image { transform: none; }
 }

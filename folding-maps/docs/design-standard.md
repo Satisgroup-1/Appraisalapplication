@@ -88,15 +88,25 @@ no decorative illustration. The visual language says the work is the point.
 
 ### Imagery
 
-- One photograph per marketing page, in a band that runs edge to edge. It is
-  the only element on the site that breaks the container, which is what makes
-  it read as a division between sections and not as an illustration inside one.
-- The subject is structure: poured concrete, stairs, facades, fins. Nothing
-  with a person, a screen or a stock-photograph gesture in it.
-- Every image is desaturated and duotoned into the site's ink and paper, so a
-  band cannot introduce a colour the palette does not have.
-- Nothing is written across a band beyond a short mono plate in the corner. A
-  caption would reinstate the text the band exists to replace.
+- One band per marketing page, running edge to edge. It is the only element on
+  the site that breaks the container, which is what makes it read as a division
+  between sections and not as an illustration inside one.
+- Each band cycles three photographs on a 27-second round: two of planting,
+  then one of structure. Planting leads, so a band reads as greenery before it
+  reads as concrete, and the first frame is the one a reduced-motion visitor
+  sees and the one the browser fetches first.
+- Nothing with a person, a screen or a stock-photograph gesture in it.
+- The planting frames keep about half their saturation and are pulled toward
+  the site's olive; the structure frames are duotoned flat. A band may not
+  introduce a colour the palette does not have.
+- The cycle is CSS, so it runs with scripting off and costs nothing on the
+  main thread. The motion is a crossfade and a slow push across the frame. No
+  slide, no parallax, no zoom that draws the eye off the text above it.
+- Motion that starts on its own needs a way to stop it. Every band carries a
+  pause control in its plate, and `prefers-reduced-motion` freezes it on the
+  first frame.
+- Nothing is written across a band beyond the mono plate. A caption would
+  reinstate the text the band exists to replace.
 - Only CC0 material is used. `public/images/ground/CREDITS.json` records the
   title, creator, licence and source URL for every file, and is the licence
   record: anything added to that directory is added there in the same commit.
