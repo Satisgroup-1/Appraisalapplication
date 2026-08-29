@@ -207,10 +207,6 @@ export default async function ServiceDetailPage({ params }: PageProps) {
           <div>
             <span className="kicker">Enquiries</span>
             <h2>Scoping this service.</h2>
-            <p>
-              An enquiry describing the situation as it stands receives a reply setting out
-              what further information would be needed to scope the work.
-            </p>
           </div>
           <Link className="button" href="/contact">
             Start an enquiry <ArrowRight size={17} aria-hidden="true" />

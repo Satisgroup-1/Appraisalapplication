@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
+import { GroundBand } from '@/components/GroundBand';
 import { ServiceDirectory } from '@/components/ServiceDirectory';
 import { services } from '@/lib/services';
 import { createPageMetadata } from '@/lib/seo';
@@ -13,27 +14,29 @@ export const metadata: Metadata = createPageMetadata({
   path: '/services',
 });
 
-/* Three questions, three answers. The point of the section is that most
-   enquiries arrive as one of these, and the reader should recognise theirs. */
+/* Three sentences an enquiry usually arrives as, each pointing at the service
+   that answers it. The answers ran to a short essay apiece; they now run to a
+   sentence, because the detail belongs on the service page they link to and
+   was being written twice. */
 const routes = [
   {
     question: '“We think AI could help, but we cannot tell where.”',
     answer:
-      'The problem here is diagnostic before it is technical. The work starts by measuring where effort goes, which usually contradicts the process map and occasionally contradicts the executive team. It ends with a ranked list of candidates and an honest note on the ones not worth doing.',
+      'A diagnostic problem before a technical one. The work measures where effort actually goes, which usually contradicts the process map.',
     service: 'Strategy and readiness',
     slug: 'ai-strategy',
   },
   {
     question: '“We know what we want built, and we need it to survive contact with the business.”',
     answer:
-      'The risk here is rarely the model. It is integration with systems that were not designed to be integrated with, and an operating model that does not yet exist. Building happens in stages so the first release is defensible on its own, and it is instrumented so its value can be argued for later.',
+      'The risk is integration with systems never designed to be integrated with, and an operating model that does not yet exist.',
     service: 'Custom AI systems',
     slug: 'ai-implementation',
   },
   {
     question: '“We bought the tools and nothing changed.”',
     answer:
-      'Licences are not adoption. When usage stalls it is usually because the tool sits beside the work and not inside it, and because nobody has been given permission to change how the work is done. That is an operating-model problem, and it is fixable without buying anything else.',
+      'Licences are not adoption. Usage stalls when the tool sits beside the work, and that is fixable without buying anything else.',
     service: 'AI adoption and operating model',
     slug: 'enterprise-ai',
   },
@@ -42,14 +45,11 @@ const routes = [
 export default function ServicesPage() {
   return (
     <>
-      <section className="page-hero container">
+      <section className="page-hero page-hero-index container">
         <span className="kicker">{services.length} services</span>
         <h1>Services</h1>
         <p className="lede">
-          The work spans three kinds: advice, delivery, and embedding what gets delivered in
-          how a team already works. The three carry different risks, which is why they stay
-          separate: advice can be wrong on paper, a build can be wrong in production, and an
-          adoption programme can be wrong for a year before anybody notices.
+          Advice, delivery, and embedding what gets delivered in how a team already works.
         </p>
       </section>
 
@@ -60,18 +60,12 @@ export default function ServicesPage() {
         <ServiceDirectory services={services} />
       </section>
 
+      <GroundBand ground="services" plate="Services" />
+
       <section className="section section-surface" aria-labelledby="routes-title">
         <div className="container">
-          <div className="page-head">
-            <div>
-              <span className="kicker">Starting points</span>
-              <h2 id="routes-title">Most enquiries arrive as one of three sentences.</h2>
-            </div>
-            <p className="lede">
-              If one of these is close to yours, the linked service is the usual first
-              project. It is rarely the only one.
-            </p>
-          </div>
+          <span className="kicker">Starting points</span>
+          <h2 id="routes-title">Most enquiries arrive as one of three sentences.</h2>
 
           <div className={styles.routes}>
             {routes.map((route) => (
@@ -92,10 +86,6 @@ export default function ServicesPage() {
           <div>
             <span className="kicker">Enquiries</span>
             <h2>Assessment precedes proposal.</h2>
-            <p>
-              An enquiry describing the problem receives an assessment of which kind of work
-              it calls for, including the cases where the answer lies outside this firm.
-            </p>
           </div>
           <Link className="button" href="/contact">
             Start an enquiry <ArrowRight size={17} aria-hidden="true" />

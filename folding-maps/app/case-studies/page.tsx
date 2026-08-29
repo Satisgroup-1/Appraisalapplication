@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
+import { GroundBand } from '@/components/GroundBand';
 import { cases } from '@/lib/content';
 import styles from './case-studies.module.css';
 import { createPageMetadata } from '@/lib/seo';
@@ -23,14 +24,12 @@ const caseImagery: Record<string, string> = {
 export default function Cases() {
   return (
     <>
-      <section className="page-hero container">
+      <section className="page-hero page-hero-index container">
         <span className="kicker">{cases.length} projects</span>
         <h1>Work</h1>
         <p className="lede">
-          Each one sets out what the client asked for, what discovery found, what got built,
-          what was decided against and how it is being measured. Clients are unnamed where
-          they asked to be. Where a page describes something still being measured, it says so
-          and gives no figure until the measurement exists.
+          What the client asked for, what discovery found, what got built and how it is
+          being measured. Clients are unnamed where they asked to be.
         </p>
       </section>
 
@@ -67,16 +66,13 @@ export default function Cases() {
         </div>
       </section>
 
+      <GroundBand ground="work" plate="Selected work" />
+
       <section className="contact-band">
         <div className="container inner">
           <div>
             <span className="kicker">Enquiries</span>
             <h2>The same problems recur across industries.</h2>
-            <p>
-              Where one of these resembles another operation, a first conversation can begin
-              there. The recurring question is which piece of coordination is failing, and
-              that is often the same in a hotel and a haulage yard.
-            </p>
           </div>
           <Link className="button" href="/contact">
             Start an enquiry <ArrowRight size={17} aria-hidden="true" />

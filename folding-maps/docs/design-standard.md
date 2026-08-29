@@ -86,6 +86,33 @@ no decorative illustration. The visual language says the work is the point.
 - Rules and space do the separating. A card needs a border only when it is
   genuinely a discrete object.
 
+### Imagery
+
+- One photograph per marketing page, in a band that runs edge to edge. It is
+  the only element on the site that breaks the container, which is what makes
+  it read as a division between sections and not as an illustration inside one.
+- The subject is structure: poured concrete, stairs, facades, fins. Nothing
+  with a person, a screen or a stock-photograph gesture in it.
+- Every image is desaturated and duotoned into the site's ink and paper, so a
+  band cannot introduce a colour the palette does not have.
+- Nothing is written across a band beyond a short mono plate in the corner. A
+  caption would reinstate the text the band exists to replace.
+- Only CC0 material is used. `public/images/ground/CREDITS.json` records the
+  title, creator, licence and source URL for every file, and is the licence
+  record: anything added to that directory is added there in the same commit.
+- Article and project pages take no band. They carry their own exhibits, and a
+  decorative image inside an argued piece competes with them.
+
+### Density
+
+- A heading and a standfirst that say the same thing are one thing written
+  twice. Index and marketing pages carry the heading.
+- The closing enquiry band is a heading and a button. The paragraph that used
+  to sit between them repeated the contact page on eight pages at once.
+- This applies to the marketing surfaces only. Case studies and news articles
+  are argued documents and are held to length by their own structure, not by
+  this rule.
+
 ### Motion and interactivity
 
 - Motion is functional: it shows state changing or content arriving. 150–250ms,

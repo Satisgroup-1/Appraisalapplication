@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { articles, cases, articleResearch, caseResearch } from '@/lib/content';
 import { caseEditorial } from '@/lib/caseEditorial';
@@ -165,6 +165,38 @@ describe('house style', () => {
       .map(({ path, copy }) => ({ path, count: (copy.match(/\byour\b/gi) ?? []).length }))
       .filter((row) => row.count > 1);
     expect(pitching).toEqual([]);
+  });
+
+  it('keeps the closing enquiry band to a heading and a button', () => {
+    // The same paragraph, reworded eight times, sat between them on every page
+    // and repeated what /contact says once. The band is signage: a statement
+    // and a way through.
+    const withBands = readdirSync('app', { recursive: true, encoding: 'utf8' })
+      .filter((name) => name.endsWith('page.tsx'))
+      .map((name) => ({ path: `app/${name}`, copy: readFileSync(`app/${name}`, 'utf8') }))
+      .filter(({ copy }) => copy.includes('contact-band'));
+
+    expect(withBands.length).toBeGreaterThan(4);
+    const wordy = withBands
+      .map(({ path, copy }) => ({
+        path,
+        prose: copy.slice(copy.indexOf('contact-band')).match(/<p>/g)?.length ?? 0,
+      }))
+      .filter((row) => row.prose > 0);
+    expect(wordy).toEqual([]);
+  });
+
+  it('records a licence for every ground image it ships', () => {
+    // The band imagery is CC0 and stays that way only if the record is kept
+    // in step with the directory. A file with no entry is a file nobody can
+    // prove the site is allowed to publish.
+    const credits: { file: string; licence: string; source: string }[] = JSON.parse(
+      readFileSync('public/images/ground/CREDITS.json', 'utf8'),
+    );
+    const shipped = readdirSync('public/images/ground').filter((name) => name.endsWith('.jpg'));
+    const recorded = new Set(credits.map((entry) => entry.file.replace(/^ground\//, '')));
+    expect(shipped.filter((name) => !recorded.has(name))).toEqual([]);
+    expect(credits.filter((entry) => !/^cc0/i.test(entry.licence) || !entry.source)).toEqual([]);
   });
 
   it('holds the page copy to the same bans as the content data', () => {

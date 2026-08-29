@@ -182,11 +182,6 @@ export default async function IndustryDetail({ params }: { params: Promise<{ slu
           <div>
             <span className="kicker">Enquiries</span>
             <h2>Sector notes describe the general case.</h2>
-            <p>
-              This page sets out the sector in general terms. An individual operation
-              departs from it in at least one way that matters, and that departure is
-              ordinarily where a first conversation begins.
-            </p>
           </div>
           <Link
             className="button"

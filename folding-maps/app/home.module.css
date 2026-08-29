@@ -9,8 +9,11 @@
 }
 
 .hero h1 {
-  max-width: 22ch;
+  max-width: 15ch;
   margin-bottom: var(--s-6);
+  font-size: clamp(3rem, 8vw, 6.5rem);
+  line-height: 0.94;
+  letter-spacing: -0.05em;
   color: var(--on-dark);
 }
 
@@ -39,46 +42,6 @@
   padding-bottom: clamp(72px, 8vw, 112px);
 }
 
-/* Three facts under the hero. A definition list because that is what it is. */
-.heroFacts {
-  border-top: 1px solid var(--on-dark-line);
-}
-.heroFacts dl {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  margin: 0;
-}
-.heroFacts dl > div {
-  padding: var(--s-6) var(--s-6) var(--s-7) 0;
-  border-right: 1px solid var(--on-dark-line);
-}
-.heroFacts dl > div:last-child { border-right: 0; }
-.heroFacts dt {
-  margin-bottom: var(--s-3);
-  font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--on-dark-muted);
-}
-.heroFacts dd {
-  margin: 0;
-  max-width: 34ch;
-  font-size: 0.9375rem;
-  line-height: 1.6;
-  color: var(--on-dark);
-}
-
-@media (max-width: 860px) {
-  .heroFacts dl { grid-template-columns: 1fr; }
-  .heroFacts dl > div {
-    padding: var(--s-5) 0;
-    border-right: 0;
-    border-bottom: 1px solid var(--on-dark-line);
-  }
-  .heroFacts dl > div:last-child { border-bottom: 0; }
-}
-
 /* -------------------------------------------------------------------------- */
 
 .positions {
@@ -94,7 +57,6 @@
 }
 .position h3 { margin-bottom: var(--s-5); font-size: var(--step-2); }
 .position p { font-size: 0.9375rem; line-height: 1.7; color: var(--ink-90); }
-.position p + p { margin-top: var(--s-4); }
 
 .positionNum {
   display: block;
@@ -169,8 +131,7 @@
   justify-content: space-between;
   gap: var(--s-8);
 }
-.contact h2 { margin-bottom: var(--s-5); max-width: 20ch; }
-.contact p { margin: 0; max-width: 52ch; color: var(--muted); }
+.contact h2 { margin: 0; max-width: 20ch; }
 
 @media (max-width: 860px) {
   .contact > div { flex-direction: column; align-items: flex-start; gap: var(--s-6); }

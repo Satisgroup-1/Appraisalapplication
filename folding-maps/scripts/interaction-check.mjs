@@ -127,7 +127,47 @@ const check = (name, ok, extra = '') => results.push(`${ok ? 'PASS' : 'FAIL'}  $
   await m.waitForTimeout(250);
   check('escape closes the mobile menu', !(await m.getByRole('navigation', { name: 'Main navigation' }).isVisible()));
 
-  // 8. Keyboard focus visibility
+  // 8. The ground band. It is the one element on the site that breaks the
+  // container, and a CSS-module class name that silently stops matching would
+  // leave it boxed inside the gutter with nothing failing anywhere else.
+  const bandPages = ['/', '/services', '/industries', '/case-studies', '/news', '/about', '/contact'];
+  const bands = [];
+  for (const path of bandPages) {
+    await p.goto(B + path, { waitUntil: 'networkidle' });
+    // The band sits below the fold on every page, so next/image defers it.
+    // Scroll it into view and wait for the decode before asking whether it
+    // loaded, or the check measures the lazy placeholder.
+    await p.locator('[data-ground]').first().scrollIntoViewIfNeeded();
+    await p.waitForFunction(() => {
+      const img = document.querySelector('[data-ground] img');
+      return Boolean(img && img.complete && img.naturalWidth > 0);
+    }, null, { timeout: 5000 });
+    const boxes = await p.evaluate(() => {
+      // next/image rewrites src through the optimiser, so the band carries its
+      // own data attribute and the image is found inside it.
+      return [...document.querySelectorAll('[data-ground]')].map((band) => {
+        const img = band.querySelector('img');
+        return {
+          width: band.getBoundingClientRect().width,
+          complete: Boolean(img && img.complete && img.naturalWidth > 0),
+        };
+      });
+    });
+    bands.push({ path, boxes });
+  }
+  const viewport = 1440;
+  check(
+    'every marketing page carries exactly one ground band',
+    bands.every((row) => row.boxes.length === 1),
+    bands.map((row) => `${row.path}:${row.boxes.length}`).join(' '),
+  );
+  check(
+    'the band runs edge to edge and its image loads',
+    bands.every((row) => row.boxes.every((box) => box.complete && Math.abs(box.width - viewport) < 2)),
+    bands.map((row) => row.boxes.map((b) => Math.round(b.width)).join()).join(' '),
+  );
+
+  // 9. Keyboard focus visibility
   await p.goto(B + '/', { waitUntil: 'networkidle' });
   await p.keyboard.press('Tab');
   const focused = await p.evaluate(() => document.activeElement?.className || '');

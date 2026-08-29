@@ -1,4 +1,5 @@
 import { ContactForm } from '@/components/ContactForm';
+import { GroundBand } from '@/components/GroundBand';
 import styles from './contact.module.css';
 import { createPageMetadata } from '@/lib/seo';
 
@@ -16,26 +17,25 @@ const process = [
     step: '01',
     title: 'A reply within one working day',
     detail:
-      'One of the two lead consultants reads your enquiry and writes back. The reply either sets out the questions still needed to scope the work, or explains why this is not something to take on, and who might be better placed.',
+      'One of the two lead consultants replies: either the questions still needed to scope the work, or why this is not something to take on and who might be better placed.',
   },
   {
     step: '02',
     title: 'An initial consultation',
     detail:
-      'A scheduled call to talk through the work in more detail. It ends with an outline of what we would look at first and roughly what that would take.',
+      'A scheduled call, ending with an outline of what would be looked at first and roughly what that would take.',
   },
 ];
 
 export default function Contact() {
   return (
     <>
-      <section className="page-hero container">
+      <section className="page-hero page-hero-index container">
         <span className="kicker">Enquiries</span>
         <h1>Contact</h1>
         <p className="lede">
           Enquiries are read by one of the two lead consultants and answered within one
-          working day, ordinarily followed by an initial consultation. A formal brief is not
-          required.
+          working day. A formal brief is not required.
         </p>
       </section>
 
@@ -79,7 +79,7 @@ export default function Contact() {
                 <dt>Confidentiality</dt>
                 <dd>
                   Enquiries are treated as confidential. A non-disclosure agreement can be
-                  signed before a first conversation where that is preferred.
+                  signed before a first conversation.
                 </dd>
               </div>
             </dl>
@@ -95,6 +95,8 @@ export default function Contact() {
           <ContactForm />
         </div>
       </div>
+
+      <GroundBand ground="contact" plate="Enquiries" />
     </>
   );
 }

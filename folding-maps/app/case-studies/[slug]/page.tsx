@@ -182,10 +182,6 @@ export default async function CaseDetail({ params }: { params: Promise<{ slug: s
           <div>
             <span className="kicker">Enquiries</span>
             <h2>Comparable engagements.</h2>
-            <p>
-              Where this account resembles another operation, the useful first step is a
-              conversation about the differences.
-            </p>
           </div>
           <Link className="button" href="/contact">
             Start an enquiry <ArrowRight size={17} aria-hidden="true" />

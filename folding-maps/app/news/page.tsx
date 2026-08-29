@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
+import { GroundBand } from '@/components/GroundBand';
 import { articles } from '@/lib/content';
 import { newsEditorial } from '@/lib/newsEditorial';
 import styles from './news.module.css';
@@ -18,13 +19,12 @@ export default function News() {
 
   return (
     <>
-      <section className="page-hero container">
+      <section className="page-hero page-hero-index container">
         <span className="kicker">{articles.length} articles</span>
         <h1>Insights</h1>
         <p className="lede">
           Each one takes a position, sets out the case against it, and links every figure to
-          where it came from. Where the evidence is thin we say so and stop short of a
-          recommendation.
+          where it came from.
         </p>
       </section>
 
@@ -65,16 +65,13 @@ export default function News() {
         </div>
       </section>
 
+      <GroundBand ground="insights" plate="Insights" />
+
       <section className="contact-band">
         <div className="container inner">
           <div>
             <span className="kicker">Enquiries</span>
             <h2>Correspondence on these arguments.</h2>
-            <p>
-              These are arguments, and they are improved by being tested against a real
-              operation. Operating data that contradicts one is more useful here than a
-              defence of the piece.
-            </p>
           </div>
           <Link className="button" href="/contact">
             Start an enquiry <ArrowRight size={17} aria-hidden="true" />

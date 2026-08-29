@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import styles from './home.module.css';
+import { GroundBand } from '@/components/GroundBand';
 import { JsonLd } from '@/components/JsonLd';
 import { articles, cases } from '@/lib/content';
 import { services } from '@/lib/services';
@@ -37,28 +38,22 @@ const homeJsonLd = [
 ];
 
 /* The firm's position, stated as three arguments and not three adjectives.
-   Each names the claim, the reasoning behind it and what it costs us. */
+   Each ran to two paragraphs and now runs to one: the second paragraph in each
+   case restated the first at greater length, which is the habit this pass is
+   removing. The clause that costs us something is kept, because it is the only
+   part a competitor would not also print. */
 const positions = [
   {
     claim: 'The model is rarely the constraint.',
-    body: [
-      'Frontier models are now good enough for most of the work an SME would put to them. A system holds up or fails on the process around it: whether the data it reads is current, whether the hand-offs between people are defined, and whether somebody owns the exception when the answer is wrong.',
-      'So the first weeks of an engagement go on the workflow. Model selection comes later and matters less than most people expect. It is the least interesting part of the work and the most reliable source of value in it.',
-    ],
+    body: 'Frontier models are now good enough for most of the work an SME would put to them. A system holds up or fails on the process around it: whether the data it reads is current, whether the hand-offs between people are defined, and whether somebody owns the exception when the answer is wrong. Model selection comes later and matters less than most people expect.',
   },
   {
     claim: 'A system the client cannot run is not a result.',
-    body: [
-      'A pilot that depends on its builders is a liability dressed as progress. It works while attention is on it and decays quietly afterwards, usually at the point where the original team has moved on and nobody remembers which threshold was set by hand.',
-      'The handover is designed for from the start: documented decisions, tests that fail loudly, and an operating model naming who maintains what. That costs time in the build and is the reason the work survives us.',
-    ],
+    body: 'A pilot that depends on its builders is a liability dressed as progress. It works while attention is on it and decays once the original team has moved on and nobody remembers which threshold was set by hand. The handover is designed for from the start, which costs time in the build and is the reason the work survives us.',
   },
   {
     claim: 'Automation has to be argued for.',
-    body: [
-      'The case for automating a task is an empirical claim, and it is usually made without evidence. Multiplying estimated minutes by a salary rate produces a number. It falls short of a business case because the minutes saved are rarely contiguous and the quality cost is rarely counted.',
-      'The baseline comes before the build, and we say so when the evidence does not support the work. Declining a project is cheaper for both sides than delivering one that cannot be defended at the next budget review.',
-    ],
+    body: 'The case for automating a task is an empirical claim, and it is usually made without evidence. Multiplying estimated minutes by a salary rate produces a number and falls short of a business case. The baseline comes before the build, and we say so when the evidence does not support the work.',
   },
 ];
 
@@ -89,66 +84,29 @@ export default function Home() {
             </Link>
           </div>
         </div>
-
-        <div className={styles.heroFacts}>
-          <div className="container">
-            <dl>
-              <div>
-                <dt>Practice</dt>
-                <dd>Advice and delivery in one team, so the advice has to survive being built</dd>
-              </div>
-              <div>
-                <dt>Clients</dt>
-                <dd>UK small and mid-sized companies, and the operators inside them</dd>
-              </div>
-              <div>
-                <dt>Base</dt>
-                <dd>London, working UK-wide</dd>
-              </div>
-            </dl>
-          </div>
-        </div>
       </section>
 
       <section className="section container" aria-labelledby="position-title">
-        <div className="page-head">
-          <div>
-            <span className="kicker">Our position</span>
-            <h2 id="position-title">Three things clients hear early.</h2>
-          </div>
-          <p className="lede">
-            Every firm in this market calls itself practical and outcome-led, which tells a
-            buyer nothing. These three are what would be said in front of a board,
-            including the parts that cost us work.
-          </p>
-        </div>
+        <span className="kicker">Our position</span>
+        <h2 id="position-title">Three things clients hear early.</h2>
 
         <div className={styles.positions}>
           {positions.map((position, index) => (
             <article className={styles.position} key={position.claim}>
               <span className={styles.positionNum}>{String(index + 1).padStart(2, '0')}</span>
               <h3>{position.claim}</h3>
-              {position.body.map((paragraph) => (
-                <p key={paragraph.slice(0, 40)}>{paragraph}</p>
-              ))}
+              <p>{position.body}</p>
             </article>
           ))}
         </div>
       </section>
 
+      <GroundBand ground="home" plate="Quiet Gears" />
+
       <section className="section section-surface" aria-labelledby="services-title">
         <div className="container">
-          <div className="page-head">
-            <div>
-              <span className="kicker">Services</span>
-              <h2 id="services-title">The advice and the building, in one place.</h2>
-            </div>
-            <p className="lede">
-              Most AI programmes are advised on by one firm and built by another. That split
-              is where they come apart. Doing both means our advice has to survive being
-              built.
-            </p>
-          </div>
+          <span className="kicker">Services</span>
+          <h2 id="services-title">The advice and the building, in one place.</h2>
 
           <div className="index-list">
             {featuredServices.map((service, index) => (
@@ -172,16 +130,8 @@ export default function Home() {
       </section>
 
       <section className="section container" aria-labelledby="work-title">
-        <div className="page-head">
-          <div>
-            <span className="kicker">Projects</span>
-            <h2 id="work-title">Three projects from the work.</h2>
-          </div>
-          <p className="lede">
-            Each one sets out what the client asked for, what discovery found, what got
-            built and how it is being measured.
-          </p>
-        </div>
+        <span className="kicker">Projects</span>
+        <h2 id="work-title">Three projects from the work.</h2>
 
         <div className={styles.cardGrid}>
           {featuredCases.map((item) => (
@@ -199,16 +149,8 @@ export default function Home() {
 
       <section className="section section-surface" aria-labelledby="insight-title">
         <div className="container">
-          <div className="page-head">
-            <div>
-              <span className="kicker">Insights</span>
-              <h2 id="insight-title">Recent writing.</h2>
-            </div>
-            <p className="lede">
-              Long pieces on AI in UK businesses. Each one takes a position, sets out the
-              case against it, and links every figure to where it came from.
-            </p>
-          </div>
+          <span className="kicker">Insights</span>
+          <h2 id="insight-title">Recent writing.</h2>
 
           <div className={styles.cardGrid}>
             {featuredArticles.map((item) => (
@@ -238,11 +180,6 @@ export default function Home() {
           <div>
             <span className="kicker">Enquiries</span>
             <h2 id="contact-title">The first conversation is diagnostic.</h2>
-            <p>
-              It establishes what the problem is before any proposal follows. Where the
-              problem does not require this firm, the reply says so and names who it does
-              require.
-            </p>
           </div>
           <Link className="button" href="/contact">
             Start an enquiry <ArrowRight size={17} aria-hidden="true" />

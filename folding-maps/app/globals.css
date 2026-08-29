@@ -445,6 +445,23 @@ th { font-weight: 600; font-size: var(--step--1); letter-spacing: 0.04em; text-t
 .page-hero h1 { max-width: 20ch; }
 .page-hero .lede { margin-top: var(--s-5); }
 
+/* The index pages carry a one-word title. Set at the body scale it read as a
+   label sitting on top of a paragraph; set as signage it becomes the thing the
+   page is, which is what allowed the paragraphs under it to be cut. Kept off
+   the detail pages, whose titles run to eight or ten words and would fill a
+   screen at this size. */
+.page-hero-index {
+  padding-top: clamp(72px, 9vw, 152px);
+  padding-bottom: clamp(48px, 5.5vw, 96px);
+}
+.page-hero-index h1 {
+  max-width: 14ch;
+  font-size: clamp(3rem, 8vw, 6.5rem);
+  line-height: 0.94;
+  letter-spacing: -0.05em;
+}
+.page-hero-index .lede { margin-top: var(--s-6); max-width: 48ch; }
+
 /* The closing enquiry band. One per page, never two. */
 .contact-band {
   padding-block: clamp(64px, 7vw, 104px);
@@ -457,8 +474,13 @@ th { font-weight: 600; font-size: var(--step--1); letter-spacing: 0.04em; text-t
   justify-content: space-between;
   gap: var(--s-8);
 }
-.contact-band h2 { max-width: 20ch; margin-bottom: var(--s-5); color: var(--on-dark); }
-.contact-band p { margin: 0; max-width: 52ch; color: var(--on-dark-muted); }
+.contact-band h2 {
+  max-width: 16ch;
+  margin: 0;
+  font-size: clamp(1.75rem, 2.6vw + 1.1rem, 3.25rem);
+  letter-spacing: -0.038em;
+  color: var(--on-dark);
+}
 .contact-band .button {
   background: var(--on-dark);
   border-color: var(--on-dark);
